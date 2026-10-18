@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # MT6765 modem (MD1) and the stock MediaTek RIL on the mainline kernel.
 # DRAFT for Stage 3: include from device.mk once the kernel side (mtk-ccci.ko,
-# DT &modem) has brought the modem to READY by hand. See README.md.
+# DT &modem) has brought the modem to READY by hand. See docs/device/modem.md in r1-tools.
 #
 # Blobs: vendor/rabbit/r1-modem/proprietary/ holds the files in blobs.txt,
 # copied verbatim from out/stock-vendor/tree except libnvram.so and
 # libsysenv.so, which get "patchelf --add-needed libr1_base_shim.so", and
-# libmtkutils.so and its users, renamed by rename-mtkutils.py (README.md).
+# libmtkutils.so and its users, renamed by rename-mtkutils.py (r1-tools docs/device/modem.md).
 # Board side: BoardConfigModem.mk (sepolicy, framework matrix).
 
 R1_MODEM_PATH := device/rabbit/r1/modem

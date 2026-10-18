@@ -228,7 +228,7 @@ wifi_error init_wifi_vendor_hal_func_table(wifi_hal_fn* fn)
     // WIFI_ERROR_NOT_SUPPORTED (initHalFuncTableWithStubs) before calling
     // this, so only the implemented entry points are set. In particular
     // wifi_virtual_interface_create stays a stub, which the service accepts
-    // (see README.md).
+    // (see r1-tools docs/device/wifi-hal.md).
     fn->wifi_wait_for_driver_ready = wifi_wait_for_driver_ready;
     fn->wifi_initialize = wifi_initialize;
     fn->wifi_cleanup = wifi_cleanup;

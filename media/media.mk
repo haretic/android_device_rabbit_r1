@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # MT6765 hardware video codec: the stock MediaTek Codec2 HAL on the
 # mainline /dev/Vcodec driver (drivers/staging/mtk-vcodec-compat). See
-# README.md for the hookup and the staged bring-up.
+# r1-tools docs/device/media.md for the hookup and the staged bring-up.
 #
 # Blobs: vendor/rabbit/r1-media/proprietary/ holds the files in blobs.txt,
 # copied from out/stock-vendor/tree and patched as blobs.txt describes:
@@ -129,7 +129,7 @@ PRODUCT_COPY_FILES += \
 
 # The framework only lists HAL components named in a codec list. Stage 1
 # lists the hardware H.264 encoder; stage 2 adds the H.264 and HEVC decoders
-# (README.md, "Stages"). With no list the HAL runs but the c2.android
+# (r1-tools docs/device/media.md, "Stages"). With no list the HAL runs but the c2.android
 # software codecs do all the work.
 R1_MEDIA_HW_ENCODE ?= true
 R1_MEDIA_HW_DECODE ?= true
