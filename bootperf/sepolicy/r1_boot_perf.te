@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+type r1_boot_perf, domain;
+type r1_boot_perf_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(r1_boot_perf)
+allow r1_boot_perf vendor_shell_exec:file rx_file_perms;
+allow r1_boot_perf vendor_toolbox_exec:file rx_file_perms;
+allow r1_boot_perf sysfs:dir r_dir_perms;
+allow r1_boot_perf sysfs:lnk_file read;
+r_dir_file(r1_boot_perf, sysfs_batteryinfo)
+allow r1_boot_perf sysfs_devices_system_cpu:dir r_dir_perms;
+allow r1_boot_perf sysfs_devices_system_cpu:file rw_file_perms;
+allow r1_boot_perf kmsg_device:chr_file w_file_perms;

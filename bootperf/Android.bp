@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0
+sh_binary {
+    name: "r1-boot-perf.sh",
+    src: "r1-boot-perf.sh",
+    vendor: true,
+    init_rc: ["r1-boot-perf.rc"],
+}

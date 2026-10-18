@@ -32,6 +32,7 @@ include $(DEVICE_PATH)/connectivity/BoardConfigConnectivity.mk
 include $(DEVICE_PATH)/camera/BoardConfigCamera.mk
 ifeq ($(TARGET_PRODUCT),lineage_r1_soc)
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/health/sepolicy
+BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/bootperf/sepolicy
 endif
 # expdb requires its bounded mapper before pstore_blk is loaded.
 BOARD_VENDOR_KERNEL_MODULES_LOAD := false
