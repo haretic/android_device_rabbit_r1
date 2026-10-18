@@ -4,7 +4,7 @@
 #
 # MediaTek MT6765 CONSYS Wi-Fi and Bluetooth on the mainline kernel
 # (drivers/staging/mtk-connectivity: mtk_btif_drv, wmt_drv, wmt_chrdev_wifi,
-# wlan_drv_gen4m, btmtk_wmt). See README.md in this directory.
+# wlan_drv_gen4m, btmtk_wmt). See docs/device/connectivity.md in r1-tools.
 #
 # This file is not matched by the optional/*/product.mk glob. Inherit it
 # from the device makefile and include BoardConfigConnectivity.mk from the

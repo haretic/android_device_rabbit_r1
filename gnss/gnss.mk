@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # MT6765 CONSYS GPS and the stock MediaTek GNSS userspace (mnld and the
 # android.hardware.gnss-service.mediatek HAL) on the mainline kernel's
-# gps_drv.ko. See README.md.
+# gps_drv.ko. See docs/device/gnss.md in r1-tools.
 #
 # Needs modem/modem.mk (libnvram.so, libhidltransport, hwservicemanager)
 # and connectivity/connectivity.mk (wmt_drv, vendor.connsys.driver.ready).
