@@ -72,6 +72,7 @@ PRODUCT_PACKAGES += \
     SettingsR1 \
     SettingsProviderR1 \
     LineageSdkR1 \
+    LineageSettingsProviderR1 \
     SystemUIR1 \
     r1-expdb
 
