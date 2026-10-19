@@ -6,4 +6,10 @@
          WifiScoreCard and WifiDataStall lines an hour. The developer option
          still turns it on. -->
     <integer name="config_wifiVerboseLoggingAlwaysOnLevel">0</integer>
+    <!-- One stable MAC (the factory one gen4m gets from nvdata) while the R1 is
+         in development: per-network randomization would hand the LAN's DHCP
+         server a new client on every reflash. Stock leaves these off too. -->
+    <bool name="config_wifi_connected_mac_randomization_supported">false</bool>
+    <bool name="config_wifiAllowNonPersistentMacRandomizationOnOpenSsids">false</bool>
+    <bool name="config_wifi_p2p_mac_randomization_supported">false</bool>
 </resources>
