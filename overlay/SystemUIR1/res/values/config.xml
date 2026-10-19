@@ -7,4 +7,6 @@
     <bool name="config_powerMenuStats">true</bool>
     <!-- Wheel moves the focus, the side button presses -->
     <bool name="config_powerMenuWheelNavigation">true</bool>
+    <!-- A last, louder low battery warning shortly before the r1 turns itself off -->
+    <integer name="config_lastBatteryWarningLevel">3</integer>
 </resources>
