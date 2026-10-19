@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// wpa_supplicant private driver commands for gen4m (BOARD_WPA_SUPPLICANT_PRIVATE_LIB).
+cc_library_static {
+    name: "lib_driver_cmd_gen4m",
+    vendor: true,
+    srcs: ["driver_cmd_gen4m.c"],
+    cflags: [
+        "-DCONFIG_ANDROID_LOG",
+        "-DCONFIG_P2P",
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-Wno-macro-redefined",
+    ],
+    include_dirs: [
+        "external/libnl/include",
+        "external/wpa_supplicant_8/src",
+        "external/wpa_supplicant_8/src/common",
+        "external/wpa_supplicant_8/src/drivers",
+        "external/wpa_supplicant_8/src/l2_packet",
+        "external/wpa_supplicant_8/src/utils",
+        "external/wpa_supplicant_8/src/wps",
+        "external/wpa_supplicant_8/wpa_supplicant",
+    ],
+    defaults: ["wpa_supplicant_cflags_default"],
+}
