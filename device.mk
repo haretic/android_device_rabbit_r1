@@ -158,6 +158,17 @@ PRODUCT_COPY_FILES += \
     vendor/lineage-priv/keymint/keybox.xml:$(TARGET_COPY_OUT_VENDOR)/etc/keymint/keybox.xml
 endif
 
+# Debuggable builds: recovery's adbd trusts the development host, so a reboot
+# into recovery can be left without its menu. Its /adb_keys links to
+# /product/etc/security/adb_keys and recovery never mounts /product, so the key
+# goes there in the recovery ramdisk.
+ifneq ($(filter eng userdebug,$(TARGET_BUILD_VARIANT)),)
+ifneq ($(wildcard vendor/lineage-priv/adb/adb_keys),)
+PRODUCT_COPY_FILES += \
+    vendor/lineage-priv/adb/adb_keys:$(TARGET_COPY_OUT_RECOVERY)/root/product/etc/security/adb_keys
+endif
+endif
+
 # 140 matches the panel's physical density but made the UI too small to use;
 # 186 is the display size picked on the device.
 TARGET_SCREEN_WIDTH := 480
