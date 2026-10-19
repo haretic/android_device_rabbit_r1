@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Оверлей производительности</string>
+    <string name="overlay_summary">Показывать FPS, CPU, температуру и батарею поверх игр</string>
+
+    <string name="overlay_switch">Показывать оверлей</string>
+    <string name="overlay_style">Что показывать</string>
+    <string name="overlay_position">Положение</string>
+
+    <string-array name="style_entries">
+        <item>Только FPS</item>
+        <item>FPS, CPU, температура и батарея</item>
+        <item>Всё, с частотами, памятью и временем</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Вверху слева</item>
+        <item>Вверху справа</item>
+        <item>Внизу слева</item>
+        <item>Внизу справа</item>
+    </string-array>
+
+    <string name="overlay_about">FPS — сколько кадров экран показал за последнюю секунду. Если на экране ничего не движется, значение падает до 0, это нормально.\n\nЦифры обновляются раз в секунду и почти не нагружают консоль. Если с оверлеем игра стала медленнее, выключите его или выберите «Только FPS».\n\nПосле первого использования оверлея в быстрых настройках появится плитка «Оверлей производительности».</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Оверлей производительности</string>
+    <string name="notification_title">Оверлей производительности включён</string>
+    <string name="notification_text">Нажмите, чтобы выбрать, что показывать</string>
+    <string name="notification_turn_off">Выключить</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Оверлей</string>
+    <string name="tile_on">Вкл.</string>
+    <string name="tile_off">Выкл.</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">ТЕМП</string>
+    <string name="hud_bat">БАТ</string>
+    <string name="hud_ram">RAM</string>
+</resources>

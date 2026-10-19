@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Sobreposição de desempenho</string>
+    <string name="overlay_summary">Mostra FPS, CPU, temperatura e bateria por cima dos jogos</string>
+
+    <string name="overlay_switch">Mostrar a sobreposição</string>
+    <string name="overlay_style">Mostra</string>
+    <string name="overlay_position">Posição</string>
+
+    <string-array name="style_entries">
+        <item>Só FPS</item>
+        <item>FPS, CPU, temperatura e bateria</item>
+        <item>Tudo, com velocidades, memória e hora</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Superior esquerdo</item>
+        <item>Superior direito</item>
+        <item>Inferior esquerdo</item>
+        <item>Inferior direito</item>
+    </string-array>
+
+    <string name="overlay_about">FPS é quantos quadros a tela mostrou no último segundo. Ele cai para 0 quando nada se mexe na tela, isso é normal.\n\nOs números são atualizados uma vez por segundo e quase não pesam. Se um jogo ficar mais lento com a sobreposição ativada, desative-a ou escolha Só FPS.\n\nAs Configurações rápidas ganham um bloco Sobreposição de desempenho depois que você usa a sobreposição.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Sobreposição de desempenho</string>
+    <string name="notification_title">Sobreposição de desempenho ativada</string>
+    <string name="notification_text">Toque para mudar o que ela mostra</string>
+    <string name="notification_turn_off">Desativar</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Sobrep. desemp.</string>
+    <string name="tile_on">Ativada</string>
+    <string name="tile_off">Desativada</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">TEMP</string>
+    <string name="hud_bat">BAT</string>
+    <string name="hud_ram">RAM</string>
+</resources>

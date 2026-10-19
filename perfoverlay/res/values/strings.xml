@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Performance overlay</string>
+    <string name="overlay_summary">Show FPS, CPU, temperature and battery on top of games</string>
+
+    <string name="overlay_switch">Show the overlay</string>
+    <string name="overlay_style">Shows</string>
+    <string name="overlay_position">Position</string>
+
+    <string-array name="style_entries">
+        <item>FPS only</item>
+        <item>FPS, CPU, temperature and battery</item>
+        <item>Everything, with speeds, memory and the time</item>
+    </string-array>
+    <string-array name="style_values" translatable="false">
+        <item>fps</item>
+        <item>compact</item>
+        <item>full</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Top left</item>
+        <item>Top right</item>
+        <item>Bottom left</item>
+        <item>Bottom right</item>
+    </string-array>
+    <string-array name="position_values" translatable="false">
+        <item>top_left</item>
+        <item>top_right</item>
+        <item>bottom_left</item>
+        <item>bottom_right</item>
+    </string-array>
+
+    <string name="overlay_about">FPS is how many frames the screen showed in the last second. It drops to 0 when nothing on screen moves, that\'s normal.\n\nThe numbers update once a second and cost next to nothing. If a game gets slower with the overlay on, turn it off or pick FPS only.\n\nQuick Settings gets a Performance overlay tile once you have used the overlay.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Performance overlay</string>
+    <string name="notification_title">Performance overlay is on</string>
+    <string name="notification_text">Tap to change what it shows</string>
+    <string name="notification_turn_off">Turn off</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Perf overlay</string>
+    <string name="tile_on">On</string>
+    <string name="tile_off">Off</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">TEMP</string>
+    <string name="hud_bat">BAT</string>
+    <string name="hud_ram">RAM</string>
+    <string name="hud_storage">STOR</string>
+</resources>

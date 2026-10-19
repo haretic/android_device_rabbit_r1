@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Nakładka wydajności</string>
+    <string name="overlay_summary">Pokazuj FPS, CPU, temperaturę i baterię nad grami</string>
+
+    <string name="overlay_switch">Pokazuj nakładkę</string>
+    <string name="overlay_style">Pokazuje</string>
+    <string name="overlay_position">Położenie</string>
+
+    <string-array name="style_entries">
+        <item>Tylko FPS</item>
+        <item>FPS, CPU, temperatura i bateria</item>
+        <item>Wszystko, z taktowaniem, pamięcią i godziną</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Lewy górny róg</item>
+        <item>Prawy górny róg</item>
+        <item>Lewy dolny róg</item>
+        <item>Prawy dolny róg</item>
+    </string-array>
+
+    <string name="overlay_about">FPS to liczba klatek, które ekran pokazał w ostatniej sekundzie. Spada do 0, gdy nic na ekranie się nie rusza, to normalne.\n\nLiczby odświeżają się raz na sekundę i prawie nic nie kosztują. Jeśli gra zwalnia z włączoną nakładką, wyłącz ją lub wybierz Tylko FPS.\n\nPo pierwszym użyciu nakładki w Szybkich ustawieniach pojawi się kafelek Nakładka wydajności.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Nakładka wydajności</string>
+    <string name="notification_title">Nakładka wydajności jest włączona</string>
+    <string name="notification_text">Kliknij, aby zmienić, co pokazuje</string>
+    <string name="notification_turn_off">Wyłącz</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Nakładka wyd.</string>
+    <string name="tile_on">Wł.</string>
+    <string name="tile_off">Wył.</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">TEMP</string>
+    <string name="hud_bat">BAT</string>
+    <string name="hud_ram">RAM</string>
+</resources>

@@ -73,6 +73,7 @@ PRODUCT_PACKAGES += \
     SettingsProviderR1 \
     LineageSdkR1 \
     LineageSettingsProviderR1 \
+    PerfOverlay \
     SystemUIR1 \
     r1-expdb
 

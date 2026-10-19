@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Performans katmanı</string>
+    <string name="overlay_summary">Oyunların üstünde FPS, CPU, sıcaklık ve pili gösterin</string>
+
+    <string name="overlay_switch">Katmanı göster</string>
+    <string name="overlay_style">Gösterilen</string>
+    <string name="overlay_position">Konum</string>
+
+    <string-array name="style_entries">
+        <item>Yalnızca FPS</item>
+        <item>FPS, CPU, sıcaklık ve pil</item>
+        <item>Her şey: hızlar, bellek ve saat dahil</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Sol üst</item>
+        <item>Sağ üst</item>
+        <item>Sol alt</item>
+        <item>Sağ alt</item>
+    </string-array>
+
+    <string name="overlay_about">FPS, ekranın son bir saniyede gösterdiği kare sayısıdır. Ekranda hiçbir şey hareket etmediğinde 0\'a düşer, bu normaldir.\n\nDeğerler saniyede bir güncellenir ve neredeyse hiç yük getirmez. Katman açıkken bir oyun yavaşlarsa katmanı kapatın veya Yalnızca FPS\'yi seçin.\n\nKatmanı bir kez kullandıktan sonra Hızlı Ayarlar\'a bir Performans katmanı kutusu eklenir.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Performans katmanı</string>
+    <string name="notification_title">Performans katmanı açık</string>
+    <string name="notification_text">Gösterilenleri değiştirmek için dokunun</string>
+    <string name="notification_turn_off">Kapat</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Perf. katmanı</string>
+    <string name="tile_on">Açık</string>
+    <string name="tile_off">Kapalı</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">SIC</string>
+    <string name="hud_bat">PİL</string>
+    <string name="hud_ram">RAM</string>
+</resources>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cat.kenny.r1.perfoverlay"
+    android:sharedUserId="android.uid.system">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/ic_perf_overlay"
+        android:label="@string/overlay_title"
+        android:supportsRtl="true">
+
+        <!-- Injected into the top level of the Settings app, in the device group.
+             Also opened by a long press on the tile. -->
+        <activity
+            android:name=".OverlayActivity"
+            android:exported="true"
+            android:label="@string/overlay_title"
+            android:theme="@android:style/Theme.DeviceDefault.Settings">
+            <intent-filter>
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+            <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.homepage" />
+            <!-- Same order as Controller test; ties sort by title, so this lands right
+                 after it and before Storage (-60). -->
+            <meta-data
+                android:name="com.android.settings.order"
+                android:value="-61" />
+            <meta-data
+                android:name="com.android.settings.keyhint"
+                android:value="top_level_perf_overlay" />
+            <meta-data
+                android:name="com.android.settings.summary"
+                android:resource="@string/overlay_summary" />
+            <meta-data
+                android:name="com.android.settings.icon"
+                android:resource="@drawable/ic_perf_overlay" />
+            <meta-data
+                android:name="com.android.settings.bg.hint"
+                android:resource="@color/overlay_icon_background" />
+        </activity>
+
+        <service
+            android:name=".HudService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Performance overlay drawn on top of other apps" />
+        </service>
+
+        <!-- Off until the overlay is used for the first time, see Hud.showTile() -->
+        <service
+            android:name=".HudTileService"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/ic_perf_overlay"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <!-- SystemUI keeps the last state and only binds on a click or when the app
+                 asks for an update (Hud.apply) -->
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+        </service>
+
+        <!-- Puts the overlay back after a restart if it was on. The app switches it off
+             while the overlay is off. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Switches the overlay on or off, e.g. from a key shortcut in system_server.
+             Only senders holding DEVICE_POWER (the system) may use it. -->
+        <receiver
+            android:name=".ToggleReceiver"
+            android:exported="true"
+            android:permission="android.permission.DEVICE_POWER">
+            <intent-filter>
+                <action android:name="cat.kenny.r1.perfoverlay.action.TOGGLE" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

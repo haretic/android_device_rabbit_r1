@@ -1,0 +1,5 @@
+# The performance overlay (perfoverlay/, system uid) shows how busy the eMMC is and the DRAM
+# clock.
+allow system_app sysfs_r1_mmc:dir search;
+allow system_app sysfs_r1_mmc:file r_file_perms;
+allow system_app sysfs_devfreq_cur:file r_file_perms;

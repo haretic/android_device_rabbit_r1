@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background of the round icon on the Settings home page -->
+    <color name="overlay_icon_background">#43A047</color>
+
+    <!-- The overlay itself -->
+    <color name="hud_background">#B3000000</color>
+    <color name="hud_label">#80DEEA</color>
+    <color name="hud_value">#FFFFFF</color>
+    <color name="hud_good">#69F0AE</color>
+    <color name="hud_ok">#FFD740</color>
+    <color name="hud_bad">#FF5252</color>
+</resources>
