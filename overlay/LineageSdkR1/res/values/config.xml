@@ -3,4 +3,12 @@
     <!-- The charging policy enforces a level limit in the kernel; the time
          based modes would only hold the same limit until a target time. -->
     <integer name="config_defaultChargingControlMode">3</integer>
+
+    <!-- Pinned to the power menu until the user picks their own -->
+    <string-array name="config_powerMenuDefaultPinnedApps" translatable="false">
+        <item>org.lineageos.aperture</item>
+        <item>com.android.documentsui</item>
+        <item>net.waterfox.android.release</item>
+        <item>com.android.settings</item>
+    </string-array>
 </resources>

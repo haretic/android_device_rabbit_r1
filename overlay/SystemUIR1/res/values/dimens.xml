@@ -6,4 +6,10 @@
          nothing of the icon here. 21 px keeps the phones' proportion, an icon
          about half the touch area. -->
     <dimen name="lock_icon_padding">21px</dimen>
+    <!-- Power menu buttons for 640 px: 96dp circles (112 px) and 24dp gaps leave no room for
+         the stats card and the pinned apps above the home handle. 82dp keeps the icon's
+         proportion (padding 38/96). -->
+    <dimen name="global_actions_button_size">82dp</dimen>
+    <dimen name="global_actions_button_padding">32dp</dimen>
+    <dimen name="global_actions_lite_padding">16dp</dimen>
 </resources>
