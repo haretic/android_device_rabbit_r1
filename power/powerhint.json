@@ -3,26 +3,305 @@
         {
             "Name": "CPUBigClusterMinFreq",
             "Path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq",
-            "Values": ["2200000", "1750000", "1484000", "900000"],
+            "Values": [
+                "2200000",
+                "1750000",
+                "1484000",
+                "900000"
+            ],
             "DefaultIndex": 3,
             "ResetOnInit": true
         },
         {
             "Name": "CPULittleClusterMinFreq",
             "Path": "/sys/devices/system/cpu/cpufreq/policy4/scaling_min_freq",
-            "Values": ["1600000", "1309000", "1050000", "400000"],
+            "Values": [
+                "1600000",
+                "1309000",
+                "1050000",
+                "400000"
+            ],
             "DefaultIndex": 3,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "DRAMMinFreq",
+            "Path": "/sys/class/devfreq/10012000.dvfsrc:dram/min_freq",
+            "Values": [
+                "3200000000",
+                "2392000000",
+                "0"
+            ],
+            "DefaultIndex": 2,
             "ResetOnInit": true
         },
         {
             "Name": "TAUClampBoost",
             "Path": "/dev/cpuctl/top-app/cpu.uclamp.min",
-            "Values": ["100", "40", "20", "0"],
-            "DefaultIndex": 3,
+            "Values": [
+                "100",
+                "40",
+                "30",
+                "20",
+                "0"
+            ],
+            "DefaultIndex": 4,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CPUBigClusterMaxFreq",
+            "Path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
+            "Values": [
+                "1218000",
+                "2200000"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CPULittleClusterMaxFreq",
+            "Path": "/sys/devices/system/cpu/cpufreq/policy4/scaling_max_freq",
+            "Values": [
+                "1179000",
+                "1600000"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "DRAMMaxFreq",
+            "Path": "/sys/class/devfreq/10012000.dvfsrc:dram/max_freq",
+            "Values": [
+                "1534000000",
+                "3200000000"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "BigClusterDownRateLimit",
+            "Path": "/sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us",
+            "Values": [
+                "40000",
+                "20000"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": false
+        },
+        {
+            "Name": "LittleClusterDownRateLimit",
+            "Path": "/sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us",
+            "Values": [
+                "40000",
+                "20000"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": false
+        },
+        {
+            "Name": "CpusetTopApp",
+            "Path": "/dev/cpuset/top-app/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CpusetForeground",
+            "Path": "/dev/cpuset/foreground/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CpusetForegroundWindow",
+            "Path": "/dev/cpuset/foreground_window/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CpusetBackground",
+            "Path": "/dev/cpuset/background/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CpusetSystemBackground",
+            "Path": "/dev/cpuset/system-background/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CpusetRestricted",
+            "Path": "/dev/cpuset/restricted/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
+            "Name": "CpusetCameraDaemon",
+            "Path": "/dev/cpuset/camera-daemon/cpus",
+            "Values": [
+                "4-7",
+                "0-7"
+            ],
+            "DefaultIndex": 1,
             "ResetOnInit": true
         }
     ],
     "Actions": [
+        {
+            "PowerHint": "GAME_DRAM",
+            "Node": "DRAMMinFreq",
+            "Value": "3200000000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CPUBigClusterMaxFreq",
+            "Value": "1218000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CPULittleClusterMaxFreq",
+            "Value": "1179000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "DRAMMaxFreq",
+            "Value": "1534000000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetTopApp",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetForeground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetForegroundWindow",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetBackground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetSystemBackground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetRestricted",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_POWERSAVE",
+            "Node": "CpusetCameraDaemon",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetTopApp",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetForeground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetForegroundWindow",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetBackground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetSystemBackground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetRestricted",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PARK_BIG",
+            "Node": "CpusetCameraDaemon",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_PERFORMANCE",
+            "Node": "TAUClampBoost",
+            "Value": "30",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_PERFORMANCE",
+            "Node": "DRAMMinFreq",
+            "Value": "2392000000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_PERFORMANCE",
+            "Node": "BigClusterDownRateLimit",
+            "Value": "40000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "PROFILE_PERFORMANCE",
+            "Node": "LittleClusterDownRateLimit",
+            "Value": "40000",
+            "Duration": 0
+        },
         {
             "PowerHint": "INTERACTION",
             "Node": "CPUBigClusterMinFreq",

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/kt_title">
+    <com.android.settingslib.widget.MainSwitchPreference
+        android:key="enabled"
+        android:title="@string/kt_use"
+        android:persistent="false" />
+    <PreferenceCategory android:key="sleep" android:title="@string/kt_cat_sleep">
+        <ListPreference
+            android:key="mem_sleep"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_sleep_type"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="cpu" android:title="@string/kt_cat_cpu">
+        <SwitchPreferenceCompat
+            android:key="park_screen_off"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_park"
+            android:summaryOn="@string/kt_park_summary"
+            android:summaryOff="@string/kt_park_summary_off"
+            android:persistent="false" />
+        <ListPreference
+            android:key="cores"
+            android:icon="@drawable/kt_dot_last"
+            android:title="@string/kt_cores"
+            android:persistent="false" />
+        <ListPreference
+            android:key="trip"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/kt_trip"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="memory" android:title="@string/kt_cat_memory">
+        <ListPreference
+            android:key="zram"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_zram"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="reset_group">
+        <SwitchPreferenceCompat
+            android:key="show_docs"
+            android:title="@string/kt_show_docs"
+            android:summary="@string/kt_show_docs_summary"
+            android:persistent="false" />
+        <Preference
+            android:key="reset"
+            android:title="@string/kt_reset"
+            android:summary="@string/kt_reset_summary" />
+    </PreferenceCategory>
+    <com.android.settingslib.widget.FooterPreference
+        android:key="legend"
+        android:title="@string/kt_legend" />
+</PreferenceScreen>

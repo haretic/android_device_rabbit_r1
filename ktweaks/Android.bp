@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+// Settings > System > Kernel Tweaks writes its choices to persist.sys.r1.kt.*; this applies
+// them as root (see r1-ktweaks.sh).
+sh_binary {
+    name: "r1-ktweaks.sh",
+    src: "r1-ktweaks.sh",
+    system_ext_specific: true,
+    init_rc: ["r1-ktweaks.rc"],
+}

@@ -42,3 +42,6 @@ genfscon sysfs /devices/platform/thermal-sensor-ap/hwmon u:object_r:sysfs_therma
 genfscon sysfs /devices/platform/soc/11200000.usb/musb-hdrc.0/udc u:object_r:sysfs_udc:s0
 # The DRAM clock DVFSRC runs; the performance overlay shows it.
 genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfreq/10012000.dvfsrc:dram/cur_freq u:object_r:sysfs_devfreq_cur:s0
+# Its speed range, set by the power HAL
+genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfreq/10012000.dvfsrc:dram/min_freq u:object_r:sysfs_r1_dram_qos:s0
+genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfreq/10012000.dvfsrc:dram/max_freq u:object_r:sysfs_r1_dram_qos:s0

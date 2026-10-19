@@ -14,6 +14,7 @@ $(call soong_config_set,lineage_health,charging_control_limit_stop_path,/sys/dev
 # inherit-product defers and sorts children; set the selector before common defaults.
 include device/rabbit/r1/health/product.mk
 include device/rabbit/r1/bootperf/product.mk
+include device/rabbit/r1/ktweaks/product.mk
 # wpa_supplicant APEX with the device overlays (connectivity/wifi).
 TARGET_HOSTAPD_AND_WPA_SUPPLICANT_FORM := apex-mainline_common
 $(call soong_config_set_string_list,mainline_common_apex_wpa_supplicant,include_prebuilts,\
@@ -74,6 +75,7 @@ PRODUCT_PACKAGES += \
     LineageSdkR1 \
     LineageSettingsProviderR1 \
     PerfOverlay \
+    R1Performance \
     SystemUIR1 \
     r1-expdb
 

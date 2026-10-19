@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: Apache-2.0
+// Settings > Performance (CPU profiles, per-app profiles, Quick Settings tile) and
+// Settings > System > Kernel Tweaks. Runs persistently as the system user: it follows the
+// app in front and the screen, and tells the power HAL which hints to hold
+// (sys.powerhal.held_hints, see power/powerhint.json); the tweaks are applied by
+// ktweaks/r1-ktweaks.sh.
+android_app {
+    name: "R1Performance",
+    defaults: ["SettingsLibDefaults"],
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    certificate: "platform",
+    platform_apis: true,
+    system_ext_specific: true,
+    privileged: true,
+    static_libs: [
+        "androidx.preference_preference",
+        "SettingsLibPreference",
+    ],
+    required: ["r1-ktweaks.sh"],
+    optimize: {
+        enabled: false,
+    },
+}
