@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:key="enabled"
+        android:defaultValue="false"
+        android:title="@string/overlay_switch" />
+
+    <ListPreference
+        android:key="style"
+        android:defaultValue="compact"
+        android:entries="@array/style_entries"
+        android:entryValues="@array/style_values"
+        android:summary="%s"
+        android:title="@string/overlay_style" />
+
+    <ListPreference
+        android:key="position"
+        android:defaultValue="top_left"
+        android:entries="@array/position_entries"
+        android:entryValues="@array/position_values"
+        android:summary="%s"
+        android:title="@string/overlay_position" />
+
+    <Preference
+        android:key="about"
+        android:selectable="false"
+        android:summary="@string/overlay_about" />
+</PreferenceScreen>

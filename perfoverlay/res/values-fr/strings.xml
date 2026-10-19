@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Affichage des performances</string>
+    <string name="overlay_summary">Afficher FPS, CPU, température et batterie par-dessus les jeux</string>
+
+    <string name="overlay_switch">Activer l\'affichage</string>
+    <string name="overlay_style">Contenu</string>
+    <string name="overlay_position">Position</string>
+
+    <string-array name="style_entries">
+        <item>FPS uniquement</item>
+        <item>FPS, CPU, température et batterie</item>
+        <item>Tout, avec fréquences, mémoire et heure</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>En haut à gauche</item>
+        <item>En haut à droite</item>
+        <item>En bas à gauche</item>
+        <item>En bas à droite</item>
+    </string-array>
+
+    <string name="overlay_about">Les FPS indiquent combien d\'images l\'écran a affichées pendant la dernière seconde. Ils tombent à 0 quand rien ne bouge à l\'écran, c\'est normal.\n\nLes valeurs sont mises à jour une fois par seconde et ne coûtent presque rien. Si un jeu ralentit quand l\'affichage est activé, désactivez-le ou choisissez FPS uniquement.\n\nUne tuile Affichage des performances apparaît dans les Réglages rapides une fois que vous l\'avez utilisé.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Affichage des performances</string>
+    <string name="notification_title">Affichage des performances activé</string>
+    <string name="notification_text">Appuyez pour changer ce qui est affiché</string>
+    <string name="notification_turn_off">Désactiver</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Perfs à l\'écran</string>
+    <string name="tile_on">Activé</string>
+    <string name="tile_off">Désactivé</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">TEMP</string>
+    <string name="hud_bat">BAT</string>
+    <string name="hud_ram">RAM</string>
+</resources>

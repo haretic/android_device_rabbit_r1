@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Leistungs-Overlay</string>
+    <string name="overlay_summary">FPS, CPU, Temperatur und Akku über Spielen anzeigen</string>
+
+    <string name="overlay_switch">Overlay anzeigen</string>
+    <string name="overlay_style">Anzeige</string>
+    <string name="overlay_position">Position</string>
+
+    <string-array name="style_entries">
+        <item>Nur FPS</item>
+        <item>FPS, CPU, Temperatur und Akku</item>
+        <item>Alles, mit Takt, Speicher und Uhrzeit</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Oben links</item>
+        <item>Oben rechts</item>
+        <item>Unten links</item>
+        <item>Unten rechts</item>
+    </string-array>
+
+    <string name="overlay_about">FPS gibt an, wie viele Bilder der Bildschirm in der letzten Sekunde gezeigt hat. Bewegt sich nichts auf dem Bildschirm, fällt der Wert auf 0, das ist normal.\n\nDie Werte werden einmal pro Sekunde aktualisiert und kosten so gut wie nichts. Wird ein Spiel mit dem Overlay langsamer, schalte es aus oder wähle „Nur FPS“.\n\nSobald du das Overlay einmal benutzt hast, gibt es in den Schnelleinstellungen eine Kachel „Leistungs-Overlay“.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Leistungs-Overlay</string>
+    <string name="notification_title">Leistungs-Overlay ist an</string>
+    <string name="notification_text">Antippen, um die Anzeige zu ändern</string>
+    <string name="notification_turn_off">Ausschalten</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Leistungs-Overlay</string>
+    <string name="tile_on">An</string>
+    <string name="tile_off">Aus</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">TEMP</string>
+    <string name="hud_bat">AKKU</string>
+    <string name="hud_ram">RAM</string>
+</resources>

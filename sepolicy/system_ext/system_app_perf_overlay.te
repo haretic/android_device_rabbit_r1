@@ -1,0 +1,4 @@
+# The performance overlay (perfoverlay/, system uid) reads the CPU load and the SoC
+# temperature.
+r_dir_file(system_app, sysfs_thermal)
+allow system_app proc_stat:file r_file_perms;

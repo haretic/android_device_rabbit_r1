@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">性能浮窗</string>
+    <string name="overlay_summary">在游戏画面上显示 FPS、CPU、温度和电量</string>
+
+    <string name="overlay_switch">显示浮窗</string>
+    <string name="overlay_style">显示内容</string>
+    <string name="overlay_position">位置</string>
+
+    <string-array name="style_entries">
+        <item>仅 FPS</item>
+        <item>FPS、CPU、温度和电量</item>
+        <item>全部，包括频率、内存和时间</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>左上角</item>
+        <item>右上角</item>
+        <item>左下角</item>
+        <item>右下角</item>
+    </string-array>
+
+    <string name="overlay_about">FPS 是屏幕在最近一秒内显示的帧数。屏幕上没有任何东西在动时它会降到 0，这是正常的。\n\n数字每秒更新一次，几乎不占用资源。如果开启浮窗后游戏变慢，请将其关闭或选择“仅 FPS”。\n\n用过一次浮窗后，快捷设置中就会出现“性能浮窗”图块。</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">性能浮窗</string>
+    <string name="notification_title">性能浮窗已开启</string>
+    <string name="notification_text">点按即可更改显示内容</string>
+    <string name="notification_turn_off">关闭</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">性能浮窗</string>
+    <string name="tile_on">开启</string>
+    <string name="tile_off">关闭</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">温度</string>
+    <string name="hud_bat">电量</string>
+    <string name="hud_ram">RAM</string>
+</resources>

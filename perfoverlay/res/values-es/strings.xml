@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="overlay_title">Monitor de rendimiento</string>
+    <string name="overlay_summary">Muestra FPS, CPU, temperatura y batería encima de los juegos</string>
+
+    <string name="overlay_switch">Mostrar el monitor</string>
+    <string name="overlay_style">Muestra</string>
+    <string name="overlay_position">Posición</string>
+
+    <string-array name="style_entries">
+        <item>Solo FPS</item>
+        <item>FPS, CPU, temperatura y batería</item>
+        <item>Todo, con velocidades, memoria y hora</item>
+    </string-array>
+
+    <string-array name="position_entries">
+        <item>Arriba a la izquierda</item>
+        <item>Arriba a la derecha</item>
+        <item>Abajo a la izquierda</item>
+        <item>Abajo a la derecha</item>
+    </string-array>
+
+    <string name="overlay_about">Los FPS son los fotogramas que ha mostrado la pantalla en el último segundo. Bajan a 0 cuando no se mueve nada en pantalla; es normal.\n\nLos números se actualizan una vez por segundo y casi no consumen nada. Si un juego va más lento con el monitor activado, desactívalo o elige Solo FPS.\n\nLos Ajustes rápidos tendrán un icono de Monitor de rendimiento cuando hayas usado el monitor.</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Monitor de rendimiento</string>
+    <string name="notification_title">Monitor de rendimiento activado</string>
+    <string name="notification_text">Toca para cambiar lo que muestra</string>
+    <string name="notification_turn_off">Desactivar</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Monitor rend.</string>
+    <string name="tile_on">Activado</string>
+    <string name="tile_off">Desactivado</string>
+
+    <!-- Overlay labels. Kept short, the screen is 640 pixels wide. -->
+    <string name="hud_fps">FPS</string>
+    <string name="hud_cpu">CPU</string>
+    <string name="hud_gpu">GPU</string>
+    <string name="hud_temp">TEMP</string>
+    <string name="hud_bat">BAT</string>
+    <string name="hud_ram">RAM</string>
+</resources>
