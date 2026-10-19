@@ -4,4 +4,8 @@
     <!-- Default device name, otherwise just the model. Only used when the
          setting is first created. -->
     <string name="def_device_name_simple" translatable="false">haretic rabbit r1</string>
+    <!-- Window and transition animations at half length: the r1's small screen makes the
+         full-length ones feel slow. App animations keep their speed. -->
+    <fraction name="def_window_animation_scale">50%</fraction>
+    <fraction name="def_window_transition_scale">50%</fraction>
 </resources>
