@@ -35,6 +35,8 @@ TARGET_MINIGBM_PLATFORM := all_arm
 # The bring-up default installs suspend_blocker; the kernel suspends through
 # the SPM (mem_sleep_default=deep in the DT bootargs), so let Android autosuspend.
 TARGET_SUPPORTS_SUSPEND := true
+# libperfmgr: touch/launch boosts from power/powerhint.json.
+TARGET_POWER_HAL := perfmgr-lineage
 TARGET_BOOT_HAL := r1
 # The stock gralloc is HIDL allocator/mapper 4.0, which FCM level 7 still accepts.
 ifeq ($(R1_GPU),pvr)
