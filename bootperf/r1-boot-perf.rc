@@ -1,11 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
-# Full CPU speed while booting (unless the battery is below 10 %), schedutil after.
+# Full CPU speed while booting (unless the battery is below 10 %), tuned schedutil after.
 on early-init
     exec_start r1-boot-perf
 
 on property:sys.boot_completed=1
     write /sys/devices/system/cpu/cpufreq/policy0/scaling_governor schedutil
     write /sys/devices/system/cpu/cpufreq/policy4/scaling_governor schedutil
+    # Ramp up after 1 ms, hold 20 ms before ramping down: frame gaps keep the OPP.
+    write /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us 20000
+    write /sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us 20000
 
 service r1-boot-perf /vendor/bin/r1-boot-perf.sh
     disabled
