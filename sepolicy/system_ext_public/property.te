@@ -1,0 +1,3 @@
+# Hints the power HAL holds until they leave the list (comma separated): the CPU profile and
+# games, picked by the Performance app (system_app).
+system_restricted_prop(powerhal_held_hints_prop)

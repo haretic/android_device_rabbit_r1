@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/app_profiles_title">
+    <com.android.settingslib.widget.TopIntroPreference
+        android:key="intro"
+        android:title="@string/app_profiles_intro" />
+    <PreferenceCategory android:key="apps">
+        <Preference
+            android:key="add"
+            android:order="1000"
+            android:title="@string/app_profiles_add" />
+    </PreferenceCategory>
+</PreferenceScreen>

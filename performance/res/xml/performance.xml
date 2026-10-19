@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/performance_title">
+    <PreferenceCategory android:key="profiles">
+        <com.android.settingslib.widget.SelectorWithWidgetPreference
+            android:key="powersave"
+            android:title="@string/profile_powersave"
+            android:summary="@string/profile_powersave_summary" />
+        <com.android.settingslib.widget.SelectorWithWidgetPreference
+            android:key="balanced"
+            android:title="@string/profile_balanced"
+            android:summary="@string/profile_balanced_summary" />
+        <com.android.settingslib.widget.SelectorWithWidgetPreference
+            android:key="performance"
+            android:title="@string/profile_performance"
+            android:summary="@string/profile_performance_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="more">
+        <Preference
+            android:key="app_profiles"
+            android:title="@string/app_profiles_title"
+            android:fragment="cat.kenny.r1.performance.AppProfilesFragment" />
+        <SwitchPreferenceCompat
+            android:key="game_dram"
+            android:title="@string/game_dram_title"
+            android:summary="@string/game_dram_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="tile"
+            android:title="@string/tile_switch_title"
+            android:summary="@string/tile_switch_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

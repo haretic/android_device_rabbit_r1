@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Performance</string>
+
+    <!-- Settings > Performance -->
+    <string name="performance_title">Performance</string>
+    <string name="performance_summary">CPU profiles, per app</string>
+    <string name="profile_powersave">Battery saver</string>
+    <string name="profile_powersave_summary">Up to 1.2 GHz, slow memory, big cores parked</string>
+    <string name="profile_balanced">Balanced</string>
+    <string name="profile_balanced_summary">As the chip ships, ramps up when needed</string>
+    <string name="profile_performance">Performance</string>
+    <string name="profile_performance_summary">Apps in front get the fast cores and memory first</string>
+    <string name="app_profiles_title">Per-app profiles</string>
+    <string name="app_profiles_none">None, every app uses the profile above</string>
+    <!-- e.g. "3 apps: Waterfox → Performance, …" -->
+    <plurals name="app_profiles_summary">
+        <item quantity="one"><xliff:g id="count">%1$d</xliff:g> app: <xliff:g id="first">%2$s</xliff:g></item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> apps: <xliff:g id="first">%2$s</xliff:g>, …</item>
+    </plurals>
+    <string name="app_profile_entry"><xliff:g id="app">%1$s</xliff:g> → <xliff:g id="profile">%2$s</xliff:g></string>
+    <string name="game_dram_title">Hold memory speed in games</string>
+    <string name="game_dram_summary">No DRAM down-clocking while a game is in front</string>
+    <string name="tile_switch_title">Quick Settings tile</string>
+    <string name="tile_switch_summary">Tap cycles the profiles</string>
+    <string name="tile_label">CPU profile</string>
+
+    <!-- Per-app profiles -->
+    <string name="app_profiles_intro">While one of these apps is in front it uses its own profile. Every other app uses the profile you picked.</string>
+    <string name="app_profiles_add">Add an app</string>
+    <string name="app_profiles_remove">Remove</string>
+    <string name="app_profiles_pick_app">Pick an app</string>
+
+    <!-- Settings > System > Kernel Tweaks -->
+    <string name="kt_title">Kernel Tweaks</string>
+    <string name="kt_summary">Sleep, cores, throttling and swap</string>
+    <string name="kt_use">Use tweaks</string>
+    <string name="kt_use_none">Nothing changed, everything is at the default</string>
+    <plurals name="kt_use_count">
+        <item quantity="one"><xliff:g id="count">%d</xliff:g> changed from the default</item>
+        <item quantity="other"><xliff:g id="count">%d</xliff:g> changed from the default</item>
+    </plurals>
+    <string name="kt_use_off">Off, everything runs at the default. Your choices are kept for when you switch this back on.</string>
+    <string name="kt_paused">Switched off because the r1 restarted twice in a row soon after the tweaks went in. One of them is probably the reason. Switch this back on to try again.</string>
+    <string name="kt_failed">Couldn\'t set: <xliff:g id="tweaks">%s</xliff:g></string>
+    <string name="kt_cat_sleep">Sleep</string>
+    <string name="kt_cat_cpu">Processor and heat</string>
+    <string name="kt_cat_memory">Memory</string>
+    <string name="kt_default">%s (default)</string>
+    <string name="kt_changed">%s · changed</string>
+
+    <string name="kt_sleep_type">Sleep type</string>
+    <string name="kt_sleep_deep">Deep sleep</string>
+    <string name="kt_sleep_s2idle">Light sleep</string>
+    <string name="kt_sleep_what">Deep sleep hands the whole chip to the firmware, which switches off almost everything. Light sleep only freezes the apps and lets the cores idle.\n\nIf the r1 hangs or restarts in sleep, light sleep skips the firmware. It drains the battery a lot faster, so it\'s more of a test than a fix.</string>
+
+    <string name="kt_park">Big cores</string>
+    <string name="kt_park_summary">Switched off while the screen is off</string>
+    <string name="kt_park_summary_off">Stay on while the screen is off</string>
+
+    <string name="kt_cores">Cores online</string>
+    <!-- e.g. "8 of 8" -->
+    <string name="kt_cores_value"><xliff:g id="online">%1$d</xliff:g> of 8</string>
+    <string name="kt_cores_what">Switches processor cores off, the little ones first. The first core always stays on.\n\nIf the r1 gets steadier with fewer cores, one of them is flaky. Apps run slower.</string>
+
+    <string name="kt_trip">Throttle temperature</string>
+    <string name="kt_trip_value"><xliff:g id="degrees">%d</xliff:g> °C</string>
+    <string name="kt_trip_what">The temperature the cores start slowing down at to cool off.\n\nLower keeps the r1 cooler in the hand. Higher keeps speeds up for longer, but the chip runs hotter; above 85 °C you\'re on your own.</string>
+
+    <string name="kt_zram">Compressed swap (zram)</string>
+    <string name="kt_zram_off">Off</string>
+    <string name="kt_zram_value"><xliff:g id="size">%s</xliff:g>, lz4</string>
+    <string name="kt_zram_what">Memory set aside to keep idle apps compressed instead of closing them.\n\nMore keeps more apps open in the background but takes RAM from the app in front. Changing it takes a moment while swapped out apps move back.</string>
+
+    <string name="kt_show_docs">Show explanations</string>
+    <string name="kt_show_docs_summary">What each tweak does and why you\'d change it, right in the list</string>
+    <string name="kt_reset">Reset everything</string>
+    <string name="kt_reset_summary">Back to the defaults for the r1</string>
+    <string name="kt_reset_confirm">Put every kernel tweak back to its default?</string>
+    <string name="kt_legend">Dots: green is safe to try, yellow is a last resort, red can stop things from working. Changes kick in right away and stay after a restart; two restarts in a row soon after they went in switch the tweaks off.</string>
+</resources>

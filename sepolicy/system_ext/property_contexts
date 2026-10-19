@@ -1,0 +1,4 @@
+sys.powerhal.held_hints u:object_r:powerhal_held_hints_prop:s0 exact string
+# Kernel Tweaks: the choices, the start counter and the result (ktweaks/r1-ktweaks.sh)
+persist.sys.r1.kt.      u:object_r:r1_ktweaks_prop:s0
+sys.r1.kt.              u:object_r:r1_ktweaks_prop:s0

@@ -1,1 +1,2 @@
 /(system_ext|system/system_ext)/bin/r1-logcat-kmsg\.sh u:object_r:r1_logcat_kmsg_exec:s0
+/(system_ext|system/system_ext)/bin/r1-ktweaks\.sh u:object_r:r1_ktweaks_exec:s0

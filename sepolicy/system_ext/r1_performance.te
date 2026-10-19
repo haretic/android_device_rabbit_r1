@@ -1,0 +1,31 @@
+# The Performance app (performance/, system uid): the CPU profile the power HAL holds and the
+# Kernel Tweaks choices.
+system_internal_prop(r1_ktweaks_prop)
+set_prop(system_app, powerhal_held_hints_prop)
+set_prop(system_app, r1_ktweaks_prop)
+
+# ktweaks/r1-ktweaks.sh: applies the Kernel Tweaks as root
+type r1_ktweaks, domain, coredomain;
+type r1_ktweaks_exec, exec_type, file_type, system_file_type;
+init_daemon_domain(r1_ktweaks)
+
+allow r1_ktweaks { shell_exec toolbox_exec }:file rx_file_perms;
+set_prop(r1_ktweaks, r1_ktweaks_prop)
+allow r1_ktweaks kmsg_device:chr_file w_file_perms;
+allow r1_ktweaks sysfs:dir r_dir_perms;
+allow r1_ktweaks sysfs:lnk_file read;
+# Sleep type
+allow r1_ktweaks sysfs_mem_sleep:file rw_file_perms;
+# Cores online
+allow r1_ktweaks sysfs_devices_system_cpu:dir r_dir_perms;
+allow r1_ktweaks sysfs_devices_system_cpu:file rw_file_perms;
+# CPU throttle temperature
+allow r1_ktweaks sysfs_thermal:dir r_dir_perms;
+allow r1_ktweaks sysfs_thermal:lnk_file read;
+allow r1_ktweaks sysfs_thermal:file rw_file_perms;
+# Compressed swap: resize zram0 and swap on it again
+allow r1_ktweaks sysfs_zram:dir r_dir_perms;
+allow r1_ktweaks sysfs_zram:file rw_file_perms;
+allow r1_ktweaks block_device:dir search;
+allow r1_ktweaks swap_block_device:blk_file rw_file_perms;
+allow r1_ktweaks self:capability sys_admin;

@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+# Kernel Tweaks (the Performance app's page): counts starts, applies the choices once Android
+# is up and after every change (sys.r1.kt.apply), see r1-ktweaks.sh.
+on post-fs-data
+    exec_background - root root -- /system_ext/bin/r1-ktweaks.sh start
+
+on property:sys.boot_completed=1
+    start r1-ktweaks
+    start r1-ktweaks-settle
+
+on property:sys.r1.kt.apply=*
+    start r1-ktweaks
+
+service r1-ktweaks /system_ext/bin/r1-ktweaks.sh apply
+    user root
+    group root
+    disabled
+    oneshot
+
+# Two minutes up after the tweaks went in counts as a good start
+service r1-ktweaks-settle /system_ext/bin/r1-ktweaks.sh settle
+    user root
+    group root
+    disabled
+    oneshot
+    priority 10
