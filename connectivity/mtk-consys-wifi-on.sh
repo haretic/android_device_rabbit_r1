@@ -16,4 +16,6 @@ while [ ! -c /dev/wmtWifi ] && [ $i -lt 300 ]; do
     sleep 0.1
     i=$((i + 1))
 done
+# Give gen4m the factory NVRAM record (MAC, calibration) before it probes.
+/vendor/bin/r1-wifi-nvram
 echo 1 > /dev/wmtWifi

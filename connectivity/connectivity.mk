@@ -56,6 +56,8 @@ PRODUCT_PACKAGES += \
 MTK_CONSYS_WIFI_POWER ?= boot
 
 ifeq ($(MTK_CONSYS_WIFI_POWER),boot)
+PRODUCT_PACKAGES += \
+    r1-wifi-nvram
 PRODUCT_COPY_FILES += \
     $(MTK_CONSYS_PATH)/init.mtk-consys.wifi-on.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.mtk-consys.wifi-on.rc \
     $(MTK_CONSYS_PATH)/mtk-consys-wifi-on.sh:$(TARGET_COPY_OUT_VENDOR)/bin/mtk-consys-wifi-on.sh

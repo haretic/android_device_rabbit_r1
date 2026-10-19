@@ -1,0 +1,11 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+cc_binary {
+    name: "r1-wifi-nvram",
+    srcs: ["wifi_nvram.cpp"],
+    vendor: true,
+    shared_libs: ["libbase"],
+}
