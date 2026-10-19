@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <!-- Upload and download speed in the status bar, hidden while idle -->
+    <integer name="def_network_traffic_mode">3</integer>
+    <bool name="def_network_traffic_autohide">true</bool>
+</resources>
