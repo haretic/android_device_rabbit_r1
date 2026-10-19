@@ -8,6 +8,9 @@
 BOARD_VENDOR_SEPOLICY_DIRS += \
     device/rabbit/r1/connectivity/sepolicy
 
+# Driver commands (SETSUSPENDMODE, COUNTRY, ...) to gen4m.
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_gen4m
+
 # Must match MTK_CONSYS_WIFI_POWER in connectivity.mk.
 MTK_CONSYS_WIFI_POWER ?= boot
 
