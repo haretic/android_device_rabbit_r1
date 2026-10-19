@@ -3,4 +3,8 @@
 <resources>
     <!-- The r1 has no volume keys: media volume sits with brightness in quick settings. -->
     <bool name="config_qsMediaVolumeSlider">true</bool>
+    <!-- CPU, temperature, battery and RAM graphs with the power menu -->
+    <bool name="config_powerMenuStats">true</bool>
+    <!-- Wheel moves the focus, the side button presses -->
+    <bool name="config_powerMenuWheelNavigation">true</bool>
 </resources>
