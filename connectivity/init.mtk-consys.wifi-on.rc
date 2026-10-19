@@ -7,7 +7,8 @@
 # service rather than as an init write.
 service vendor.mtk-consys-wifi-on /vendor/bin/mtk-consys-wifi-on.sh
     user wifi
-    group wifi
+    group wifi system
+    file /dev/kmsg w
     oneshot
     disabled
 
