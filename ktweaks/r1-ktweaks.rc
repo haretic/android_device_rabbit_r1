@@ -17,13 +17,14 @@ service r1-ktweaks /system_ext/bin/r1-ktweaks.sh apply
     disabled
     oneshot
 
-# The overclock stress test, from the CPU overclock page
+# The overclock stress test, from the CPU overclock page. In the system group for the speed
+# limits, which the power HAL's init hands to system (0664).
 on property:sys.r1.kt.octest=*
     start r1-ktweaks-octest
 
 service r1-ktweaks-octest /system_ext/bin/r1-ktweaks.sh octest
     user root
-    group root
+    group root system
     disabled
     oneshot
 
