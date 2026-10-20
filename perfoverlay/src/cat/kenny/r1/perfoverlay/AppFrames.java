@@ -51,6 +51,8 @@ final class AppFrames {
     /** The newest frame counted so far. */
     private long mLastPresent;
     private int mIdle;
+    /** The home screen is measured too, there is no screen frame rate to show instead. */
+    private boolean mMeasureHome;
     private int mLogCount;
     private static final int LOG_EVERY = 10;
 
@@ -68,6 +70,11 @@ final class AppFrames {
         mIdle = 0;
     }
 
+    /** Whether the home screen's own frames count, for when the screen's can't be read. */
+    void setMeasureHome(boolean measureHome) {
+        mMeasureHome = measureHome;
+    }
+
     /** The layer measured last, for the log. */
     String layer() {
         return mLayer;
@@ -75,12 +82,14 @@ final class AppFrames {
 
     /**
      * Frames per second of the app in front since the last call, or -1 when there is no app
-     * to measure (home screen, nothing in front, no layer found) or the dump failed.
+     * to measure (home screen unless setMeasureHome, nothing in front, no layer found) or the
+     * dump failed.
      */
     int sample() {
         final long now = System.nanoTime();
         final String pkg = foregroundPackage();
-        if (pkg == null || pkg.equals(mHome) || pkg.equals(mContext.getPackageName())) {
+        if (pkg == null || (!mMeasureHome && pkg.equals(mHome))
+                || pkg.equals(mContext.getPackageName())) {
             reset();
             return -1;
         }

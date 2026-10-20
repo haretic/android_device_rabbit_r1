@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <SwitchPreference
+    <com.android.settingslib.widget.MainSwitchPreference
         android:key="enabled"
-        android:defaultValue="false"
-        android:title="@string/overlay_switch" />
+        android:title="@string/overlay_switch"
+        android:persistent="false" />
 
     <ListPreference
         android:key="style"

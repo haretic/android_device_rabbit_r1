@@ -19,7 +19,7 @@
             android:name=".OverlayActivity"
             android:exported="true"
             android:label="@string/overlay_title"
-            android:theme="@android:style/Theme.DeviceDefault.Settings">
+            android:theme="@style/Theme.SubSettingsBase.Expressive">
             <intent-filter>
                 <action android:name="com.android.settings.action.IA_SETTINGS" />
             </intent-filter>
