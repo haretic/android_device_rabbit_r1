@@ -52,20 +52,26 @@
             "Name": "CPUBigClusterMaxFreq",
             "Path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
             "Values": [
+                "900000",
                 "1218000",
-                "2200000"
+                "2200000",
+                "2300000",
+                "2400000"
             ],
-            "DefaultIndex": 1,
+            "DefaultIndex": 2,
             "ResetOnInit": true
         },
         {
             "Name": "CPULittleClusterMaxFreq",
             "Path": "/sys/devices/system/cpu/cpufreq/policy4/scaling_max_freq",
             "Values": [
+                "948000",
                 "1179000",
-                "1600000"
+                "1600000",
+                "1700000",
+                "1800000"
             ],
-            "DefaultIndex": 1,
+            "DefaultIndex": 2,
             "ResetOnInit": true
         },
         {
@@ -349,6 +355,96 @@
             "Node": "TAUClampBoost",
             "Value": "100",
             "Duration": 5000
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CPUBigClusterMaxFreq",
+            "Value": "900000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CPULittleClusterMaxFreq",
+            "Value": "948000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "DRAMMaxFreq",
+            "Value": "1534000000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "TAUClampBoost",
+            "Value": "0",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetTopApp",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetForeground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetForegroundWindow",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetBackground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetSystemBackground",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetRestricted",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "CpusetCameraDaemon",
+            "Value": "4-7",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "OC_BIG_2300",
+            "Node": "CPUBigClusterMaxFreq",
+            "Value": "2300000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "OC_BIG_2400",
+            "Node": "CPUBigClusterMaxFreq",
+            "Value": "2400000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "OC_LITTLE_1700",
+            "Node": "CPULittleClusterMaxFreq",
+            "Value": "1700000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "OC_LITTLE_1800",
+            "Node": "CPULittleClusterMaxFreq",
+            "Value": "1800000",
+            "Duration": 0
         }
     ]
 }

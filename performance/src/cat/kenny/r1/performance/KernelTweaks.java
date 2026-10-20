@@ -23,7 +23,7 @@ final class KernelTweaks {
     static final String TRIP = "trip";
     static final String ZRAM = "zram";
     /** The tweaks, as counted by changedCount(). */
-    static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, TRIP, ZRAM};
+    static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, Overclock.ON, TRIP, ZRAM};
 
     private KernelTweaks() {
     }
@@ -72,6 +72,9 @@ final class KernelTweaks {
         for (String key : TWEAKS) {
             set(key, "");
         }
+        // The steps go back to stock too; what the stress test passed stays known
+        set("oc_big", "");
+        set("oc_little", "");
     }
 
     /** Has the script apply the choices now. */

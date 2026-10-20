@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 
@@ -19,7 +20,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/** Settings > Performance: the profile for all apps, per-app profiles, games, the tile. */
+/**
+ * Settings > Performance: the extreme battery saver, the profile for all apps, per-app profiles,
+ * games, the tile.
+ */
 public class PerformanceFragment extends SettingsBasePreferenceFragment
         implements SelectorWithWidgetPreference.OnClickListener {
 
@@ -40,6 +44,13 @@ public class PerformanceFragment extends SettingsBasePreferenceFragment
         gameDram.setOnPreferenceChangeListener((p, value) -> {
             Profiles.prefs(context).edit()
                     .putBoolean(Profiles.KEY_GAME_DRAM, (Boolean) value).apply();
+            return true;
+        });
+
+        final SwitchPreferenceCompat extreme = findPreference(ExtremeSaver.KEY);
+        extreme.setOnPreferenceChangeListener((p, value) -> {
+            ExtremeSaver.set(context, (Boolean) value);
+            update();
             return true;
         });
 
@@ -65,9 +76,20 @@ public class PerformanceFragment extends SettingsBasePreferenceFragment
     private void update() {
         final Context context = requireContext();
         final String profile = Profiles.getProfile(context);
+        final boolean extreme = ExtremeSaver.isOn(context);
+        final SwitchPreferenceCompat extremeSwitch = findPreference(ExtremeSaver.KEY);
+        extremeSwitch.setChecked(extreme);
+        extremeSwitch.setSummary(extreme && !context.getSystemService(PowerManager.class)
+                .isPowerSaveMode() ? getString(R.string.extreme_summary_charger)
+                : getString(R.string.extreme_summary));
         for (String p : Profiles.ALL) {
-            ((SelectorWithWidgetPreference) findPreference(p)).setChecked(p.equals(profile));
+            final SelectorWithWidgetPreference selector = findPreference(p);
+            selector.setChecked(p.equals(profile));
+            // Kept as picked, back when the extreme saver goes off
+            selector.setEnabled(!extreme);
         }
+        findPreference("profiles").setSummary(extreme ? getString(R.string.extreme_on_profiles)
+                : null);
         final Map<String, String> apps = Profiles.getAppProfiles(context);
         final Preference appProfiles = findPreference("app_profiles");
         if (apps.isEmpty()) {

@@ -25,6 +25,11 @@
     <string name="tile_switch_title">Quick Settings tile</string>
     <string name="tile_switch_summary">Tap cycles the profiles</string>
     <string name="tile_label">CPU profile</string>
+    <string name="extreme_title">Extreme battery saver</string>
+    <string name="extreme_summary">Everything turned down: 60 Hz, little cores at their lowest, dim and dark, no animations, apps held back, no sync, location or Bluetooth. Off puts it all back.</string>
+    <string name="extreme_summary_charger">On. Android keeps battery saver off on a charger, so apps held back, no sync and the dim, dark screen start once it\'s unplugged; the rest is on now.</string>
+    <string name="extreme_tile_label">Extreme saver</string>
+    <string name="extreme_on_profiles">The extreme battery saver is on, it overrides the profiles</string>
 
     <!-- Per-app profiles -->
     <string name="app_profiles_intro">While one of these apps is in front it uses its own profile. Every other app uses the profile you picked.</string>
@@ -78,5 +83,25 @@
     <string name="kt_reset">Reset everything</string>
     <string name="kt_reset_summary">Back to the defaults for the r1</string>
     <string name="kt_reset_confirm">Put every kernel tweak back to its default?</string>
+    <string name="oc_title">CPU overclock</string>
+    <string name="oc_switch">Overclock</string>
+    <string name="oc_on_summary">Big cores up to <xliff:g id="big" example="2.4 GHz">%1$s</xliff:g>, little cores up to <xliff:g id="little" example="1.8 GHz">%2$s</xliff:g></string>
+    <string name="oc_needs_tweaks">Switch on Kernel Tweaks first</string>
+    <string name="oc_speed">Speed</string>
+    <string name="oc_big">Big cores</string>
+    <string name="oc_little">Little cores</string>
+    <string name="oc_ghz"><xliff:g id="ghz" example="2.4">%.1f</xliff:g> GHz</string>
+    <string name="oc_stock">Stock, <xliff:g id="speed" example="2.2 GHz">%s</xliff:g></string>
+    <string name="oc_step"><xliff:g id="speed" example="2.4 GHz">%1$s</xliff:g> · stock <xliff:g id="stock" example="2.2 GHz">%2$s</xliff:g></string>
+    <string name="oc_untested">Stock. Run the stress test to unlock faster speeds.</string>
+    <string name="oc_test">Stress test</string>
+    <string name="oc_test_summary">A minute at each speed on all eight cores, checking every result. Let the r1 cool down first; it gets warm.</string>
+    <string name="oc_test_running">Testing <xliff:g id="step" example="2400/1800 MHz">%s</xliff:g>…</string>
+    <string name="oc_test_done">Passed every speed. Run it again any time.</string>
+    <string name="oc_test_stopped">Last run <xliff:g id="why" example="stopped at 2400/1800 MHz: wrong results">%s</xliff:g>. The speeds before that are unlocked.</string>
+    <string name="oc_about">At the stock top voltage, faster only where this r1 passed the stress test. It runs warmer and the battery lasts less; the throttle temperatures still apply, so the extra speed mostly shows in short bursts. Kept when the r1 restarts; if it fails to start twice in a row, the tweaks switch themselves off.</string>
+    <string name="oc_off">Off, stock speeds</string>
+    <string name="oc_on_stock">On, but at stock speeds</string>
+    <string name="oc_list_summary">Big <xliff:g id="big" example="2.4 GHz">%1$s</xliff:g>, little <xliff:g id="little" example="1.8 GHz">%2$s</xliff:g></string>
     <string name="kt_legend">Dots: green is safe to try, yellow is a last resort, red can stop things from working. Changes kick in right away and stay after a restart; two restarts in a row soon after they went in switch the tweaks off.</string>
 </resources>

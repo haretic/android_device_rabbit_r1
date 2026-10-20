@@ -2,6 +2,14 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/performance_title">
+    <PreferenceCategory android:key="extreme">
+        <SwitchPreferenceCompat
+            android:key="extreme_saver"
+            android:icon="@drawable/ic_extreme_saver"
+            android:title="@string/extreme_title"
+            android:summary="@string/extreme_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:key="profiles">
         <com.android.settingslib.widget.SelectorWithWidgetPreference
             android:key="powersave"

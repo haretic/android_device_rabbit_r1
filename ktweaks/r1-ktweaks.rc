@@ -17,6 +17,16 @@ service r1-ktweaks /system_ext/bin/r1-ktweaks.sh apply
     disabled
     oneshot
 
+# The overclock stress test, from the CPU overclock page
+on property:sys.r1.kt.octest=*
+    start r1-ktweaks-octest
+
+service r1-ktweaks-octest /system_ext/bin/r1-ktweaks.sh octest
+    user root
+    group root
+    disabled
+    oneshot
+
 # Two minutes up after the tweaks went in counts as a good start
 service r1-ktweaks-settle /system_ext/bin/r1-ktweaks.sh settle
     user root
