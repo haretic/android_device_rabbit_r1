@@ -25,6 +25,7 @@ import android.text.format.DateFormat;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -213,7 +214,11 @@ public class HudService extends Service
             label(out, R.string.hud_bat, full && Float.isNaN(s.tempC));
             append(out, s.batteryPercent + "%", s.charging ? mGoodColor
                     : s.batteryPercent <= 15 ? mBadColor : mValueColor);
-            if (full && !Float.isNaN(s.batteryWatts)) {
+            if (full && s.plugged && !s.charging) {
+                // The charger runs the r1, the battery only adds what it can't
+                append(out, Float.isNaN(s.batteryWatts) || s.batteryWatts < 0.05f ? " USB"
+                        : String.format(Locale.US, " USB -%.1fW", s.batteryWatts), mValueColor);
+            } else if (full && !Float.isNaN(s.batteryWatts)) {
                 append(out, String.format(Locale.US, " %s%.1fW",
                         s.charging ? "+" : "-", s.batteryWatts), mValueColor);
             }
@@ -270,12 +275,12 @@ public class HudService extends Service
                 // app overlays, and doesn't trigger the "displaying over other apps" notice.
                 WindowManager.LayoutParams.TYPE_SECURE_SYSTEM_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 PixelFormat.TRANSLUCENT);
         lp.setTitle("PerfOverlay");
-        lp.setFitInsetsTypes(0);
+        // Clear of the status bar and the navigation handle while they show, at the very edge
+        // when a game hides them
+        lp.setFitInsetsTypes(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
         lp.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
         final String position = Hud.getPosition(this);

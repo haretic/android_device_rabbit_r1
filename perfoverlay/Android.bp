@@ -3,10 +3,16 @@
 // SurfaceFlinger's frame counter and dumps and draw a system overlay window.
 android_app {
     name: "PerfOverlay",
+    defaults: ["SettingsLibDefaults"],
     srcs: ["src/**/*.java"],
     resource_dirs: ["res"],
     certificate: "platform",
     platform_apis: true,
+    static_libs: [
+        "androidx.preference_preference",
+        "SettingsLibPreference",
+        "r1-wheelselect",
+    ],
     optimize: {
         enabled: false,
     },

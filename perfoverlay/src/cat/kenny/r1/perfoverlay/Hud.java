@@ -7,10 +7,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.UserHandle;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.quicksettings.TileService;
 import android.text.TextUtils;
+
+import androidx.preference.PreferenceManager;
 
 import java.util.Arrays;
 

@@ -1,26 +1,23 @@
 package cat.kenny.r1.perfoverlay;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.os.Bundle;
 
-public class OverlayActivity extends Activity {
+import cat.kenny.r1.wheel.WheelSelect;
+
+import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
+
+/** Settings > Performance overlay, a Settings page like the others: the wheel works here. */
+public class OverlayActivity extends CollapsingToolbarBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final ActionBar actionBar = getActionBar();
-        if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
+        WheelSelect.attach(this);
         if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-                    .replace(android.R.id.content, new OverlayFragment())
+            getSupportFragmentManager().beginTransaction()
+                    .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
+                            new OverlayFragment())
                     .commit();
         }
-    }
-
-    @Override
-    public boolean onNavigateUp() {
-        finish();
-        return true;
     }
 }

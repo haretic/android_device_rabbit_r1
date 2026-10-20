@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
  * Reads what the overlay shows. Everything comes from sysfs and procfs, except the battery
  * (BatteryManager) and the frame rate. That is the app in front's own frame rate (see
  * AppFrames), or where there is no app to measure and SurfaceFlinger still has it, how often
- * the screen changes: SurfaceFlinger counts every frame it puts on the screen (its "page
+ * the screen changes (without it, the home screen is measured as an app): SurfaceFlinger counts every frame it puts on the screen (its "page
  * flips") and hands the count out to the system user through debug transaction 1013.
  * Runs on the overlay's worker thread, never the main thread.
  */
@@ -52,6 +52,8 @@ final class Stats {
     int batteryPercent = -1;
     float batteryWatts = Float.NaN;
     boolean charging;
+    /** On a charger; without charging it runs the r1, the battery adds what's left. */
+    boolean plugged;
     int ramPercent = -1;
     /** How busy the eMMC was since the last sample, 0..100. */
     int storagePercent = -1;
@@ -153,9 +155,11 @@ final class Stats {
             }
             return reply.readInt() & 0xffffffffL;
         } catch (NoSuchElementException e) {
-            // NAME_NOT_FOUND: the transaction is gone, the app's own frames are all there is
+            // NAME_NOT_FOUND: the transaction is gone (Android 17), the apps' own frames are
+            // all there is, the home screen's among them
             Log.i(TAG, "SurfaceFlinger has no page flip count, only app frame rates");
             mNoPageFlips = true;
+            mAppFrames.setMeasureHome(true);
             return -1;
         } catch (RemoteException | SecurityException e) {
             Log.w(TAG, "Couldn't read SurfaceFlinger's frame count", e);
@@ -236,6 +240,7 @@ final class Stats {
         batteryPercent = level < 0 || scale <= 0 ? -1 : 100 * level / scale;
         final int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS,
                 BatteryManager.BATTERY_STATUS_UNKNOWN);
+        plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
         charging = status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL;
         final int milliVolts = battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
