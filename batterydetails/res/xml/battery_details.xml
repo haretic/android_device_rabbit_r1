@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/details_title">
+    <com.android.settingslib.widget.UntitledPreferenceCategory android:key="top">
+        <cat.kenny.r1.batterydetails.HeaderPreference android:key="header" />
+    </com.android.settingslib.widget.UntitledPreferenceCategory>
+    <PreferenceCategory
+        android:key="now"
+        android:title="@string/now_title">
+        <cat.kenny.r1.batterydetails.ValuePreference
+            android:key="voltage_current"
+            android:title="@string/voltage_current" />
+        <cat.kenny.r1.batterydetails.ValuePreference
+            android:key="power_temperature"
+            android:title="@string/power_temperature" />
+        <cat.kenny.r1.batterydetails.ValuePreference
+            android:key="charger"
+            android:title="@string/charger" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="care"
+        android:title="@string/care_title">
+        <!-- Removed when the kernel has no charging policy -->
+        <Preference
+            android:key="charge_current"
+            android:title="@string/current_title"
+            android:persistent="false" />
+        <!-- Lineage's Charging control; removed when the health HAL has none -->
+        <Preference
+            android:key="charge_limit"
+            android:title="@string/limit_title"
+            android:persistent="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

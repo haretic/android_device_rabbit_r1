@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cat.kenny.r1.batterydetails"
+    android:sharedUserId="android.uid.system">
+
+    <!-- The graph's sampler starts again after a reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="false"
+        android:defaultToDeviceProtectedStorage="true"
+        android:directBootAware="true"
+        android:icon="@drawable/ic_battery_details"
+        android:label="@string/details_title"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SubSettingsBase.Expressive">
+
+        <!-- Settings > Battery, first in the group with Charging control -->
+        <activity
+            android:name=".BatteryDetailsActivity"
+            android:exported="true"
+            android:label="@string/details_title">
+            <intent-filter>
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
+            </intent-filter>
+            <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.battery" />
+            <meta-data
+                android:name="com.android.settings.group_key"
+                android:value="charging_category" />
+            <meta-data
+                android:name="com.android.settings.order"
+                android:value="-1" />
+            <meta-data
+                android:name="com.android.settings.keyhint"
+                android:value="r1_battery_details" />
+            <meta-data
+                android:name="com.android.settings.title"
+                android:resource="@string/details_title" />
+            <meta-data
+                android:name="com.android.settings.summary"
+                android:resource="@string/details_summary" />
+            <meta-data
+                android:name="com.android.settings.icon"
+                android:resource="@drawable/ic_battery_details" />
+            <meta-data
+                android:name="com.android.settings.profile"
+                android:value="primary_profile_only" />
+        </activity>
+
+        <!-- Notes the level about every 15 minutes while the r1 is awake, for the graph -->
+        <service
+            android:name=".SampleJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

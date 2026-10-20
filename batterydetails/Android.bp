@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: Apache-2.0
+// Settings > Battery > Battery details: the level with a 24 hour graph, voltage, current,
+// power, temperature and the charger, and the charge current. The battery comes from
+// BatteryManager, the charge current is the choice charging/ applies (r1-charging writes
+// persist.sys.r1.charge_limit to the kernel's charging policy), the charge limit is
+// Lineage's Charging control.
+android_app {
+    name: "R1BatteryDetails",
+    defaults: ["SettingsLibDefaults"],
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    certificate: "platform",
+    platform_apis: true,
+    system_ext_specific: true,
+    privileged: true,
+    static_libs: [
+        "androidx.preference_preference",
+        "SettingsLibPreference",
+        "r1-wheelselect",
+        "org.lineageos.platform.internal",
+    ],
+    optimize: {
+        enabled: false,
+    },
+}

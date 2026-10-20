@@ -1,0 +1,13 @@
+# Battery details (batterydetails/, system uid) in Settings > Battery. The battery itself
+# comes from BatteryManager; apps may not read sysfs_batteryinfo.
+
+# The charge current: the page saves the choice, r1-charging writes it to the charging
+# policy (charging/sepolicy/r1_charging.te).
+set_prop(system_app, r1_charging_prop)
+# The charging policy's status: the current it applies, the USB budget and why
+allow system_app sysfs_r1_charging:dir search;
+allow system_app sysfs_r1_charging:file r_file_perms;
+
+# The USB voltage, from the MT6370 ADC's hwmon view (power-monitor in the device tree)
+type sysfs_r1_power_monitor, fs_type, sysfs_type;
+r_dir_file(system_app, sysfs_r1_power_monitor)
