@@ -28,3 +28,5 @@ vendor      /vendor     erofs ro  wait,logical,first_stage_mount,slotselect,avb
 /dev/block/by-name/proinfo /proinfo emmc defaults defaults
 # Compressed swap in RAM (lz4); enabled by swapon_all once boot completes.
 /dev/block/zram0 none swap defaults zramsize=50%
+# USB drives on the Type-C port in host mode (OTG), mounted by vold
+/devices/platform/soc/11200000.usb/musb-hdrc.0/usb* auto auto defaults voldmanaged=usb:auto
