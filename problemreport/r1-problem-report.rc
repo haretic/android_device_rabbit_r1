@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: Apache-2.0
+# Problem report (Settings > System, problemreport/): the logs the page can't read itself, see
+# r1-problem-report.sh. The page and the script meet in /data/misc/r1-problem-report.
+on post-fs-data
+    mkdir /data/misc/r1-problem-report 0770 system system
+
+on property:sys.boot_completed=1
+    start r1-problem-report-check
+
+# The page asks for a report. Only a few system domains may read pstore, init among them:
+# it copies the last start's logs into the empty files the page made for them, so they stay
+# the system user's. The ones this start doesn't have stay empty. Ramoops (LK sets
+# ramoops.* on the command line) numbers the crash records from 0 at every start; a panic
+# takes a few. pstore_blk on expdb (logging/, r1-expdb) is the other backend.
+on property:sys.r1.report.collect=*
+    copy /sys/fs/pstore/console-ramoops-0 /data/misc/r1-problem-report/pstore/console-ramoops-0
+    copy /sys/fs/pstore/pmsg-ramoops-0 /data/misc/r1-problem-report/pstore/pmsg-ramoops-0
+    copy /sys/fs/pstore/dmesg-ramoops-0 /data/misc/r1-problem-report/pstore/dmesg-ramoops-0
+    copy /sys/fs/pstore/dmesg-ramoops-1 /data/misc/r1-problem-report/pstore/dmesg-ramoops-1
+    copy /sys/fs/pstore/dmesg-ramoops-2 /data/misc/r1-problem-report/pstore/dmesg-ramoops-2
+    copy /sys/fs/pstore/dmesg-ramoops-3 /data/misc/r1-problem-report/pstore/dmesg-ramoops-3
+    copy /sys/fs/pstore/console-pstore_blk-0 /data/misc/r1-problem-report/pstore/console-pstore_blk-0
+    copy /sys/fs/pstore/pmsg-pstore_blk-0 /data/misc/r1-problem-report/pstore/pmsg-pstore_blk-0
+    copy /sys/fs/pstore/dmesg-pstore_blk-0 /data/misc/r1-problem-report/pstore/dmesg-pstore_blk-0
+    copy /sys/fs/pstore/dmesg-pstore_blk-1 /data/misc/r1-problem-report/pstore/dmesg-pstore_blk-1
+    start r1-problem-report
+
+service r1-problem-report /system_ext/bin/r1-problem-report.sh collect
+    user system
+    group system log
+    disabled
+    oneshot
+
+service r1-problem-report-check /system_ext/bin/r1-problem-report.sh check
+    user system
+    group system log
+    disabled
+    oneshot

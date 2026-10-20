@@ -2,3 +2,5 @@ sys.powerhal.held_hints u:object_r:powerhal_held_hints_prop:s0 exact string
 # Kernel Tweaks: the choices, the start counter and the result (ktweaks/r1-ktweaks.sh)
 persist.sys.r1.kt.      u:object_r:r1_ktweaks_prop:s0
 sys.r1.kt.              u:object_r:r1_ktweaks_prop:s0
+# Problem report: the page asks, the collector answers (problemreport/r1-problem-report.sh)
+sys.r1.report.          u:object_r:r1_problem_report_prop:s0

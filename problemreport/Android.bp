@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: Apache-2.0
+// Settings > System > Problem report: saves the logs from now and from the last start, crash
+// reports and a description of the r1 as one .zip in Download/haretic-reports, with personal
+// things taken out. Runs as the system user; the logs it may not read are collected by
+// r1-problem-report.sh, an init service in its own domain.
+android_app {
+    name: "R1ProblemReport",
+    defaults: ["SettingsLibDefaults"],
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    certificate: "platform",
+    platform_apis: true,
+    system_ext_specific: true,
+    static_libs: [
+        "androidx.preference_preference",
+        "SettingsLibPreference",
+        "r1-wheelselect",
+    ],
+    required: ["r1-problem-report.sh"],
+    optimize: {
+        enabled: false,
+    },
+}
+
+sh_binary {
+    name: "r1-problem-report.sh",
+    src: "r1-problem-report.sh",
+    system_ext_specific: true,
+    init_rc: ["r1-problem-report.rc"],
+}

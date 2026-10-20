@@ -101,6 +101,8 @@ PRODUCT_PACKAGES += R1RadioSleep
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 
+# Settings > System > Problem report: logs as a .zip in Download/haretic-reports.
+PRODUCT_PACKAGES += R1ProblemReport
 
 # The logger validates expdb and bounds its mapping before loading pstore.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.r1.expdb.enabled=1

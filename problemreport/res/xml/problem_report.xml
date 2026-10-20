@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/report_title">
+    <com.android.settingslib.widget.TopIntroPreference
+        android:key="intro"
+        android:title="@string/intro" />
+    <PreferenceCategory android:key="report">
+        <EditTextPreference
+            android:key="note"
+            android:title="@string/note_title"
+            android:summary="@string/note_hint"
+            android:dialogMessage="@string/note_dialog"
+            android:persistent="true" />
+        <Preference
+            android:key="save"
+            android:title="@string/save_title"
+            android:summary="@string/save_summary" />
+        <Preference
+            android:key="last_start"
+            android:title="@string/last_start_title"
+            android:selectable="false" />
+    </PreferenceCategory>
+    <com.android.settingslib.widget.FooterPreference
+        android:key="privacy"
+        android:title="@string/privacy" />
+</PreferenceScreen>
