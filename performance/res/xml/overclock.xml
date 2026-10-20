@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/oc_title">
+    <com.android.settingslib.widget.MainSwitchPreference
+        android:key="oc"
+        android:title="@string/oc_switch"
+        android:persistent="false" />
+    <PreferenceCategory android:key="speed" android:title="@string/oc_speed">
+        <ListPreference
+            android:key="big"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/oc_big"
+            android:dialogTitle="@string/oc_big"
+            android:persistent="false" />
+        <ListPreference
+            android:key="little"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/oc_little"
+            android:dialogTitle="@string/oc_little"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="test_group">
+        <Preference
+            android:key="test"
+            android:title="@string/oc_test"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <com.android.settingslib.widget.FooterPreference
+        android:key="about"
+        android:title="@string/oc_about" />
+</PreferenceScreen>

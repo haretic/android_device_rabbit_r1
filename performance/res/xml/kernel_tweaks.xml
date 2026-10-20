@@ -26,6 +26,10 @@
             android:icon="@drawable/kt_dot_last"
             android:title="@string/kt_cores"
             android:persistent="false" />
+        <Preference
+            android:key="oc"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/oc_title" />
         <ListPreference
             android:key="trip"
             android:icon="@drawable/kt_dot_risky"

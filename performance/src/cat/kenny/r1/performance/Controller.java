@@ -14,6 +14,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.service.quicksettings.TileService;
@@ -26,7 +27,8 @@ import java.util.Objects;
 /**
  * Decides which power HAL hints to hold and keeps sys.powerhal.held_hints up to date: the
  * profile of the app in front (its own, or the one for all apps), the memory speed hold
- * while a game is in front, and the parked big cores while the screen is off. Lives in the
+ * while a game is in front, and the parked big cores while the screen is off; or only the
+ * lowest of everything with the extreme battery saver (ExtremeSaver). Lives in the
  * app's persistent process; everything runs on the main thread.
  */
 final class Controller {
@@ -68,6 +70,17 @@ final class Controller {
         }
     };
 
+    private final BroadcastReceiver mSaverReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_POWER_DISCONNECTED.equals(intent.getAction())) {
+                ExtremeSaver.onUnplugged(mContext);
+            } else {
+                ExtremeSaver.onPowerSaveModeChanged(mContext);
+            }
+        }
+    };
+
     private final SharedPreferences.OnSharedPreferenceChangeListener mPrefsListener =
             (prefs, key) -> update();
 
@@ -86,6 +99,9 @@ final class Controller {
         final IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         mContext.registerReceiver(mScreenReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        final IntentFilter saver = new IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+        saver.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        mContext.registerReceiver(mSaverReceiver, saver, Context.RECEIVER_NOT_EXPORTED);
         Profiles.prefs(mContext).registerOnSharedPreferenceChangeListener(mPrefsListener);
         try {
             ActivityTaskManager.getService().registerTaskStackListener(mTaskListener);
@@ -93,11 +109,29 @@ final class Controller {
             Log.e(TAG, "Can't follow the app in front", e);
         }
         checkFront();
+        ExtremeSaver.restore(mContext);
     }
 
     /** Recomputes the held hints, e.g. after a Kernel Tweaks change. */
     void update() {
         final List<String> hints = new ArrayList<>();
+        if (ExtremeSaver.isOn(mContext)) {
+            // Lowest everything, whatever the profile or the app
+            hints.add("EXTREME_SAVER");
+        } else {
+            addProfileHints(hints);
+        }
+        final String held = String.join(",", hints);
+        if (!held.equals(mHeld)) {
+            mHeld = held;
+            SystemProperties.set(HELD_HINTS, held);
+            Log.i(TAG, "Holding [" + held + "] for " + mFront);
+            TileService.requestListeningState(mContext,
+                    new ComponentName(mContext, ProfileTileService.class));
+        }
+    }
+
+    private void addProfileHints(List<String> hints) {
         final String profile = activeProfile();
         final String profileHint = Profiles.hint(profile);
         if (profileHint != null) {
@@ -111,13 +145,15 @@ final class Controller {
                 && "1".equals(KernelTweaks.get(KernelTweaks.PARK))) {
             hints.add("PARK_BIG");
         }
-        final String held = String.join(",", hints);
-        if (!held.equals(mHeld)) {
-            mHeld = held;
-            SystemProperties.set(HELD_HINTS, held);
-            Log.i(TAG, "Holding [" + held + "] for " + mFront);
-            TileService.requestListeningState(mContext,
-                    new ComponentName(mContext, ProfileTileService.class));
+        // The overclock: boost is on for the cluster (r1-ktweaks.sh), the HAL holds the speed,
+        // below any saver's cap
+        final String big = Overclock.step(Overclock.BIG);
+        if (big != null) {
+            hints.add("OC_BIG_" + big);
+        }
+        final String little = Overclock.step(Overclock.LITTLE);
+        if (little != null) {
+            hints.add("OC_LITTLE_" + little);
         }
     }
 

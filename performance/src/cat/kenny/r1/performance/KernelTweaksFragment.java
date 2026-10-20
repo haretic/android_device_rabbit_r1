@@ -3,6 +3,7 @@ package cat.kenny.r1.performance;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -42,6 +43,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private ListPreference mMemSleep;
     private SwitchPreferenceCompat mPark;
     private ListPreference mCores;
+    private Preference mOverclock;
     private ListPreference mTrip;
     private ListPreference mZram;
     private SwitchPreferenceCompat mShowDocs;
@@ -82,6 +84,8 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mCores.setEntryValues(coreValues);
         bind(mCores, "8");
 
+        mOverclock = findPreference(Overclock.ON);
+        mOverclock.setIntent(new Intent(context, OverclockActivity.class));
 
         mTrip = findPreference(KernelTweaks.TRIP);
         final CharSequence[] trips = new CharSequence[TRIPS.length];
@@ -193,6 +197,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         final boolean park = "1".equals(KernelTweaks.get(KernelTweaks.PARK));
         mPark.setChecked(park);
         show(mCores, "8", R.string.kt_cores_what);
+        mOverclock.setSummary(OverclockFragment.summary(requireContext()));
         show(mTrip, DEFAULT_TRIP, R.string.kt_trip_what);
         show(mZram, KernelTweaks.defaultZram(), R.string.kt_zram_what);
     }

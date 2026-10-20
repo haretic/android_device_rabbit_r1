@@ -50,6 +50,11 @@
         </activity>
 
         <activity
+            android:name=".OverclockActivity"
+            android:exported="false"
+            android:label="@string/oc_title" />
+
+        <activity
             android:name=".AppProfilesActivity"
             android:exported="false"
             android:label="@string/app_profiles_title" />
@@ -93,6 +98,20 @@
             </intent-filter>
             <meta-data
                 android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+        </service>
+
+        <service
+            android:name=".ExtremeSaverTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_extreme_saver"
+            android:label="@string/extreme_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
                 android:value="true" />
         </service>
     </application>
