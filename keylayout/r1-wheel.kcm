@@ -1,0 +1,12 @@
+# r1-wheel (r1-wheeld): a taskbar step a window leaves unhandled comes back as a D-pad
+# step, so menus, the shade and the taskbar move their focus with it.
+
+type SPECIAL_FUNCTION
+
+key NAVIGATE_PREVIOUS {
+    base:                               fallback DPAD_UP
+}
+
+key NAVIGATE_NEXT {
+    base:                               fallback DPAD_DOWN
+}

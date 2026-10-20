@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The taskbar's own settings, from its last button and Settings > System > Scroll wheel.
+     Every key is a LineageSettings.Secure one (TaskbarSettingsFragment binds them). -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/wheel_title">
+
+    <com.android.settingslib.widget.MainSwitchPreference
+        android:key="wheel_ui"
+        android:title="@string/wheel_ui"
+        android:persistent="false" />
+
+    <PreferenceCategory
+        android:key="bar"
+        android:title="@string/cat_bar">
+        <Preference
+            android:key="buttons"
+            android:title="@string/buttons_title"
+            android:fragment="cat.kenny.r1.wheel.settings.ButtonsFragment" />
+        <ListPreference
+            android:key="wheel_taskbar_running"
+            android:title="@string/running_title"
+            android:entries="@array/running_entries"
+            android:entryValues="@array/running_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_edge"
+            android:title="@string/edge_title"
+            android:entries="@array/edge_entries"
+            android:entryValues="@array/edge_values"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_taskbar_push"
+            android:title="@string/push_title"
+            android:summary="@string/push_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="behaviour"
+        android:title="@string/cat_behaviour">
+        <ListPreference
+            android:key="wheel_taskbar_list_end"
+            android:title="@string/list_end_title"
+            android:entries="@array/list_end_entries"
+            android:entryValues="@array/list_end_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_timeout"
+            android:title="@string/timeout_title"
+            android:entries="@array/timeout_entries"
+            android:entryValues="@array/timeout_values"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="double_press"
+            android:title="@string/double_press_title"
+            android:summary="@string/double_press_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_taskbar_labels"
+            android:title="@string/labels_title"
+            android:summary="@string/labels_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_taskbar_haptics"
+            android:title="@string/haptics_title"
+            android:summary="@string/haptics_summary"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_animations"
+            android:title="@string/animations_title"
+            android:entries="@array/animations_entries"
+            android:entryValues="@array/animations_values"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="wheel"
+        android:title="@string/cat_wheel">
+        <Preference
+            android:key="app_modes"
+            android:title="@string/app_modes_title"
+            android:fragment="cat.kenny.r1.wheel.settings.AppModesFragment" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="look"
+        android:title="@string/cat_look">
+        <ListPreference
+            android:key="wheel_taskbar_size"
+            android:title="@string/size_title"
+            android:entries="@array/size_entries"
+            android:entryValues="@array/size_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_color"
+            android:title="@string/color_title"
+            android:entries="@array/color_entries"
+            android:entryValues="@array/color_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_ring"
+            android:title="@string/ring_title"
+            android:entries="@array/ring_entries"
+            android:entryValues="@array/ring_values"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <Preference
+        android:key="about"
+        android:selectable="false"
+        android:summary="@string/wheel_about" />
+</PreferenceScreen>

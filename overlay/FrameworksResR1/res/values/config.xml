@@ -26,4 +26,19 @@
     <!-- The mainline kernel has no android_usb class; UsbDeviceManager follows the
          gadget through /sys/class/udc/<udc>/state instead. -->
     <bool name="config_enableUdcSysfsUsbStateUpdate">true</bool>
+    <!-- The scroll wheel (OCH1970 Hall sensor, keylayout/och1970-wheel.kl): turns that the app
+         in front leaves alone open SystemUI's wheel taskbar -->
+    <string-array name="config_scrollWheelInputDevices" translatable="false">
+        <item>och1970-wheel</item>
+    </string-array>
+
+    <!-- r1-wheeld (wheel/daemon) owns the wheel: its input device and its init socket -->
+    <string name="config_wheelDaemonInputDevice" translatable="false">r1-wheel</string>
+    <string name="config_wheelDaemonSocket" translatable="false">r1-wheel</string>
+
+    <!-- A double press of the side button opens the wheel taskbar (MULTI_PRESS_POWER_WHEEL_TASKBAR)
+         in any wheel mode, instead of the camera -->
+    <integer name="config_doublePressOnPowerBehavior">4</integer>
+    <integer name="config_doubleTapPowerGestureMode">0</integer>
+    <bool name="config_cameraDoubleTapPowerGestureEnabled">false</bool>
 </resources>

@@ -1,0 +1,17 @@
+# r1-wheeld (wheel/daemon): grabs the scroll wheel's input device and sends its steps on
+# through uinput; SystemUI sets its mode over /dev/socket/r1-wheel.
+type r1_wheeld, domain, coredomain;
+type r1_wheeld_exec, exec_type, file_type, system_file_type;
+init_daemon_domain(r1_wheeld)
+# SystemUI connects with its app categories, the daemon has none
+typeattribute r1_wheeld mlstrustedsubject;
+# The Go runtime looks up its cgroup CPU quota whatever GODEBUG says; one thread does
+dontaudit r1_wheeld cgroup:file read;
+
+allow r1_wheeld input_device:dir r_dir_perms;
+allow r1_wheeld input_device:chr_file r_file_perms;
+allow r1_wheeld uhid_device:chr_file rw_file_perms;
+
+# Apps (SystemUI) carry MLS categories, the socket has none
+type r1_wheel_socket, file_type, coredomain_socket, mlstrustedobject;
+unix_socket_connect(platform_app, r1_wheel, r1_wheeld)

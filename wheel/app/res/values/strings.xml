@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="wheel_title">Taskbar and wheel</string>
+    <string name="wheel_summary">Taskbar, wheel modes and the side button</string>
+    <string name="wheel_ui">Use the wheel UI</string>
+    <string name="wheel_about">The wheel opens the taskbar at the edge of the screen: home, all apps, your pinned and running apps, notifications, the wheel mode of the app in front and these settings. The wheel moves, the side button picks, a double press of the side button brings the taskbar back from any app.\n\nSwitched off, the r1 looks and works like stock Android.</string>
+
+    <string name="cat_bar">Bar</string>
+    <string name="cat_behaviour">Behaviour</string>
+    <string name="cat_wheel">Wheel</string>
+    <string name="cat_look">Look</string>
+
+    <string name="buttons_title">Buttons and order</string>
+    <string name="button_home">Home</string>
+    <string name="button_drawer">All apps</string>
+    <string name="button_apps">Pinned and running apps</string>
+    <string name="button_notifications">Notifications</string>
+    <string name="button_mode">Wheel mode</string>
+    <string name="button_hidden">Hidden</string>
+    <string name="button_shown">Shown, number <xliff:g id="position" example="2">%1$d</xliff:g></string>
+    <string name="button_show">Show</string>
+    <string name="button_hide">Hide</string>
+    <string name="button_up">Move up</string>
+    <string name="button_down">Move down</string>
+    <string name="buttons_reset">Back to the defaults</string>
+    <string name="buttons_footer">Taskbar settings is always the last button, at the bottom.</string>
+
+    <string name="running_title">Running apps</string>
+    <string-array name="running_entries" translatable="false">
+        <item>@string/running_off</item><item>3</item><item>4</item><item>6</item><item>8</item>
+    </string-array>
+    <string-array name="running_values" translatable="false">
+        <item>0</item><item>3</item><item>4</item><item>6</item><item>8</item>
+    </string-array>
+    <string name="running_off">None, only pinned apps</string>
+    <string name="running_summary">Up to %1$s besides the pinned ones; apps the system closed leave the bar</string>
+
+    <string name="edge_title">Edge</string>
+    <string-array name="edge_entries" translatable="false">
+        <item>@string/edge_right</item><item>@string/edge_left</item>
+    </string-array>
+    <string-array name="edge_values" translatable="false"><item>0</item><item>1</item></string-array>
+    <string name="edge_right">Right, beside the wheel</string>
+    <string name="edge_left">Left</string>
+
+    <string name="push_title">Move the app aside</string>
+    <string name="push_summary">Off: the bar covers the edge of the app</string>
+
+    <string name="list_end_title">At the end of a list</string>
+    <string-array name="list_end_entries" translatable="false">
+        <item>@string/list_end_back</item><item>@string/list_end_loop</item><item>@string/list_end_close</item>
+    </string-array>
+    <string-array name="list_end_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
+    <string name="list_end_back">Go round, up out of a list goes back</string>
+    <string name="list_end_loop">Always go round</string>
+    <string name="list_end_close">Close the list or the bar</string>
+
+    <string name="timeout_title">Close when left alone</string>
+    <string-array name="timeout_entries" translatable="false">
+        <item>@string/timeout_2</item><item>@string/timeout_3</item><item>@string/timeout_5</item>
+        <item>@string/timeout_10</item><item>@string/timeout_never</item>
+    </string-array>
+    <string-array name="timeout_values" translatable="false">
+        <item>2</item><item>3</item><item>5</item><item>10</item><item>0</item>
+    </string-array>
+    <string name="timeout_2">After 2 seconds</string>
+    <string name="timeout_3">After 3 seconds</string>
+    <string name="timeout_5">After 5 seconds</string>
+    <string name="timeout_10">After 10 seconds</string>
+    <string name="timeout_never">Never</string>
+
+    <string name="double_press_title">Double-press the side button</string>
+    <string name="double_press_summary">Opens the taskbar from any app</string>
+    <string name="labels_title">Labels</string>
+    <string name="labels_summary">The name of the focused button beside it</string>
+    <string name="haptics_title">Ticks</string>
+    <string name="haptics_summary">A tick for every step of the wheel</string>
+
+    <string name="animations_title">Animations</string>
+    <string-array name="animations_entries" translatable="false">
+        <item>@string/animations_full</item><item>@string/animations_short</item><item>@string/animations_off</item>
+    </string-array>
+    <string-array name="animations_values" translatable="false"><item>2</item><item>1</item><item>0</item></string-array>
+    <string name="animations_full">Full</string>
+    <string name="animations_short">Quick</string>
+    <string name="animations_off">None</string>
+
+    <string name="app_modes_title">The wheel in each app</string>
+    <string name="app_modes_summary">%1$d set to something else than the taskbar</string>
+    <string name="app_modes_none">All apps open the taskbar</string>
+    <string name="mode_taskbar">Taskbar</string>
+    <string name="mode_app">Scroll the app</string>
+    <string name="mode_volume">Volume</string>
+
+    <string name="size_title">Size</string>
+    <string-array name="size_entries" translatable="false">
+        <item>@string/size_compact</item><item>@string/size_normal</item><item>@string/size_large</item>
+    </string-array>
+    <string-array name="size_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
+    <string name="size_compact">Compact</string>
+    <string name="size_normal">Normal</string>
+    <string name="size_large">Large</string>
+
+    <string name="color_title">Colour</string>
+    <string-array name="color_entries" translatable="false">
+        <item>@string/color_black</item><item>@string/color_translucent</item><item>@string/color_accent</item>
+    </string-array>
+    <string-array name="color_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
+    <string name="color_black">Black</string>
+    <string name="color_translucent">Translucent</string>
+    <string name="color_accent">Wallpaper colour</string>
+
+    <string name="ring_title">Focus ring</string>
+    <string-array name="ring_entries" translatable="false">
+        <item>@string/ring_theme</item><item>@string/ring_white</item><item>@string/ring_accent</item>
+    </string-array>
+    <string-array name="ring_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
+    <string name="ring_theme">Soft</string>
+    <string name="ring_white">White</string>
+    <string name="ring_accent">Wallpaper colour</string>
+</resources>

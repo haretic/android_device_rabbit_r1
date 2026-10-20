@@ -16,6 +16,7 @@ android_app {
     static_libs: [
         "androidx.preference_preference",
         "SettingsLibPreference",
+        "r1-wheelselect",
     ],
     required: ["r1-ktweaks.sh"],
     optimize: {

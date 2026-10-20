@@ -76,6 +76,7 @@ PRODUCT_PACKAGES += \
     LineageSettingsProviderR1 \
     PerfOverlay \
     R1Performance \
+    R1Wheel \
     SystemUIR1 \
     r1-expdb
 
@@ -98,6 +99,7 @@ PRODUCT_PACKAGES += R1RadioSleep
 
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
+
 
 # The logger validates expdb and bounds its mapping before loading pstore.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.r1.expdb.enabled=1
@@ -138,7 +140,14 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/mtk-pmic-keys.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/mtk-pmic-keys.kl \
     $(LOCAL_PATH)/keylayout/mt6779-keypad.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/mt6779-keypad.kl \
-    $(LOCAL_PATH)/keylayout/och1970-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/och1970-wheel.kl
+    $(LOCAL_PATH)/keylayout/och1970-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/och1970-wheel.kl \
+    $(LOCAL_PATH)/keylayout/r1-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/r1-wheel.kl \
+    $(LOCAL_PATH)/keylayout/r1-wheel.kcm:$(TARGET_COPY_OUT_VENDOR)/usr/keychars/r1-wheel.kcm
+
+# The scroll wheel daemon (wheel/daemon), built into prebuilt/ by r1-tools
+PRODUCT_PACKAGES += r1-wheeld
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/wheel/daemon/r1-wheeld.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/r1-wheeld.rc
 
 # Recovery-as-boot copies root/ into its ramdisk for the normal-boot switch.
 PRODUCT_COPY_FILES += \

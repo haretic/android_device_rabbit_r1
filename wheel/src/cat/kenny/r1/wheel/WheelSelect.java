@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-package cat.kenny.r1.performance;
+package cat.kenny.r1.wheel;
 
 import android.app.Dialog;
 import android.os.PowerManager;
@@ -10,18 +10,24 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 
 /**
- * The r1's wheel and side button in a window of this app: the wheel (D-pad up and down)
+ * The r1's wheel and side button in an app's window: the wheel (D-pad up and down)
  * moves the focus with a tick, a press of the side button works as the D-pad centre on what
  * has the focus, and holding it puts the r1 to sleep, as the power button does elsewhere.
  * The window asks the system for the side button with INPUT_FEATURE_POWER_KEY_SELECTS,
  * which only system windows get.
  */
-final class WheelSelect implements InvocationHandler {
+public final class WheelSelect implements InvocationHandler {
 
     private final Window mWindow;
     private final Window.Callback mCallback;
@@ -33,13 +39,28 @@ final class WheelSelect implements InvocationHandler {
         mCallback = callback;
     }
 
-    static void attach(Dialog dialog) {
+    /** The activity's window and the dialogs of its fragments, ListPreference's among them. */
+    public static void attach(FragmentActivity activity) {
+        attach(activity.getWindow());
+        activity.getSupportFragmentManager().registerFragmentLifecycleCallbacks(
+                new FragmentManager.FragmentLifecycleCallbacks() {
+                    @Override
+                    public void onFragmentStarted(@NonNull FragmentManager fm,
+                            @NonNull Fragment f) {
+                        if (f instanceof DialogFragment) {
+                            attach(((DialogFragment) f).getDialog());
+                        }
+                    }
+                }, true);
+    }
+
+    public static void attach(Dialog dialog) {
         if (dialog != null && dialog.getWindow() != null) {
             attach(dialog.getWindow());
         }
     }
 
-    static void attach(Window window) {
+    public static void attach(Window window) {
         final Window.Callback callback = window.getCallback();
         if (callback == null || Proxy.isProxyClass(callback.getClass())) {
             return;
