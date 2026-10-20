@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+# r1-wheeld (wheel/daemon): owns the scroll wheel and sends its steps on as the r1-wheel
+# device, in the mode SystemUI sets over the socket. The wheel's input device is root:input,
+# /dev/uinput uhid:uhid.
+service r1-wheeld /system_ext/bin/r1-wheeld
+    class core
+    user system
+    group input uhid
+    socket r1-wheel stream 0666 system system
+    task_profiles HighPerformance

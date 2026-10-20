@@ -13,6 +13,8 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;
 
+import cat.kenny.r1.wheel.WheelSelect;
+
 import com.android.settingslib.widget.MainSwitchPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
@@ -79,6 +81,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mCores.setEntries(cores);
         mCores.setEntryValues(coreValues);
         bind(mCores, "8");
+
 
         mTrip = findPreference(KernelTweaks.TRIP);
         final CharSequence[] trips = new CharSequence[TRIPS.length];

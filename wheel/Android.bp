@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: Apache-2.0
+// The r1's wheel and side button in an app's windows (WheelSelect), for the settings pages
+// of performance/ and perfoverlay/. The side button needs the system-only
+// INPUT_FEATURE_POWER_KEY_SELECTS, so this is for platform-signed apps.
+android_library {
+    name: "r1-wheelselect",
+    srcs: ["src/**/*.java"],
+    platform_apis: true,
+    static_libs: ["androidx.fragment_fragment"],
+    manifest: "AndroidManifest.xml",
+}
+
+// Settings > System > Scroll wheel: the wheel UI (SystemUI's wheel taskbar and the focus
+// rings) or the stock look, LineageSettings.Secure.WHEEL_UI.
+android_app {
+    name: "R1Wheel",
+    defaults: ["SettingsLibDefaults"],
+    srcs: ["app/src/**/*.java"],
+    resource_dirs: ["app/res"],
+    manifest: "app/AndroidManifest.xml",
+    certificate: "platform",
+    platform_apis: true,
+    system_ext_specific: true,
+    privileged: true,
+    static_libs: [
+        "androidx.preference_preference",
+        "SettingsLibPreference",
+        "org.lineageos.platform.internal",
+        "r1-wheelselect",
+    ],
+    optimize: {
+        enabled: false,
+    },
+}

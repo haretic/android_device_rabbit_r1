@@ -14,6 +14,8 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceViewHolder;
 
+import cat.kenny.r1.wheel.WheelSelect;
+
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
 import java.text.Collator;
