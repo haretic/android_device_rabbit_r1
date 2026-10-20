@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Settings > System > Problem report -->
+    <string name="report_title">Problem report</string>
+    <string name="report_summary">Save logs for a bug report</string>
+
+    <string name="intro">Saves the system logs from now and from the last start, crash reports and a description of this r1 as one .zip in Download/haretic-reports. Takes about a minute.</string>
+
+    <string name="note_title">What went wrong?</string>
+    <string name="note_hint">Optional, goes into the report</string>
+    <string name="note_dialog">What were you doing, and what happened?</string>
+
+    <string name="save_title">Save report</string>
+    <string name="save_summary">Saved in Download/haretic-reports</string>
+    <!-- e.g. "Saving the kernel log (step 3 of 8)…" -->
+    <string name="save_running">Saving <xliff:g id="what">%1$s</xliff:g> (step <xliff:g id="step">%2$d</xliff:g> of <xliff:g id="steps">%3$d</xliff:g>)…</string>
+    <string name="save_done">Saved: <xliff:g id="file">%1$s</xliff:g></string>
+    <string name="save_done_toast">Report saved in <xliff:g id="file">%1$s</xliff:g></string>
+    <string name="save_failed">Not saved. <xliff:g id="why">%1$s</xliff:g></string>
+    <string name="error_busy">Another report is being saved.</string>
+    <string name="error_start">The log collector didn\'t start.</string>
+    <string name="error_stopped">The report stopped before it was done.</string>
+    <string name="error_cant_write">The file could not be written. Is the storage full?</string>
+
+    <string name="step_system">the description of this r1</string>
+    <string name="step_logcat">the Android log</string>
+    <string name="step_kernel">the kernel log</string>
+    <string name="step_crashes">crash reports</string>
+    <string name="step_power">battery and power</string>
+    <string name="step_devices">devices and the screen</string>
+    <string name="step_apps">the list of apps</string>
+    <string name="step_saving">the file</string>
+
+    <string name="last_start_title">Logs from the last start</string>
+    <string name="last_start_panic">The last start ended with a kernel panic. Its log is kept and goes into the report.</string>
+    <string name="last_start_panic_lost">The last start ended with a kernel panic, but its log wasn\'t kept.</string>
+    <string name="last_start_reset">The last start ended with a watchdog reset. Its log is kept and goes into the report.</string>
+    <string name="last_start_reset_lost">The last start ended with a watchdog reset, but its log wasn\'t kept.</string>
+    <string name="last_start_kept">Kept, they go into the report.</string>
+    <string name="last_start_none">None. They are only kept when the r1 restarts, not when it was switched off or the battery ran empty.</string>
+    <string name="last_start_unknown">Not looked at yet, the r1 is still starting.</string>
+
+    <string name="privacy">The report lists your apps. Wi-Fi network names, accounts, phone numbers, IMEI and serial numbers are taken out, but the logs can still name Bluetooth devices nearby. Have a look before you post it in public.</string>
+</resources>

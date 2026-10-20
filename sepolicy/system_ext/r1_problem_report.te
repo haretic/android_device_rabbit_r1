@@ -1,0 +1,33 @@
+# The Problem report page (problemreport/, system uid): asks for a report and follows it
+# (sys.r1.report.*), and meets problemreport/r1-problem-report.sh in
+# /data/misc/r1-problem-report, which init makes and copies the last start's pstore files into.
+system_internal_prop(r1_problem_report_prop)
+set_prop(system_app, r1_problem_report_prop)
+
+type r1_problem_report_data_file, file_type, data_file_type, core_data_file_type;
+allow system_app r1_problem_report_data_file:dir create_dir_perms;
+allow system_app r1_problem_report_data_file:file create_file_perms;
+
+# r1-problem-report.sh: collects what system_app may not read, as the system user with the
+# log group
+type r1_problem_report, domain, coredomain;
+type r1_problem_report_exec, exec_type, file_type, system_file_type;
+init_daemon_domain(r1_problem_report)
+
+allow r1_problem_report { shell_exec toolbox_exec }:file rx_file_perms;
+set_prop(r1_problem_report, r1_problem_report_prop)
+allow r1_problem_report r1_problem_report_data_file:dir create_dir_perms;
+allow r1_problem_report r1_problem_report_data_file:file create_file_perms;
+# The Android log, all buffers (logcat names the events from /system/etc/event-log-tags)
+read_logd(r1_problem_report)
+# The kernel log (dmesg -S; dmesg_restrict is off, so no CAP_SYSLOG)
+allow r1_problem_report kernel:system syslog_read;
+# The newest tombstones and ANR traces
+allow r1_problem_report { tombstone_data_file anr_data_file }:dir r_dir_perms;
+allow r1_problem_report { tombstone_data_file anr_data_file }:file r_file_perms;
+# What the last start left in pstore: names, sizes and times only. coredomain.te lets only a
+# few system domains read the files; init copies them (r1-problem-report.rc).
+allow r1_problem_report pstorefs:dir r_dir_perms;
+allow r1_problem_report pstorefs:file getattr;
+# How the last start ended, as bootstat found
+get_prop(r1_problem_report, system_boot_reason_prop)
