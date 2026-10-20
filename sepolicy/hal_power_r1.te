@@ -2,6 +2,9 @@
 # in games (GAME_DRAM), a floor for the Performance profile, a cap for Battery saver.
 type sysfs_r1_dram_qos, fs_type, sysfs_type;
 allow hal_power_default sysfs_r1_dram_qos:file rw_file_perms;
+# And the GPU's: capped for the extreme battery saver
+type sysfs_r1_gpu_qos, fs_type, sysfs_type;
+allow hal_power_default sysfs_r1_gpu_qos:file rw_file_perms;
 
 # Hints held for as long as Settings asks (sys.powerhal.held_hints): the CPU profile, games
 get_prop(hal_power_default, powerhal_held_hints_prop)

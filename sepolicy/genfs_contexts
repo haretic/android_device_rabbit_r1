@@ -45,3 +45,7 @@ genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfre
 # Its speed range, set by the power HAL
 genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfreq/10012000.dvfsrc:dram/min_freq u:object_r:sysfs_r1_dram_qos:s0
 genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfreq/10012000.dvfsrc:dram/max_freq u:object_r:sysfs_r1_dram_qos:s0
+# The GPU clock (pvrsrvkm devfreq) for the performance overlay, and its range for the power HAL
+genfscon sysfs /devices/platform/soc/13000000.gpu/devfreq/13000000.gpu/cur_freq u:object_r:sysfs_devfreq_cur:s0
+genfscon sysfs /devices/platform/soc/13000000.gpu/devfreq/13000000.gpu/min_freq u:object_r:sysfs_r1_gpu_qos:s0
+genfscon sysfs /devices/platform/soc/13000000.gpu/devfreq/13000000.gpu/max_freq u:object_r:sysfs_r1_gpu_qos:s0
