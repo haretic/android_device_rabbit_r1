@@ -85,6 +85,16 @@
             "ResetOnInit": true
         },
         {
+            "Name": "GPUMaxFreq",
+            "Path": "/sys/class/devfreq/13000000.gpu/max_freq",
+            "Values": [
+                "400000000",
+                "680000000"
+            ],
+            "DefaultIndex": 1,
+            "ResetOnInit": true
+        },
+        {
             "Name": "BigClusterDownRateLimit",
             "Path": "/sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us",
             "Values": [
@@ -372,6 +382,12 @@
             "PowerHint": "EXTREME_SAVER",
             "Node": "DRAMMaxFreq",
             "Value": "1534000000",
+            "Duration": 0
+        },
+        {
+            "PowerHint": "EXTREME_SAVER",
+            "Node": "GPUMaxFreq",
+            "Value": "400000000",
             "Duration": 0
         },
         {

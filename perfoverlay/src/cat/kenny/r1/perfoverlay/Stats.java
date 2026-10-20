@@ -36,6 +36,8 @@ final class Stats {
     private static final String CPU_FREQ_DIR = "/sys/devices/system/cpu/cpufreq";
     /** The DRAM clock DVFSRC runs, in Hz. */
     private static final String MEM_FREQ = "/sys/class/devfreq/10012000.dvfsrc:dram/cur_freq";
+    /** The PowerVR GPU's clock, scaled by its devfreq, in Hz. */
+    private static final String GPU_FREQ = "/sys/class/devfreq/13000000.gpu/cur_freq";
 
     private static final String STORAGE_STAT = "/sys/block/mmcblk0/stat";
 
@@ -45,7 +47,6 @@ final class Stats {
     int screenFps = -1;
     int cpuPercent = -1;
     int cpuMhz = -1;
-    /** The PowerVR GPU has no devfreq node to read its clock from. */
     int gpuMhz = -1;
     int memMhz = -1;
     float tempC = Float.NaN;
@@ -104,6 +105,7 @@ final class Stats {
             cpuMhz = Math.max(cpuMhz, readInt(path, 1000));
         }
         memMhz = readInt(MEM_FREQ, 1000000);
+        gpuMhz = readInt(GPU_FREQ, 1000000);
         final int milliC = mTempPath == null ? Integer.MIN_VALUE : readInt(mTempPath, 1);
         tempC = milliC == Integer.MIN_VALUE || milliC < 0 ? Float.NaN : milliC / 1000f;
         sampleBattery();
