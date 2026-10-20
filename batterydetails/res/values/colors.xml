@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <!-- The level graph, as in the mockup -->
+    <color name="graph_line">#9BE29B</color>
+    <color name="graph_fill">#2E9BE29B</color>
+</resources>

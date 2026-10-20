@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Settings > Battery -->
+    <string name="details_title">Battery details</string>
+    <string name="details_summary">Level over 24 hours, voltage, current and charging</string>
+
+    <!-- The top of the page -->
+    <string name="percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
+    <string name="status_charging">Charging</string>
+    <string name="status_full">Full</string>
+    <string name="status_on_battery">On battery</string>
+    <string name="status_not_charging">Plugged in, not charging</string>
+    <string name="status_limit_hold">Plugged in, held at the charge limit</string>
+    <!-- e.g. "full in about 40 min" -->
+    <string name="time_to_full">full in about <xliff:g id="time">%1$s</xliff:g></string>
+    <!-- e.g. "about 5 hr, 10 min left" -->
+    <string name="time_left">about <xliff:g id="time">%1$s</xliff:g> left</string>
+    <!-- Joins the status and the time, e.g. "Charging · full in about 40 min" -->
+    <string name="status_and_time"><xliff:g id="status">%1$s</xliff:g> · <xliff:g id="time">%2$s</xliff:g></string>
+    <string name="graph_ago">24 h ago</string>
+    <string name="graph_now">now</string>
+    <string name="graph_empty">The graph fills in as you use the r1: the level is noted about every 15 minutes while it is awake.</string>
+
+    <!-- Right now -->
+    <string name="now_title">Right now</string>
+    <string name="voltage_current">Voltage · Current</string>
+    <string name="power_temperature">Power · Temperature</string>
+    <string name="charger">Charger</string>
+    <!-- Two readings in one row, e.g. "4.12 V · +1.08 A" -->
+    <string name="value_pair"><xliff:g id="first">%1$s</xliff:g> · <xliff:g id="second">%2$s</xliff:g></string>
+    <string name="value_volts"><xliff:g id="volts">%1$.2f</xliff:g> V</string>
+    <!-- Plus while charging, minus on battery -->
+    <string name="value_amps"><xliff:g id="amps">%1$+.2f</xliff:g> A</string>
+    <string name="value_watts"><xliff:g id="watts">%1$+.1f</xliff:g> W</string>
+    <string name="value_celsius"><xliff:g id="celsius">%1$.0f</xliff:g> °C</string>
+    <!-- A reading the r1 doesn't have right now -->
+    <string name="value_unknown">–</string>
+    <string name="charger_none">Not plugged in</string>
+    <!-- A charger or a charging port that says so (1 A) -->
+    <string name="charger_fast">USB charger</string>
+    <!-- A computer's USB port or a charger that doesn't say what it is (0.5 A) -->
+    <string name="charger_port">USB port</string>
+    <string name="charger_usb">USB</string>
+    <!-- e.g. "USB charger, 5.1 V", the voltage the r1 measures on the cable -->
+    <string name="charger_volts"><xliff:g id="charger">%1$s</xliff:g>, <xliff:g id="volts">%2$.1f</xliff:g> V</string>
+
+    <!-- Battery care -->
+    <string name="care_title">Battery care</string>
+    <string name="current_title">Charge current</string>
+    <string name="current_default"><xliff:g id="amps">%1$s</xliff:g> A · the default, fastest</string>
+    <string name="current_slower"><xliff:g id="amps">%1$s</xliff:g> A · gentler, slower</string>
+    <string name="current_slowest"><xliff:g id="amps">%1$s</xliff:g> A · gentlest, slowest</string>
+    <!-- Second line while plugged in, when the charger gets less than the choice -->
+    <string name="current_now_usb">Now <xliff:g id="amps">%1$s</xliff:g> A: the USB port gives no more</string>
+    <string name="current_now_thermal">Now <xliff:g id="amps">%1$s</xliff:g> A: gentler while the battery is cold or warm</string>
+    <!-- The picker, e.g. "0.8 A, about 3.1 W" into the battery -->
+    <string name="current_choice"><xliff:g id="amps">%1$s</xliff:g> A, about <xliff:g id="watts">%2$s</xliff:g> W</string>
+    <string name="current_choice_default"><xliff:g id="amps">%1$s</xliff:g> A, about <xliff:g id="watts">%2$s</xliff:g> W (default)</string>
+    <string name="current_save_failed">Couldn\'t change the charge current</string>
+    <string name="limit_title">Charge limit</string>
+    <string name="limit_stops_at">Stops at <xliff:g id="percent">%1$d</xliff:g> %%</string>
+    <string name="limit_off" formatted="false">Off, charges to 100 %</string>
+    <string name="limit_scheduled">On, finishes charging on a schedule</string>
+</resources>

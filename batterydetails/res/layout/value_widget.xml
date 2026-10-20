@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A reading, at the end of its row in Right now -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/value"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceListItem" />

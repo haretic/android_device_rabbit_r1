@@ -75,6 +75,7 @@ PRODUCT_PACKAGES += \
     LineageSdkR1 \
     LineageSettingsProviderR1 \
     PerfOverlay \
+    R1BatteryDetails \
     R1Performance \
     R1Wheel \
     SystemUIR1 \
