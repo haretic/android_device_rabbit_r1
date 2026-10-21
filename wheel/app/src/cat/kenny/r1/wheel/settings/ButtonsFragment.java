@@ -26,7 +26,9 @@ import java.util.List;
  */
 public class ButtonsFragment extends SettingsBasePreferenceFragment {
 
-    static final String[] DEFAULT = {"home", "drawer", "apps", "notifications", "mode"};
+    static final String[] DEFAULT = {
+        "home", "drawer", "apps", "notifications", "mode", "power",
+    };
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -104,7 +106,10 @@ public class ButtonsFragment extends SettingsBasePreferenceFragment {
                 UserHandle.myUserId());
     }
 
-    /** Every button once, in order; unknown names dropped, missing ones added hidden. */
+    /**
+     * Every button once, in order; unknown names dropped. Missing ones are newer than the list
+     * and come in shown, where the defaults have them.
+     */
     static List<String> read(Context context) {
         final String value = LineageSettings.Secure.getStringForUser(
                 context.getContentResolver(), LineageSettings.Secure.WHEEL_TASKBAR_BUTTONS,
@@ -120,9 +125,9 @@ public class ButtonsFragment extends SettingsBasePreferenceFragment {
                 }
             }
         }
-        for (String name : DEFAULT) {
-            if (!seen.contains(name)) {
-                buttons.add(TextUtils.isEmpty(value) ? name : "!" + name);
+        for (int i = 0; i < DEFAULT.length; i++) {
+            if (!seen.contains(DEFAULT[i])) {
+                buttons.add(Math.min(i, buttons.size()), DEFAULT[i]);
             }
         }
         return buttons;
@@ -148,6 +153,7 @@ public class ButtonsFragment extends SettingsBasePreferenceFragment {
             case "drawer" -> R.string.button_drawer;
             case "apps" -> R.string.button_apps;
             case "notifications" -> R.string.button_notifications;
+            case "power" -> R.string.button_power;
             default -> R.string.button_mode;
         });
     }

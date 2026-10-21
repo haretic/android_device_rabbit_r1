@@ -17,6 +17,7 @@
     <string name="button_apps">Pinned and running apps</string>
     <string name="button_notifications">Notifications</string>
     <string name="button_mode">Wheel mode</string>
+    <string name="button_power">Power</string>
     <string name="button_hidden">Hidden</string>
     <string name="button_shown">Shown, number <xliff:g id="position" example="2">%1$d</xliff:g></string>
     <string name="button_show">Show</string>
@@ -75,7 +76,9 @@
     <string name="labels_title">Labels</string>
     <string name="labels_summary">The name of the focused button beside it</string>
     <string name="haptics_title">Ticks</string>
-    <string name="haptics_summary">A tick for every step of the wheel</string>
+    <string name="haptics_summary">A tick for every step of the wheel, in apps too</string>
+    <string name="sounds_title">Clicks</string>
+    <string name="sounds_summary">A quiet click for every step and press in the taskbar and the power menu, while touch sounds are on</string>
 
     <string name="animations_title">Animations</string>
     <string-array name="animations_entries" translatable="false">
@@ -91,7 +94,14 @@
     <string name="app_modes_none">All apps open the taskbar</string>
     <string name="mode_taskbar">Taskbar</string>
     <string name="mode_app">Scroll the app</string>
+    <string name="mode_scroll">Smooth scroll</string>
+    <string name="mode_tab">Tab through links</string>
+    <string name="mode_arrows">Left and right</string>
+    <string name="mode_page">Page up and down</string>
     <string name="mode_volume">Volume</string>
+    <string name="mode_brightness">Brightness</string>
+    <string name="mode_media">Tracks</string>
+    <string name="mode_zoom">Zoom</string>
 
     <string name="size_title">Size</string>
     <string-array name="size_entries" translatable="false">

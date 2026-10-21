@@ -49,4 +49,15 @@
     <integer name="config_doublePressOnPowerBehavior">4</integer>
     <integer name="config_doubleTapPowerGestureMode">0</integer>
     <bool name="config_cameraDoubleTapPowerGestureEnabled">false</bool>
+    <!-- Standby too: once the side button stops turning the screen off, the power menu and
+         the taskbar do -->
+    <string-array translatable="false" name="config_globalActionsList">
+        <item>power</item>
+        <item>restart</item>
+        <item>screenshot</item>
+        <item>standby</item>
+        <item>lockdown</item>
+        <item>emergency</item>
+        <item>bugreport</item>
+    </string-array>
 </resources>
