@@ -13,12 +13,4 @@
     <bool name="config_wheelTaskbar">true</bool>
     <!-- Its last button: its own settings app -->
     <string name="config_wheelTaskbarSettings" translatable="false">cat.kenny.r1.wheel.settings/.WheelActivity</string>
-    <!-- Apps made for the wheel scroll with it until the user picks otherwise -->
-    <string-array name="config_wheelAppModeDefaults" translatable="false">
-        <item>cat.kenny.r1.wheel.settings=app</item>
-        <item>cat.kenny.r1.performance=app</item>
-        <item>cat.kenny.r1.perfoverlay=app</item>
-        <item>cat.kenny.r1.batterydetails=app</item>
-        <item>cat.kenny.r1.problemreport=app</item>
-    </string-array>
 </resources>
