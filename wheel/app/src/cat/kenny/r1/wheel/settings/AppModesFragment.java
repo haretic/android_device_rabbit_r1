@@ -30,7 +30,8 @@ import java.util.Map;
  */
 public class AppModesFragment extends SettingsBasePreferenceFragment {
 
-    private static final String[] MODES = {"taskbar", "app", "volume"};
+    private static final String[] MODES = {"taskbar", "app", "scroll", "tab", "arrows", "page",
+            "volume", "brightness", "media", "zoom"};
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -111,7 +112,14 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
     private CharSequence label(String mode) {
         return getString(switch (mode) {
             case "app" -> R.string.mode_app;
+            case "scroll" -> R.string.mode_scroll;
+            case "tab" -> R.string.mode_tab;
+            case "arrows" -> R.string.mode_arrows;
+            case "page" -> R.string.mode_page;
             case "volume" -> R.string.mode_volume;
+            case "brightness" -> R.string.mode_brightness;
+            case "media" -> R.string.mode_media;
+            case "zoom" -> R.string.mode_zoom;
             default -> R.string.mode_taskbar;
         });
     }
