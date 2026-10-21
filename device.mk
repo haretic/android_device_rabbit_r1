@@ -145,7 +145,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/mt6779-keypad.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/mt6779-keypad.kl \
     $(LOCAL_PATH)/keylayout/och1970-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/och1970-wheel.kl \
     $(LOCAL_PATH)/keylayout/r1-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/r1-wheel.kl \
-    $(LOCAL_PATH)/keylayout/r1-wheel.kcm:$(TARGET_COPY_OUT_VENDOR)/usr/keychars/r1-wheel.kcm
+    $(LOCAL_PATH)/keylayout/r1-wheel.kcm:$(TARGET_COPY_OUT_VENDOR)/usr/keychars/r1-wheel.kcm \
+    $(LOCAL_PATH)/idc/r1-wheel-touch.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/r1-wheel-touch.idc
 
 # The scroll wheel daemon (wheel/daemon), built into prebuilt/ by r1-tools
 PRODUCT_PACKAGES += r1-wheeld
