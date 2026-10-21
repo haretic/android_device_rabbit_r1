@@ -12,6 +12,9 @@
 //	app      KEY_UP / KEY_DOWN: DPAD_UP / DOWN, the app moves its focus.
 //	volume   KEY_VOLUMEUP / KEY_VOLUMEDOWN.
 //
+// A press of the side button tends to nudge the wheel: steps while it is held and just after
+// it is let go are dropped, so a press doesn't step the focus off what it was meant for.
+//
 // SystemUI sets the mode over the init socket /dev/socket/r1-wheel, one line per change:
 // "mode taskbar", "mode app" or "mode volume". Without a client the mode is taskbar. If the
 // daemon stops, the grab goes with it and the wheel's own D-pad keys reach Android again.
@@ -50,8 +53,13 @@ const (
 	keyVolumeUp   = 115
 	keyScrollUp   = 177
 	keyScrollDown = 178
+	keyPower      = 116
+	keyMax        = 0x2ff
 
 	busVirtual = 0x06
+
+	// Wheel steps this soon after the side button is let go are its nudge
+	buttonSettle = 150 * time.Millisecond
 )
 
 // ioctl request numbers, asm-generic layout: dir(2) size(14) type(8) nr(8)
@@ -69,6 +77,9 @@ var (
 )
 
 func eviocgname(n uintptr) uintptr { return ioc(2, 'E', 0x06, n) }
+
+// EVIOCGBIT(ev, n): the codes a device has for event type ev
+func eviocgbit(ev, n uintptr) uintptr { return ioc(2, 'E', 0x20+ev, n) }
 
 // struct input_event on a 64-bit kernel
 type inputEvent struct {
@@ -115,6 +126,19 @@ type daemon struct {
 	out  *os.File
 	// The key a held step went out as, so its release matches even if the mode changed
 	held map[uint16]uint16
+	// The side button: held, or when it was let go
+	button         bool
+	buttonReleased time.Time
+}
+
+// setButton notes the side button going down (true) or up.
+func (d *daemon) setButton(down bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.button = down
+	if !down {
+		d.buttonReleased = time.Now()
+	}
 }
 
 func logf(format string, args ...any) {
@@ -140,6 +164,10 @@ func (d *daemon) step(code uint16, value int32) {
 	defer d.mu.Unlock()
 	var out uint16
 	if value == 1 {
+		if d.button || time.Since(d.buttonReleased) < buttonSettle {
+			// The button's nudge; its release finds nothing held and goes too
+			return
+		}
 		keys := modeKeys[d.mode]
 		if code == keyUp {
 			out = keys[0]
@@ -214,6 +242,56 @@ func openWheel() (*os.File, error) {
 	return nil, fmt.Errorf("no %s input device", wheelName)
 }
 
+// buttonPaths lists the devices with KEY_POWER: the side button may come from more than one
+// (the PMIC's power key and the keypad both have it).
+func buttonPaths() []string {
+	var found []string
+	paths, _ := filepath.Glob("/dev/input/event*")
+	for _, path := range paths {
+		f, err := os.Open(path)
+		if err != nil {
+			continue
+		}
+		var bits [keyMax/8 + 1]byte
+		var name [64]byte
+		if ioctl(int(f.Fd()), eviocgbit(evKey, uintptr(len(bits))), uintptr(unsafe.Pointer(&bits[0]))) == nil &&
+			bits[keyPower/8]&(1<<(keyPower%8)) != 0 &&
+			ioctl(int(f.Fd()), eviocgname(uintptr(len(name))), uintptr(unsafe.Pointer(&name[0]))) == nil &&
+			strings.TrimRight(string(name[:]), "\x00") != outName {
+			found = append(found, path)
+		}
+		f.Close()
+	}
+	return found
+}
+
+// watchButton follows a side button device, read and not grabbed, so Android still gets
+// every press; reopened if it goes away.
+func (d *daemon) watchButton(path string) {
+	var ev inputEvent
+	buf := (*[unsafe.Sizeof(inputEvent{})]byte)(unsafe.Pointer(&ev))[:]
+	for {
+		button, err := os.Open(path)
+		if err != nil {
+			logf("side button %s: %v, retrying", path, err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		for {
+			if _, err = button.Read(buf); err != nil {
+				break
+			}
+			if ev.Type == evKey && ev.Code == keyPower && ev.Value != 2 {
+				d.setButton(ev.Value == 1)
+			}
+		}
+		button.Close()
+		d.setButton(false)
+		logf("side button %s: %v, reopening", path, err)
+		time.Sleep(time.Second)
+	}
+}
+
 // readWheel forwards the wheel's key events until the device goes away.
 func (d *daemon) readWheel(wheel *os.File) error {
 	var ev inputEvent
@@ -286,6 +364,14 @@ func main() {
 		logf("%v; the mode stays taskbar", err)
 	} else {
 		go d.serve(l)
+	}
+
+	buttons := buttonPaths()
+	if len(buttons) == 0 {
+		logf("no input device with KEY_POWER, steps aren't held back around presses")
+	}
+	for _, path := range buttons {
+		go d.watchButton(path)
 	}
 
 	stop := make(chan os.Signal, 1)

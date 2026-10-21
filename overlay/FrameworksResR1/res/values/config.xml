@@ -35,6 +35,14 @@
     <!-- r1-wheeld (wheel/daemon) owns the wheel: its input device and its init socket -->
     <string name="config_wheelDaemonInputDevice" translatable="false">r1-wheel</string>
     <string name="config_wheelDaemonSocket" translatable="false">r1-wheel</string>
+    <!-- Apps made for the wheel scroll with it until the user picks otherwise -->
+    <string-array name="config_wheelAppModeDefaults" translatable="false">
+        <item>cat.kenny.r1.wheel.settings=app</item>
+        <item>cat.kenny.r1.performance=app</item>
+        <item>cat.kenny.r1.perfoverlay=app</item>
+        <item>cat.kenny.r1.batterydetails=app</item>
+        <item>cat.kenny.r1.problemreport=app</item>
+    </string-array>
 
     <!-- A double press of the side button opens the wheel taskbar (MULTI_PRESS_POWER_WHEEL_TASKBAR)
          in any wheel mode, instead of the camera -->
