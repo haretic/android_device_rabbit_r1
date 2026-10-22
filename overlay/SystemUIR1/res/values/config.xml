@@ -9,6 +9,8 @@
     <bool name="config_powerMenuWheelNavigation">true</bool>
     <!-- One action a row in portrait, what the wheel walks best on 480x640 -->
     <bool name="config_powerMenuList">true</bool>
+    <!-- The taskbar pins apps; the power menu leaves them to it -->
+    <bool name="config_powerMenuPinnedApps">false</bool>
     <!-- A last, louder low battery warning shortly before the r1 turns itself off -->
     <integer name="config_lastBatteryWarningLevel">3</integer>
     <!-- The taskbar at the right edge, opened by the wheel -->
