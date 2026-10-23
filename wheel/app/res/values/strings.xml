@@ -129,4 +129,13 @@
     <string name="ring_theme">Soft</string>
     <string name="ring_white">White</string>
     <string name="ring_accent">Wallpaper colour</string>
+    <string name="button_columns_title">Button columns</string>
+    <string-array name="button_columns_entries">
+        <item>1 — List</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="button_columns_values" translatable="false">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
 </resources>
