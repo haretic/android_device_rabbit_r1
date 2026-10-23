@@ -28,19 +28,21 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
     private static final String KEY_RUNNING = LineageSettings.Secure.WHEEL_TASKBAR_RUNNING;
 
     /** The settings' values when unset, as SystemUI's WheelTaskbarSettings has them. */
-    static final Map<String, Integer> DEFAULTS = Map.ofEntries(
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RUNNING, 6),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_EDGE, 0),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_PUSH, 1),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_LIST_END, 0),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_TIMEOUT, 3),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_LABELS, 1),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_HAPTICS, 1),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_SOUNDS, 1),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_ANIMATIONS, 2),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_SIZE, 1),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_COLOR, 0),
-            Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RING, 0));
+    static final Map<String, Integer> DEFAULTS =
+            Map.ofEntries(
+                    Map.entry(LineageSettings.Secure.WHEEL_BUTTON_COLUMNS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RUNNING, 6),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_EDGE, 0),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_PUSH, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_LIST_END, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_TIMEOUT, 3),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_LABELS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_HAPTICS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_SOUNDS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_ANIMATIONS, 2),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_SIZE, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_COLOR, 0),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RING, 0));
 
     /** PhoneWindowManager's MULTI_PRESS_POWER_WHEEL_TASKBAR and MULTI_PRESS_POWER_NOTHING. */
     private static final int DOUBLE_PRESS_TASKBAR = 4;

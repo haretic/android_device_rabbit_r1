@@ -79,6 +79,7 @@ PRODUCT_PACKAGES += \
     R1Performance \
     R1Wheel \
     SystemUIR1 \
+    LauncherR1 \
     r1-expdb
 
 # "gadget" in place of the product="tablet" strings in these apps

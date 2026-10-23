@@ -17,4 +17,5 @@
     <bool name="config_wheelTaskbar">true</bool>
     <!-- Its last button: its own settings app -->
     <string name="config_wheelTaskbarSettings" translatable="false">cat.kenny.r1.wheel.settings/.WheelActivity</string>
+    <bool name="config_r1CompactQs">true</bool>
 </resources>

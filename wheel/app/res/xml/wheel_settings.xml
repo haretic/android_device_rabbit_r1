@@ -92,6 +92,12 @@
         android:key="look"
         android:title="@string/cat_look">
         <ListPreference
+            android:key="wheel_button_columns"
+            android:title="@string/button_columns_title"
+            android:entries="@array/button_columns_entries"
+            android:entryValues="@array/button_columns_values"
+            android:persistent="false" />
+        <ListPreference
             android:key="wheel_taskbar_size"
             android:title="@string/size_title"
             android:entries="@array/size_entries"
