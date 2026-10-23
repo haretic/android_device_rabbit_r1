@@ -44,6 +44,8 @@
         <item>cat.kenny.r1.problemreport=app</item>
     </string-array>
 
+    <bool name="config_r1SideButtonInput">true</bool>
+
     <!-- A double press of the side button opens the wheel taskbar (MULTI_PRESS_POWER_WHEEL_TASKBAR)
          in any wheel mode, instead of the camera -->
     <integer name="config_doublePressOnPowerBehavior">4</integer>

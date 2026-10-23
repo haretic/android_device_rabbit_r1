@@ -131,7 +131,8 @@ PRODUCT_VENDOR_PROPERTIES += ro.hw_timeout_multiplier=5
 
 # Handheld features; without them system_server skips the appwidget service and Launcher3 crash-loops.
 PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml
+    frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml \
+    $(LOCAL_PATH)/permissions/r1-hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/r1-hardware.xml
 
 # ICM-42607 accelerometer and gyroscope through the mainline IIO sensors HAL.
 PRODUCT_COPY_FILES += \

@@ -4,7 +4,6 @@ package cat.kenny.r1.wheel.settings;
 import android.content.ContentResolver;
 import android.os.Bundle;
 import android.os.UserHandle;
-import android.provider.Settings;
 
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -24,13 +23,14 @@ import java.util.Map;
 public class WheelFragment extends SettingsBasePreferenceFragment {
 
     private static final String KEY_WHEEL_UI = "wheel_ui";
-    private static final String KEY_DOUBLE_PRESS = "double_press";
     private static final String KEY_RUNNING = LineageSettings.Secure.WHEEL_TASKBAR_RUNNING;
 
     /** The settings' values when unset, as SystemUI's WheelTaskbarSettings has them. */
     static final Map<String, Integer> DEFAULTS =
             Map.ofEntries(
                     Map.entry(LineageSettings.Secure.WHEEL_BUTTON_COLUMNS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_PRESS, 0),
+                    Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_HOLD, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RUNNING, 6),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_EDGE, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_PUSH, 1),
@@ -43,10 +43,6 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_SIZE, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_COLOR, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RING, 0));
-
-    /** PhoneWindowManager's MULTI_PRESS_POWER_WHEEL_TASKBAR and MULTI_PRESS_POWER_NOTHING. */
-    private static final int DOUBLE_PRESS_TASKBAR = 4;
-    private static final int DOUBLE_PRESS_NOTHING = 0;
 
     private MainSwitchPreference mWheelUi;
 
@@ -73,11 +69,7 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                 return true;
             });
         }
-        findPreference(KEY_DOUBLE_PRESS).setOnPreferenceChangeListener((p, value) -> {
-            Settings.Global.putInt(resolver(), Settings.Global.POWER_BUTTON_DOUBLE_PRESS,
-                    (Boolean) value ? DOUBLE_PRESS_TASKBAR : DOUBLE_PRESS_NOTHING);
-            return true;
-        });
+
     }
 
     @Override
@@ -94,9 +86,6 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                 toggle.setChecked(value != 0);
             }
         }
-        ((SwitchPreferenceCompat) findPreference(KEY_DOUBLE_PRESS)).setChecked(
-                Settings.Global.getInt(resolver(), Settings.Global.POWER_BUTTON_DOUBLE_PRESS,
-                        DOUBLE_PRESS_TASKBAR) == DOUBLE_PRESS_TASKBAR);
         findPreference("buttons").setSummary(ButtonsFragment.summary(requireContext()));
         findPreference("app_modes").setSummary(AppModesFragment.summary(requireContext()));
     }

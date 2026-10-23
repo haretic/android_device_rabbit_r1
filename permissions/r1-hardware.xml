@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<permissions>
+    <!-- No flash or torch LED, regardless of features inherited from the vendor image. -->
+    <unavailable-feature name="android.hardware.camera.flash" />
+</permissions>

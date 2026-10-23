@@ -52,11 +52,6 @@
             android:entryValues="@array/timeout_values"
             android:persistent="false" />
         <SwitchPreferenceCompat
-            android:key="double_press"
-            android:title="@string/double_press_title"
-            android:summary="@string/double_press_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
             android:key="wheel_taskbar_labels"
             android:title="@string/labels_title"
             android:summary="@string/labels_summary"
@@ -86,6 +81,28 @@
             android:key="app_modes"
             android:title="@string/app_modes_title"
             android:fragment="cat.kenny.r1.wheel.settings.AppModesFragment" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="side_button"
+        android:title="@string/side_button_title">
+        <ListPreference
+            android:key="wheel_side_button_press"
+            android:title="@string/side_button_press"
+            android:entries="@array/side_button_action_entries"
+            android:entryValues="@array/side_button_action_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_side_button_hold"
+            android:title="@string/side_button_hold"
+            android:entries="@array/side_button_action_entries"
+            android:entryValues="@array/side_button_action_values"
+            android:persistent="false" />
+        <Preference
+            android:key="double_press"
+            android:title="@string/double_press_title"
+            android:summary="@string/side_button_note"
+            android:selectable="false" />
     </PreferenceCategory>
 
     <PreferenceCategory
