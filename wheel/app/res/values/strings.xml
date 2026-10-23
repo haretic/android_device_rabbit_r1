@@ -138,4 +138,25 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+    <string name="side_button_title">Side button</string>
+    <string name="side_button_press">Side button press</string>
+    <string name="side_button_hold">Side button hold</string>
+    <string name="side_button_note">Always opens the taskbar. A press wakes the screen when off; in a wheel list it picks the focused item. App wheel modes keep Enter or play/pause. The choices above apply while the wheel UI is on.</string>
+    <string name="side_button_nothing">Nothing</string>
+    <string name="side_button_back">Back</string>
+    <string name="side_button_home">Home</string>
+    <string name="side_button_taskbar">Open the taskbar</string>
+    <string name="side_button_media">Play/pause</string>
+    <string name="side_button_screenshot">Screenshot</string>
+    <string-array name="side_button_action_entries" translatable="false">
+        <item>@string/side_button_nothing</item>
+        <item>@string/side_button_back</item>
+        <item>@string/side_button_home</item>
+        <item>@string/side_button_taskbar</item>
+        <item>@string/side_button_media</item>
+        <item>@string/side_button_screenshot</item>
+    </string-array>
+    <string-array name="side_button_action_values" translatable="false">
+        <item>0</item><item>1</item><item>2</item><item>3</item><item>4</item><item>5</item>
+    </string-array>
 </resources>
