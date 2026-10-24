@@ -78,6 +78,8 @@ PRODUCT_PACKAGES += \
     R1BatteryDetails \
     R1Performance \
     R1Wheel \
+    R1WheelDialogs \
+    R1WheelFocus \
     SystemUIR1 \
     LauncherR1 \
     r1-expdb

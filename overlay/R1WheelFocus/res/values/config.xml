@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <bool name="config_wheelFocus">true</bool>
+    <!-- No app handle over the apps: the wheel can't reach it -->
+    <bool name="config_showAppHandleOnLargeScreens">false</bool>
+    <!-- Nor desktop windows, which Lineage's tablet config turns on and which draw that handle:
+         on a 480x640 screen they're a touch-only frill. Read at boot, so a switch back to stock
+         has them again after a restart -->
+    <bool name="config_isDesktopModeSupported">false</bool>
+    <bool name="config_canInternalDisplayHostDesktops">false</bool>
+</resources>
