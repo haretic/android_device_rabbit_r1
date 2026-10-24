@@ -11,6 +11,7 @@ android_app {
     static_libs: [
         "androidx.preference_preference",
         "SettingsLibPreference",
+        "org.lineageos.platform.internal",
         "r1-wheelselect",
     ],
     optimize: {
