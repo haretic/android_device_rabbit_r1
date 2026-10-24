@@ -42,6 +42,8 @@
         <item>cat.kenny.r1.perfoverlay=app</item>
         <item>cat.kenny.r1.batterydetails=app</item>
         <item>cat.kenny.r1.problemreport=app</item>
+        <item>com.android.settings=app</item>
+        <item>org.lineageos.lineageparts=app</item>
     </string-array>
 
     <bool name="config_r1SideButtonInput">true</bool>
