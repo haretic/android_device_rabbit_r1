@@ -6,6 +6,17 @@
     <string name="wheel_ui">Use the wheel UI</string>
     <string name="wheel_about">The wheel opens the taskbar at the edge of the screen: home, all apps, your pinned and running apps, notifications, the wheel mode of the app in front and these settings. The wheel moves, the side button picks, a double press of the side button brings the taskbar back from any app.\n\nSwitched off, the r1 looks and works like stock Android.</string>
 
+    <string name="cat_parts">Revised parts</string>
+    <string name="part_shade_title">Shade</string>
+    <string name="part_shade_summary">Notifications and Controls tabs, tiles as a list. Off: the original shade</string>
+    <string name="part_lockscreen_title">Lock screen</string>
+    <string name="part_lockscreen_summary">An Unlock button the side button presses, the PIN picked with the wheel. Off: the original lock screen</string>
+    <string name="part_dialogs_title">Dialogs</string>
+    <string name="part_dialogs_summary">Buttons as a list, one a row. Off: the original dialogs</string>
+    <string name="part_home_title">Home screen</string>
+    <string name="part_home_summary">Your apps as a list the wheel walks, in tabs. Off: the original home screen</string>
+    <string name="part_settings_title">Settings</string>
+    <string name="part_settings_summary">The search bar pulled down from the top, sliders the side button grabs. Off: the original Settings</string>
     <string name="cat_bar">Bar</string>
     <string name="cat_behaviour">Behaviour</string>
     <string name="cat_wheel">Wheel</string>
@@ -90,7 +101,7 @@
     <string name="animations_off">None</string>
 
     <string name="app_modes_title">The wheel in each app</string>
-    <string name="app_modes_summary">%1$d set to something else than the taskbar</string>
+    <string name="app_modes_summary">%1$d with a wheel mode of their own</string>
     <string name="app_modes_none">All apps open the taskbar</string>
     <string name="mode_taskbar">Taskbar</string>
     <string name="mode_app">Scroll the app</string>
@@ -102,6 +113,16 @@
     <string name="mode_brightness">Brightness</string>
     <string name="mode_media">Tracks</string>
     <string name="mode_zoom">Zoom</string>
+    <string name="mode_touch">Touch zones</string>
+    <!-- TouchZonesActivity, over the app: the wheel's steps tap the screen where these say -->
+    <string name="touch_zones_hint_up">Tap where a step up should tap</string>
+    <string name="touch_zones_hint_down">Now tap where a step down should tap</string>
+    <string name="touch_zones_hint_done">Drag a zone to move it, then save</string>
+    <!-- On the zones themselves, short -->
+    <string name="touch_zones_up">Up</string>
+    <string name="touch_zones_down">Down</string>
+    <string name="touch_zones_again">Start over</string>
+    <string name="touch_zones_save">Save</string>
 
     <string name="size_title">Size</string>
     <string-array name="size_entries" translatable="false">
@@ -131,13 +152,58 @@
     <string name="ring_accent">Wallpaper colour</string>
     <string name="button_columns_title">Button columns</string>
     <string-array name="button_columns_entries">
-        <item>1 — List</item>
-        <item>2</item>
+        <item>1 - a list</item>
+        <item>2 - a grid</item>
     </string-array>
     <string-array name="button_columns_values" translatable="false">
         <item>1</item>
         <item>2</item>
     </string-array>
+    <string name="cat_feel">Feel</string>
+    <string name="distance_title">Scroll distance</string>
+    <string-array name="distance_entries">
+        <item>Short</item>
+        <item>Shorter</item>
+        <item>Standard</item>
+        <item>Longer</item>
+        <item>Long</item>
+    </string-array>
+    <string-array name="distance_values" translatable="false">
+        <item>50</item>
+        <item>75</item>
+        <item>100</item>
+        <item>150</item>
+        <item>200</item>
+    </string-array>
+    <string name="spin_title">Spin acceleration</string>
+    <string-array name="spin_entries">
+        <item>Off, every step the same</item>
+        <item>Standard</item>
+        <item>Strong</item>
+    </string-array>
+    <string-array name="spin_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string name="guard_title">Press guard</string>
+    <string-array name="guard_entries">
+        <item>Off, keep every step</item>
+        <item>Short, 100 ms</item>
+        <item>Standard, 150 ms</item>
+        <item>Long, 250 ms</item>
+        <item>Longest, 400 ms</item>
+    </string-array>
+    <string-array name="guard_values" translatable="false">
+        <item>0</item>
+        <item>100</item>
+        <item>150</item>
+        <item>250</item>
+        <item>400</item>
+    </string-array>
+    <string name="reverse_title">Reverse direction</string>
+    <string name="reverse_summary">Turning the wheel down moves up</string>
+    <string name="feel_footer">Scroll distance and spin acceleration apply where the wheel scrolls the app smoothly. The press guard drops the wheel\'s steps a press of the side button nudges.</string>
     <string name="side_button_title">Side button</string>
     <string name="side_button_press">Side button press</string>
     <string name="side_button_hold">Side button hold</string>

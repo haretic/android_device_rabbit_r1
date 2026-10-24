@@ -23,12 +23,22 @@ import java.util.Map;
 public class WheelFragment extends SettingsBasePreferenceFragment {
 
     private static final String KEY_WHEEL_UI = "wheel_ui";
+    private static final String KEY_PARTS = "parts";
     private static final String KEY_RUNNING = LineageSettings.Secure.WHEEL_TASKBAR_RUNNING;
 
     /** The settings' values when unset, as SystemUI's WheelTaskbarSettings has them. */
     static final Map<String, Integer> DEFAULTS =
             Map.ofEntries(
                     Map.entry(LineageSettings.Secure.WHEEL_BUTTON_COLUMNS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_SHADE, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_LOCKSCREEN, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_DIALOGS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_SETTINGS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_HOME, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_SCROLL_DISTANCE, 100),
+                    Map.entry(LineageSettings.Secure.WHEEL_SPIN, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_PRESS_GUARD, 150),
+                    Map.entry(LineageSettings.Secure.WHEEL_REVERSE, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_PRESS, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_HOLD, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RUNNING, 6),
@@ -52,6 +62,7 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
         mWheelUi = findPreference(KEY_WHEEL_UI);
         mWheelUi.setOnPreferenceChangeListener((preference, value) -> {
             putInt(LineageSettings.Secure.WHEEL_UI, (Boolean) value ? 1 : 0);
+            findPreference(KEY_PARTS).setEnabled((Boolean) value);
             return true;
         });
         for (String key : DEFAULTS.keySet()) {
@@ -69,13 +80,14 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                 return true;
             });
         }
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mWheelUi.setChecked(getInt(LineageSettings.Secure.WHEEL_UI, 1) != 0);
+        // The revised parts only apply with the wheel UI on
+        findPreference(KEY_PARTS).setEnabled(mWheelUi.isChecked());
         for (Map.Entry<String, Integer> entry : DEFAULTS.entrySet()) {
             final Preference preference = findPreference(entry.getKey());
             final int value = getInt(entry.getKey(), entry.getValue());

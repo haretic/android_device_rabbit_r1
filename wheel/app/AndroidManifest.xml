@@ -40,5 +40,15 @@
                 android:name="com.android.settings.profile"
                 android:value="primary_profile_only" />
         </activity>
+
+        <!-- An app's touch zones, over the app; the taskbar's Wheel mode menu opens it too -->
+        <activity
+            android:name=".TouchZonesActivity"
+            android:exported="true"
+            android:permission="android.permission.WRITE_SECURE_SETTINGS"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:screenOrientation="nosensor"
+            android:theme="@style/Theme.TouchZones" />
     </application>
 </manifest>
