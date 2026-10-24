@@ -2,7 +2,6 @@
 package cat.kenny.r1.wheel;
 
 import android.app.Dialog;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
@@ -23,7 +22,7 @@ import java.lang.reflect.Proxy;
 /**
  * The r1's wheel and side button in an app's window: the wheel (D-pad up and down)
  * moves the focus with a tick, a press of the side button works as the D-pad centre on what
- * has the focus, and holding it puts the r1 to sleep, as the power button does elsewhere.
+ * has the focus, and holding it goes back, as it does everywhere with the wheel UI.
  * The window asks the system for the side button with INPUT_FEATURE_POWER_KEY_SELECTS,
  * which only system windows get.
  */
@@ -31,7 +30,7 @@ public final class WheelSelect implements InvocationHandler {
 
     private final Window mWindow;
     private final Window.Callback mCallback;
-    /** A long press already put the r1 to sleep, ignore the rest of it. */
+    /** A long press already went back, ignore the rest of it. */
     private boolean mSlept;
 
     private WheelSelect(Window window, Window.Callback callback) {
@@ -100,10 +99,13 @@ public final class WheelSelect implements InvocationHandler {
             if (event.getRepeatCount() == 0) {
                 mSlept = false;
             } else if (event.isLongPress() && !mSlept) {
+                // A hold goes back, as everywhere with the wheel UI
                 mSlept = true;
-                mWindow.getContext().getSystemService(PowerManager.class).goToSleep(
-                        SystemClock.uptimeMillis(), PowerManager.GO_TO_SLEEP_REASON_POWER_BUTTON,
-                        0);
+                final long now = SystemClock.uptimeMillis();
+                mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
+                        KeyEvent.KEYCODE_BACK, 0));
+                mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP,
+                        KeyEvent.KEYCODE_BACK, 0));
             }
             return;
         }
