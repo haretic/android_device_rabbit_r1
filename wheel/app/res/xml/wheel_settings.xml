@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- The taskbar's own settings, from its last button and Settings > System > Scroll wheel.
-     Every key is a LineageSettings.Secure one (TaskbarSettingsFragment binds them). -->
+<!-- Taskbar and wheel, from the taskbar's last button and Settings > System: the switch, the
+     tour, and a page each for the side button, the taskbar, the wheel's feel, the apps and the
+     system's parts (wheel_page_*.xml, WheelFragment). -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/wheel_title">
 
@@ -10,195 +11,50 @@
         android:title="@string/wheel_ui"
         android:persistent="false" />
 
-    <!-- Each revised part of the system, or its original -->
-    <PreferenceCategory
-        android:key="parts"
-        android:title="@string/cat_parts">
-        <SwitchPreferenceCompat
-            android:key="wheel_shade"
-            android:title="@string/part_shade_title"
-            android:summary="@string/part_shade_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_lockscreen"
-            android:title="@string/part_lockscreen_title"
-            android:summary="@string/part_lockscreen_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_dialogs"
-            android:title="@string/part_dialogs_title"
-            android:summary="@string/part_dialogs_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_home"
-            android:title="@string/part_home_title"
-            android:summary="@string/part_home_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_settings"
-            android:title="@string/part_settings_title"
-            android:summary="@string/part_settings_summary"
-            android:persistent="false" />
-    </PreferenceCategory>
+    <!-- How it works, the tour home opens the first time -->
+    <Preference
+        android:key="tour"
+        android:title="@string/tour_title"
+        android:summary="@string/tour_summary">
+        <intent
+            android:targetPackage="cat.kenny.r1.wheel.settings"
+            android:targetClass="cat.kenny.r1.wheel.settings.TourActivity" />
+    </Preference>
 
     <PreferenceCategory
-        android:key="bar"
-        android:title="@string/cat_bar">
+        android:key="pages"
+        android:title="@string/cat_customise">
         <Preference
-            android:key="buttons"
-            android:title="@string/buttons_title"
-            android:fragment="cat.kenny.r1.wheel.settings.ButtonsFragment" />
-        <ListPreference
-            android:key="wheel_taskbar_running"
-            android:title="@string/running_title"
-            android:entries="@array/running_entries"
-            android:entryValues="@array/running_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_taskbar_edge"
-            android:title="@string/edge_title"
-            android:entries="@array/edge_entries"
-            android:entryValues="@array/edge_values"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_taskbar_push"
-            android:title="@string/push_title"
-            android:summary="@string/push_summary"
-            android:persistent="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:key="behaviour"
-        android:title="@string/cat_behaviour">
-        <ListPreference
-            android:key="wheel_taskbar_list_end"
-            android:title="@string/list_end_title"
-            android:entries="@array/list_end_entries"
-            android:entryValues="@array/list_end_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_taskbar_timeout"
-            android:title="@string/timeout_title"
-            android:entries="@array/timeout_entries"
-            android:entryValues="@array/timeout_values"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_taskbar_labels"
-            android:title="@string/labels_title"
-            android:summary="@string/labels_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_taskbar_haptics"
-            android:title="@string/haptics_title"
-            android:summary="@string/haptics_summary"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_taskbar_sounds"
-            android:title="@string/sounds_title"
-            android:summary="@string/sounds_summary"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_taskbar_animations"
-            android:title="@string/animations_title"
-            android:entries="@array/animations_entries"
-            android:entryValues="@array/animations_values"
-            android:persistent="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:key="wheel"
-        android:title="@string/cat_wheel">
+            android:key="page_side_button"
+            android:title="@string/page_side_button_title"
+            android:summary="@string/page_side_button_summary"
+            android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+            <extra android:name="page" android:value="side_button" />
+        </Preference>
+        <Preference
+            android:key="page_taskbar"
+            android:title="@string/page_taskbar_title"
+            android:summary="@string/page_taskbar_summary"
+            android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+            <extra android:name="page" android:value="taskbar" />
+        </Preference>
         <Preference
             android:key="app_modes"
             android:title="@string/app_modes_title"
             android:fragment="cat.kenny.r1.wheel.settings.AppModesFragment" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:key="feel"
-        android:title="@string/cat_feel">
-        <ListPreference
-            android:key="wheel_scroll_distance"
-            android:title="@string/distance_title"
-            android:entries="@array/distance_entries"
-            android:entryValues="@array/distance_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_spin"
-            android:title="@string/spin_title"
-            android:entries="@array/spin_entries"
-            android:entryValues="@array/spin_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_press_guard"
-            android:title="@string/guard_title"
-            android:entries="@array/guard_entries"
-            android:entryValues="@array/guard_values"
-            android:persistent="false" />
-        <SwitchPreferenceCompat
-            android:key="wheel_reverse"
-            android:title="@string/reverse_title"
-            android:summary="@string/reverse_summary"
-            android:persistent="false" />
         <Preference
-            android:key="feel_footer"
-            android:summary="@string/feel_footer"
-            android:selectable="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:key="side_button"
-        android:title="@string/side_button_title">
-        <ListPreference
-            android:key="wheel_side_button_press"
-            android:title="@string/side_button_press"
-            android:entries="@array/side_button_action_entries"
-            android:entryValues="@array/side_button_action_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_side_button_hold"
-            android:title="@string/side_button_hold"
-            android:entries="@array/side_button_action_entries"
-            android:entryValues="@array/side_button_action_values"
-            android:persistent="false" />
+            android:key="page_feel"
+            android:title="@string/page_feel_title"
+            android:summary="@string/page_feel_summary"
+            android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+            <extra android:name="page" android:value="feel" />
+        </Preference>
         <Preference
-            android:key="double_press"
-            android:title="@string/double_press_title"
-            android:summary="@string/side_button_note"
-            android:selectable="false" />
+            android:key="page_parts"
+            android:title="@string/page_parts_title"
+            android:summary="@string/page_parts_summary"
+            android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+            <extra android:name="page" android:value="parts" />
+        </Preference>
     </PreferenceCategory>
-
-    <PreferenceCategory
-        android:key="look"
-        android:title="@string/cat_look">
-        <ListPreference
-            android:key="wheel_button_columns"
-            android:title="@string/button_columns_title"
-            android:entries="@array/button_columns_entries"
-            android:entryValues="@array/button_columns_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_taskbar_size"
-            android:title="@string/size_title"
-            android:entries="@array/size_entries"
-            android:entryValues="@array/size_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_taskbar_color"
-            android:title="@string/color_title"
-            android:entries="@array/color_entries"
-            android:entryValues="@array/color_values"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_taskbar_ring"
-            android:title="@string/ring_title"
-            android:entries="@array/ring_entries"
-            android:entryValues="@array/ring_values"
-            android:persistent="false" />
-    </PreferenceCategory>
-
-    <Preference
-        android:key="about"
-        android:selectable="false"
-        android:summary="@string/wheel_about" />
 </PreferenceScreen>

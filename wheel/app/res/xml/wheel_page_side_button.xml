@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The side button, a page of Taskbar and wheel; WheelFragment binds every LineageSettings.Secure key in it. -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="side_button"
+        android:title="@string/side_button_title">
+        <ListPreference
+            android:key="wheel_side_button_press"
+            android:title="@string/side_button_press"
+            android:entries="@array/side_button_action_entries"
+            android:entryValues="@array/side_button_action_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_side_button_hold"
+            android:title="@string/side_button_hold"
+            android:entries="@array/side_button_action_entries"
+            android:entryValues="@array/side_button_action_values"
+            android:persistent="false" />
+        <Preference
+            android:key="double_press"
+            android:title="@string/double_press_title"
+            android:summary="@string/side_button_note"
+            android:selectable="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

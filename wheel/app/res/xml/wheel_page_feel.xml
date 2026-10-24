@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- How the wheel turns, a page of Taskbar and wheel; WheelFragment binds every LineageSettings.Secure key in it. -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="feel"
+        android:title="@string/cat_feel">
+        <ListPreference
+            android:key="wheel_scroll_distance"
+            android:title="@string/distance_title"
+            android:entries="@array/distance_entries"
+            android:entryValues="@array/distance_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_spin"
+            android:title="@string/spin_title"
+            android:entries="@array/spin_entries"
+            android:entryValues="@array/spin_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_press_guard"
+            android:title="@string/guard_title"
+            android:entries="@array/guard_entries"
+            android:entryValues="@array/guard_values"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_reverse"
+            android:title="@string/reverse_title"
+            android:summary="@string/reverse_summary"
+            android:persistent="false" />
+        <Preference
+            android:key="feel_footer"
+            android:summary="@string/feel_footer"
+            android:selectable="false" />
+    </PreferenceCategory>
+</PreferenceScreen>
