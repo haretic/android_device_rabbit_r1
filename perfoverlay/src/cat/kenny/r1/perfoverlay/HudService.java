@@ -6,11 +6,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
+import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -30,6 +32,8 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import java.util.Locale;
+
+import lineageos.providers.LineageSettings;
 
 /**
  * Draws the overlay: a small non-focusable, non-touchable system window in a screen corner,
@@ -77,6 +81,15 @@ public class HudService extends Service
         }
     };
 
+    /** The network speed readout moved or switched: the HUD keeps clear of it. */
+    private final ContentObserver mTrafficObserver = new ContentObserver(
+            new Handler(Looper.getMainLooper())) {
+        @Override
+        public void onChange(boolean selfChange) {
+            mWindowManager.updateViewLayout(mView, layoutParams());
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -109,6 +122,11 @@ public class HudService extends Service
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         registerReceiver(mScreenReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         Hud.prefs(this).registerOnSharedPreferenceChangeListener(this);
+        final ContentResolver resolver = getContentResolver();
+        resolver.registerContentObserver(LineageSettings.Secure.getUriFor(
+                LineageSettings.Secure.NETWORK_TRAFFIC_MODE), false, mTrafficObserver);
+        resolver.registerContentObserver(LineageSettings.Secure.getUriFor(
+                LineageSettings.Secure.NETWORK_TRAFFIC_POSITION), false, mTrafficObserver);
 
         setTicking(getSystemService(PowerManager.class).isInteractive());
     }
@@ -127,6 +145,7 @@ public class HudService extends Service
     public void onDestroy() {
         setTicking(false);
         Hud.prefs(this).unregisterOnSharedPreferenceChangeListener(this);
+        getContentResolver().unregisterContentObserver(mTrafficObserver);
         unregisterReceiver(mScreenReceiver);
         mWindowManager.removeViewImmediate(mView);
         mWorker.quitSafely();
@@ -267,6 +286,15 @@ public class HudService extends Service
         return padded.append(text).toString();
     }
 
+    /** Lineage's network speed readout in the status bar's middle (its default place). */
+    private boolean isTrafficCentered() {
+        final ContentResolver resolver = getContentResolver();
+        return LineageSettings.Secure.getInt(resolver,
+                        LineageSettings.Secure.NETWORK_TRAFFIC_MODE, 0) != 0
+                && LineageSettings.Secure.getInt(resolver,
+                        LineageSettings.Secure.NETWORK_TRAFFIC_POSITION, 1) == 1;
+    }
+
     private WindowManager.LayoutParams layoutParams() {
         final WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -292,6 +320,10 @@ public class HudService extends Service
             lp.setFitInsetsTypes(WindowInsets.Type.navigationBars());
             lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
             lp.y = dp(4);
+            // Beside the network speed where that has the middle, not over it
+            if (isTrafficCentered()) {
+                lp.x = dp(50);
+            }
             return lp;
         }
         lp.gravity = (position.startsWith("bottom") ? Gravity.BOTTOM : Gravity.TOP)
