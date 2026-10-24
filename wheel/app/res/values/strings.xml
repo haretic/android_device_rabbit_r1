@@ -225,4 +225,46 @@
     <string-array name="side_button_action_values" translatable="false">
         <item>0</item><item>1</item><item>2</item><item>3</item><item>4</item><item>5</item>
     </string-array>
+
+    <!-- TourActivity: the first-run tour of the wheel and the side button -->
+    <string name="tour_title">Wheel tour</string>
+    <string name="tour_summary">How the wheel and the side button work</string>
+    <string name="tour_step"><xliff:g id="page">%1$d</xliff:g> of <xliff:g id="pages">%2$d</xliff:g></string>
+    <string name="tour_skip">Skip</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_finish">Done</string>
+    <string name="tour_well_done">That\'s it</string>
+    <string name="tour_welcome_title">Made for the wheel</string>
+    <string name="tour_welcome_body">Everything on this gadget works with the wheel and the side button. Touch works too. Four things to know, about a minute.</string>
+    <string name="tour_welcome_hint">Press the side button to start</string>
+    <string name="tour_turn_title">Turn to move</string>
+    <string name="tour_turn_body">The wheel moves the highlight from one item to the next. Lists scroll along.</string>
+    <string name="tour_turn_hint">Turn the wheel a few steps</string>
+    <string name="tour_press_title">Press to pick</string>
+    <string name="tour_press_body">A press of the side button opens what is highlighted. Where nothing is, it opens the taskbar.</string>
+    <string name="tour_press_hint">Pick a row with the side button</string>
+    <string name="tour_hold_title">Hold to go back</string>
+    <string name="tour_hold_body">Hold the side button for a moment to go back a step, out of any app.</string>
+    <string name="tour_hold_hint">Hold the side button</string>
+    <string name="tour_hold_again">Keep it held a little longer</string>
+    <string name="tour_taskbar_title">Press twice for the taskbar</string>
+    <string name="tour_taskbar_body">A quick double press opens the taskbar from anywhere: home, all apps, your recent apps, notifications and power. Double-press again, or hold, to close it.</string>
+    <string name="tour_taskbar_hint">Double-press to open the taskbar</string>
+    <string name="tour_done_title">You\'re set</string>
+    <string name="tour_done_body">Change what the side button does, or switch the wheel UI off for the stock look, in Settings - System - Taskbar and wheel. The tour is there too.</string>
+    <string name="tour_done_hint">Press to finish</string>
+    <string name="tour_row_1">Turn the wheel</string>
+    <string name="tour_row_2">to move this highlight</string>
+    <string name="tour_row_3">up and down</string>
+
+    <!-- Taskbar and wheel's pages -->
+    <string name="cat_customise">Customise</string>
+    <string name="page_side_button_title">Side button</string>
+    <string name="page_side_button_summary">What a press and a hold do</string>
+    <string name="page_taskbar_title">Taskbar</string>
+    <string name="page_taskbar_summary">Its buttons, running apps, edge and timing</string>
+    <string name="page_feel_title">Wheel feel</string>
+    <string name="page_feel_summary">Step size, spin and direction</string>
+    <string name="page_parts_title">Parts of the system</string>
+    <string name="page_parts_summary">The wheel version or the original of each part</string>
 </resources>

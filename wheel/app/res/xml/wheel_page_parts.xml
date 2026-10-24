@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Each revised part of the system or its original, a page of Taskbar and wheel; WheelFragment binds every LineageSettings.Secure key in it. -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="parts"
+        android:title="@string/cat_parts">
+        <SwitchPreferenceCompat
+            android:key="wheel_shade"
+            android:title="@string/part_shade_title"
+            android:summary="@string/part_shade_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_lockscreen"
+            android:title="@string/part_lockscreen_title"
+            android:summary="@string/part_lockscreen_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_dialogs"
+            android:title="@string/part_dialogs_title"
+            android:summary="@string/part_dialogs_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_home"
+            android:title="@string/part_home_title"
+            android:summary="@string/part_home_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_settings"
+            android:title="@string/part_settings_title"
+            android:summary="@string/part_settings_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

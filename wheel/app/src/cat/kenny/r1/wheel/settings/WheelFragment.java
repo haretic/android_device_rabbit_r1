@@ -39,8 +39,8 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_SPIN, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_PRESS_GUARD, 150),
                     Map.entry(LineageSettings.Secure.WHEEL_REVERSE, 0),
-                    Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_PRESS, 0),
-                    Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_HOLD, 0),
+                    Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_PRESS, 3),
+                    Map.entry(LineageSettings.Secure.WHEEL_SIDE_BUTTON_HOLD, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_RUNNING, 6),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_EDGE, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_PUSH, 1),
@@ -58,13 +58,18 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        setPreferencesFromResource(R.xml.wheel_settings, rootKey);
+        final String page = getArguments() == null ? null : getArguments().getString("page");
+        setPreferencesFromResource(page == null ? R.xml.wheel_settings
+                : getResources().getIdentifier("wheel_page_" + page, "xml",
+                        requireContext().getPackageName()), rootKey);
         mWheelUi = findPreference(KEY_WHEEL_UI);
-        mWheelUi.setOnPreferenceChangeListener((preference, value) -> {
-            putInt(LineageSettings.Secure.WHEEL_UI, (Boolean) value ? 1 : 0);
-            findPreference(KEY_PARTS).setEnabled((Boolean) value);
-            return true;
-        });
+        if (mWheelUi != null) {
+            mWheelUi.setOnPreferenceChangeListener((preference, value) -> {
+                putInt(LineageSettings.Secure.WHEEL_UI, (Boolean) value ? 1 : 0);
+                updateParts((Boolean) value);
+                return true;
+            });
+        }
         for (String key : DEFAULTS.keySet()) {
             final Preference preference = findPreference(key);
             if (preference == null) {
@@ -85,9 +90,12 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
     @Override
     public void onResume() {
         super.onResume();
-        mWheelUi.setChecked(getInt(LineageSettings.Secure.WHEEL_UI, 1) != 0);
+        final boolean wheelUi = getInt(LineageSettings.Secure.WHEEL_UI, 1) != 0;
+        if (mWheelUi != null) {
+            mWheelUi.setChecked(wheelUi);
+        }
         // The revised parts only apply with the wheel UI on
-        findPreference(KEY_PARTS).setEnabled(mWheelUi.isChecked());
+        updateParts(wheelUi);
         for (Map.Entry<String, Integer> entry : DEFAULTS.entrySet()) {
             final Preference preference = findPreference(entry.getKey());
             final int value = getInt(entry.getKey(), entry.getValue());
@@ -98,8 +106,23 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                 toggle.setChecked(value != 0);
             }
         }
-        findPreference("buttons").setSummary(ButtonsFragment.summary(requireContext()));
-        findPreference("app_modes").setSummary(AppModesFragment.summary(requireContext()));
+        final Preference buttons = findPreference("buttons");
+        if (buttons != null) {
+            buttons.setSummary(ButtonsFragment.summary(requireContext()));
+        }
+        final Preference appModes = findPreference("app_modes");
+        if (appModes != null) {
+            appModes.setSummary(AppModesFragment.summary(requireContext()));
+        }
+    }
+
+    private void updateParts(boolean wheelUi) {
+        for (String key : new String[] {KEY_PARTS, "page_parts"}) {
+            final Preference parts = findPreference(key);
+            if (parts != null) {
+                parts.setEnabled(wheelUi);
+            }
+        }
     }
 
     private void summarise(ListPreference list) {

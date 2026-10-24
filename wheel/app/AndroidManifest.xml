@@ -41,6 +41,20 @@
                 android:value="primary_profile_only" />
         </activity>
 
+        <!-- The first-run tour of the wheel and the side button; home opens it once -->
+        <activity
+            android:name=".TourActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:screenOrientation="nosensor"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+            <intent-filter>
+                <action android:name="cat.kenny.r1.wheel.action.TOUR" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- An app's touch zones, over the app; the taskbar's Wheel mode menu opens it too -->
         <activity
             android:name=".TouchZonesActivity"
