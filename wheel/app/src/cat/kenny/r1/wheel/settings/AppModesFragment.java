@@ -26,12 +26,13 @@ import java.util.Map;
 /**
  * What the wheel does in each app, LineageSettings.Secure.WHEEL_APP_MODES (package=mode,
  * comma separated; taskbar, the default, is left out). The taskbar's Wheel mode button sets
- * the same for the app in front.
+ * the same for the app in front. Touch zones ("touch:X1:Y1:X2:Y2") are placed over the app
+ * itself, in TouchZonesActivity.
  */
 public class AppModesFragment extends SettingsBasePreferenceFragment {
 
     private static final String[] MODES = {"taskbar", "app", "scroll", "tab", "arrows", "page",
-            "volume", "brightness", "media", "zoom"};
+            "volume", "brightness", "media", "zoom", "touch"};
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -80,37 +81,52 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
         int checked = 0;
         for (int i = 0; i < MODES.length; i++) {
             labels[i] = label(MODES[i]);
-            if (MODES[i].equals(current)) {
+            if (MODES[i].equals(mode(current))) {
                 checked = i;
             }
         }
         WheelSelect.attach(new AlertDialog.Builder(requireContext())
                 .setTitle(app)
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (MODES[which].equals("touch")) {
+                        placeZones(requireContext(), pkg);
+                        return;
+                    }
                     final Map<String, String> modes = read(requireContext());
                     modes.remove(pkg);
                     if (which != 0) {
                         modes.put(pkg, MODES[which]);
                     }
-                    final StringBuilder value = new StringBuilder();
-                    for (Map.Entry<String, String> entry : modes.entrySet()) {
-                        if (value.length() > 0) {
-                            value.append(',');
-                        }
-                        value.append(entry.getKey()).append('=').append(entry.getValue());
-                    }
-                    LineageSettings.Secure.putStringForUser(
-                            requireContext().getContentResolver(),
-                            LineageSettings.Secure.WHEEL_APP_MODES, value.toString(),
-                            UserHandle.myUserId());
-                    dialog.dismiss();
+                    write(requireContext(), modes);
                     fill();
                 })
                 .show());
     }
 
+    /** Opens the app, then the zones over it, for the touch mode. */
+    static void placeZones(Context context, String pkg) {
+        final Intent app = context.getPackageManager().getLaunchIntentForPackage(pkg);
+        if (app == null) {
+            return;
+        }
+        context.startActivity(app.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        // Once the app is up, so it shows under them
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() ->
+                context.startActivity(new Intent(context, TouchZonesActivity.class)
+                        .putExtra(TouchZonesActivity.EXTRA_PACKAGE, pkg)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                                | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                                | Intent.FLAG_ACTIVITY_NO_ANIMATION)), 700);
+    }
+
+    /** The mode's kind: touch zones, whatever their points, are "touch". */
+    private static String mode(String mode) {
+        return mode.startsWith("touch:") ? "touch" : mode;
+    }
+
     private CharSequence label(String mode) {
-        return getString(switch (mode) {
+        return getString(switch (mode(mode)) {
             case "app" -> R.string.mode_app;
             case "scroll" -> R.string.mode_scroll;
             case "tab" -> R.string.mode_tab;
@@ -120,6 +136,7 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
             case "brightness" -> R.string.mode_brightness;
             case "media" -> R.string.mode_media;
             case "zoom" -> R.string.mode_zoom;
+            case "touch" -> R.string.mode_touch;
             default -> R.string.mode_taskbar;
         });
     }
@@ -138,6 +155,18 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
             }
         }
         return modes;
+    }
+
+    static void write(Context context, Map<String, String> modes) {
+        final StringBuilder value = new StringBuilder();
+        for (Map.Entry<String, String> entry : modes.entrySet()) {
+            if (value.length() > 0) {
+                value.append(',');
+            }
+            value.append(entry.getKey()).append('=').append(entry.getValue());
+        }
+        LineageSettings.Secure.putStringForUser(context.getContentResolver(),
+                LineageSettings.Secure.WHEEL_APP_MODES, value.toString(), UserHandle.myUserId());
     }
 
     static CharSequence summary(Context context) {

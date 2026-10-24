@@ -23,6 +23,10 @@
 //	brightness  KEY_BRIGHTNESSUP / KEY_BRIGHTNESSDOWN.
 //	media       KEY_PREVIOUSSONG / KEY_NEXTSONG.
 //	zoom        Ctrl+= / Ctrl+-.
+//	touch:X1:Y1:X2:Y2
+//	            touch zones: a step up taps the screen at (X1, Y1) through r1-wheel-touch,
+//	            a step down at (X2, Y2), in thousandths of the screen's width and height,
+//	            for games and apps that only take touches.
 //
 // A press of the side button tends to nudge the wheel: steps while it is held and just after
 // it is let go are dropped, so a press doesn't step the focus off what it was meant for.
@@ -30,6 +34,14 @@
 // SystemUI sets the mode over the init socket /dev/socket/r1-wheel, one line per change:
 // "mode taskbar", "mode scroll" and so on. Without a client the mode is taskbar. If the
 // daemon stops, the grab goes with it and the wheel's own D-pad keys reach Android again.
+//
+// SystemUI also passes on the user's tuning, "tune <name> <value>":
+//
+//	distance  how far a scroll step drags, in percent of the default (25 to 400)
+//	spin      how much a fast spin speeds scrolling up: 0 not at all, 1 the default, 2 more
+//	guard     how long after the side button is let go its nudges are dropped, in ms (0 to 500);
+//	          0 keeps every step, while the button is held too
+//	reverse   1 turns the wheel's direction round
 
 // One thread is plenty, whatever the cgroup CPU quota says
 //
@@ -116,6 +128,8 @@ const (
 	stillBeforeLift = 50 * time.Millisecond
 	gripTop         = 0.15
 	gripBottom      = 0.85
+	// A touch zone's tap: down this long, short of Android's long press
+	tapTime = 40 * time.Millisecond
 	// Android's touch slop, about 8 dp: the first part of a drag that only starts it
 	touchSlop = 10
 	// A spin's speed: its steps over this window. From spinRate steps a second on, each
@@ -198,6 +212,7 @@ const (
 	modeBrightness
 	modeMedia
 	modeZoom
+	modeTouch
 )
 
 var modeNames = map[string]mode{
@@ -256,6 +271,44 @@ type daemon struct {
 	buttonReleased time.Time
 	// SystemUI's connections, told of each step an app gets so the wheel ticks there too
 	clients map[net.Conn]bool
+	tuning  tuning
+	// The touch zones' points for a step up and down, in thousandths of the screen
+	zones [2][2]int32
+	// The tap's lift, pending while the finger is down for a zone
+	lift *time.Timer
+}
+
+// tuning is the user's, from SystemUI's "tune" lines.
+type tuning struct {
+	distance float64 // times detentShare
+	spin     int     // 0 none, 1 the default, 2 strong
+	guard    time.Duration
+	reverse  bool
+}
+
+var defaultTuning = tuning{distance: 1, spin: 1, guard: buttonSettle}
+
+// tune sets one of the user's tunings; whether it knew the name and value.
+func (d *daemon) tune(name, value string) bool {
+	n, err := strconv.Atoi(value)
+	if err != nil {
+		return false
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	switch name {
+	case "distance":
+		d.tuning.distance = float64(max(25, min(400, n))) / 100
+	case "spin":
+		d.tuning.spin = max(0, min(2, n))
+	case "guard":
+		d.tuning.guard = time.Duration(max(0, min(500, n))) * time.Millisecond
+	case "reverse":
+		d.tuning.reverse = n != 0
+	default:
+		return false
+	}
+	return true
 }
 
 // notify tells the clients of a step outside the taskbar, whose own steps tick in SystemUI.
@@ -288,7 +341,56 @@ func logf(format string, args ...any) {
 func (d *daemon) setMode(m mode) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	d.liftTap()
 	d.mode = m
+}
+
+// liftTap lets go of a touch zone's tap still down. Locked.
+func (d *daemon) liftTap() {
+	if d.lift != nil && d.lift.Stop() && d.down {
+		d.finger(false, 0, 0)
+	}
+}
+
+// parseZones reads a touch mode's "touch:X1:Y1:X2:Y2", each 0 to 1000.
+func parseZones(name string) ([2][2]int32, bool) {
+	var zones [2][2]int32
+	parts := strings.Split(name, ":")
+	if len(parts) != 5 || parts[0] != "touch" {
+		return zones, false
+	}
+	for i, part := range parts[1:] {
+		n, err := strconv.Atoi(part)
+		if err != nil || n < 0 || n > 1000 {
+			return zones, false
+		}
+		zones[i/2][i%2] = int32(n)
+	}
+	return zones, true
+}
+
+func (d *daemon) setZones(zones [2][2]int32) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.liftTap()
+	d.mode = modeTouch
+	d.zones = zones
+}
+
+// tap taps the screen at a touch zone, 0 for a step up's, 1 for down's. Locked; a tap still
+// down for the step before is let go first.
+func (d *daemon) tap(zone int) {
+	d.liftTap()
+	x := int32(int64(d.zones[zone][0]) * int64(d.width-1) / 1000)
+	y := int32(int64(d.zones[zone][1]) * int64(d.height-1) / 1000)
+	d.finger(true, x, y)
+	d.lift = time.AfterFunc(tapTime, func() {
+		d.mu.Lock()
+		defer d.mu.Unlock()
+		if d.down && !d.gliding {
+			d.finger(false, 0, 0)
+		}
+	})
 }
 
 func write(f *os.File, typ, code uint16, value int32) error {
@@ -332,15 +434,23 @@ func (d *daemon) detents(direction int) int {
 	d.steps = recent
 	rate := int(float64(len(recent)) / spinWindow.Seconds())
 	n := 1
-	if rate >= spinRate {
-		n = min(maxDetents, 2+(rate-spinRate)/spinRateStep)
+	switch d.tuning.spin {
+	case 1:
+		if rate >= spinRate {
+			n = min(maxDetents, 2+(rate-spinRate)/spinRateStep)
+		}
+	case 2:
+		// Sooner, steeper and further
+		if rate >= spinRate*3/4 {
+			n = min(maxDetents*2, 2+(rate-spinRate*3/4)/(spinRateStep/2))
+		}
 	}
 	return n * direction
 }
 
 // scrollStep adds a step's drag to the glide, starting it if it isn't running. Locked.
 func (d *daemon) scrollStep(direction int) {
-	d.glide += float64(d.detents(direction)) * detentShare * float64(d.height)
+	d.glide += float64(d.detents(direction)) * detentShare * d.tuning.distance * float64(d.height)
 	if !d.gliding {
 		d.gliding = true
 		go d.glideOut()
@@ -434,13 +544,25 @@ func (d *daemon) step(code uint16, value int32) {
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if d.button || time.Since(d.buttonReleased) < buttonSettle {
+	if d.tuning.guard > 0 && (d.button || time.Since(d.buttonReleased) < d.tuning.guard) {
 		// The side button's nudge
 		return
 	}
-	up := code == keyUp
+	up := (code == keyUp) != d.tuning.reverse
 	if d.mode != modeTaskbar {
 		d.notify(up)
+	}
+	if d.mode == modeTouch && d.touch != nil {
+		if d.gliding {
+			// The scroll mode's drag is still out; the next step taps
+			return
+		}
+		if up {
+			d.tap(0)
+		} else {
+			d.tap(1)
+		}
+		return
 	}
 	if d.mode == modeScroll && d.touch != nil {
 		if up {
@@ -649,6 +771,13 @@ func (d *daemon) serve(l net.Listener) {
 						d.setMode(m)
 						continue
 					}
+					if zones, ok := parseZones(fields[1]); ok {
+						d.setZones(zones)
+						continue
+					}
+				}
+				if len(fields) == 3 && fields[0] == "tune" && d.tune(fields[1], fields[2]) {
+					continue
 				}
 				logf("ignored %q", lines.Text())
 			}
@@ -694,7 +823,7 @@ func main() {
 		modeKeys[modeScroll] = modeKeys[modeApp]
 	}
 	d := &daemon{mode: modeTaskbar, out: out, touch: touch, width: width, height: height,
-		clients: map[net.Conn]bool{}}
+		clients: map[net.Conn]bool{}, tuning: defaultTuning}
 
 	if l, err := initSocket(); err != nil {
 		logf("%v; the mode stays taskbar", err)

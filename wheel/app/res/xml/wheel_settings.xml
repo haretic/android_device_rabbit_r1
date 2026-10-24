@@ -10,6 +10,37 @@
         android:title="@string/wheel_ui"
         android:persistent="false" />
 
+    <!-- Each revised part of the system, or its original -->
+    <PreferenceCategory
+        android:key="parts"
+        android:title="@string/cat_parts">
+        <SwitchPreferenceCompat
+            android:key="wheel_shade"
+            android:title="@string/part_shade_title"
+            android:summary="@string/part_shade_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_lockscreen"
+            android:title="@string/part_lockscreen_title"
+            android:summary="@string/part_lockscreen_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_dialogs"
+            android:title="@string/part_dialogs_title"
+            android:summary="@string/part_dialogs_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_home"
+            android:title="@string/part_home_title"
+            android:summary="@string/part_home_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_settings"
+            android:title="@string/part_settings_title"
+            android:summary="@string/part_settings_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
+
     <PreferenceCategory
         android:key="bar"
         android:title="@string/cat_bar">
@@ -81,6 +112,38 @@
             android:key="app_modes"
             android:title="@string/app_modes_title"
             android:fragment="cat.kenny.r1.wheel.settings.AppModesFragment" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="feel"
+        android:title="@string/cat_feel">
+        <ListPreference
+            android:key="wheel_scroll_distance"
+            android:title="@string/distance_title"
+            android:entries="@array/distance_entries"
+            android:entryValues="@array/distance_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_spin"
+            android:title="@string/spin_title"
+            android:entries="@array/spin_entries"
+            android:entryValues="@array/spin_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_press_guard"
+            android:title="@string/guard_title"
+            android:entries="@array/guard_entries"
+            android:entryValues="@array/guard_values"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_reverse"
+            android:title="@string/reverse_title"
+            android:summary="@string/reverse_summary"
+            android:persistent="false" />
+        <Preference
+            android:key="feel_footer"
+            android:summary="@string/feel_footer"
+            android:selectable="false" />
     </PreferenceCategory>
 
     <PreferenceCategory
