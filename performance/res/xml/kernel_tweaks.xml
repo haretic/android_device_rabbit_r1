@@ -35,12 +35,63 @@
             android:icon="@drawable/kt_dot_risky"
             android:title="@string/kt_trip"
             android:persistent="false" />
+        <ListPreference
+            android:key="governor"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_governor"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="graphics" android:title="@string/kt_cat_graphics">
+        <ListPreference
+            android:key="gpu_max"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_gpu"
+            android:persistent="false" />
     </PreferenceCategory>
     <PreferenceCategory android:key="memory" android:title="@string/kt_cat_memory">
         <ListPreference
             android:key="zram"
             android:icon="@drawable/kt_dot_safe"
             android:title="@string/kt_zram"
+            android:persistent="false" />
+        <ListPreference
+            android:key="swappiness"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_swappiness"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="hardware" android:title="@string/kt_cat_hardware">
+        <ListPreference
+            android:key="speaker"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/kt_speaker"
+            android:persistent="false" />
+        <ListPreference
+            android:key="mic"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_mic"
+            android:persistent="false" />
+        <ListPreference
+            android:key="motor_step"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/kt_motor"
+            android:persistent="false" />
+        <ListPreference
+            android:key="camera_park"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_camera_park"
+            android:persistent="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:key="storage" android:title="@string/kt_cat_storage">
+        <ListPreference
+            android:key="io_sched"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_io_sched"
+            android:persistent="false" />
+        <ListPreference
+            android:key="read_ahead"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_read_ahead"
             android:persistent="false" />
     </PreferenceCategory>
     <PreferenceCategory android:key="reset_group">

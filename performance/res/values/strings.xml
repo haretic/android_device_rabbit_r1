@@ -38,7 +38,7 @@
     <string name="app_profiles_pick_app">Pick an app</string>
 
     <!-- Settings > System > Kernel Tweaks -->
-    <string name="kt_title">Kernel Tweaks</string>
+    <string name="kt_title">Kernel tweaks</string>
     <string name="kt_summary">Sleep, cores, throttling and swap</string>
     <string name="kt_use">Use tweaks</string>
     <string name="kt_use_none">Nothing changed, everything is at the default</string>
@@ -53,7 +53,7 @@
     <string name="kt_cat_cpu">Processor and heat</string>
     <string name="kt_cat_memory">Memory</string>
     <string name="kt_default">%s (default)</string>
-    <string name="kt_changed">%s · changed</string>
+    <string name="kt_changed">%s - changed</string>
 
     <string name="kt_sleep_type">Sleep type</string>
     <string name="kt_sleep_deep">Deep sleep</string>
@@ -76,6 +76,43 @@
     <string name="kt_zram">Compressed swap (zram)</string>
     <string name="kt_zram_off">Off</string>
     <string name="kt_zram_value"><xliff:g id="size">%s</xliff:g>, lz4</string>
+    <string name="kt_cat_hardware">Speaker, mic and camera</string>
+    <string name="kt_speaker">Speaker gain</string>
+    <string name="kt_db_value"><xliff:g id="db">%+d</xliff:g> dB</string>
+    <string name="kt_speaker_what">How loud the speaker gets at full volume.\n\nMore is louder but distorts sooner on loud music; less keeps it clean and saves a little battery.</string>
+    <string name="kt_mic">Mic gain</string>
+    <string name="kt_mic_value"><xliff:g id="db">%d</xliff:g> dB</string>
+    <string name="kt_mic_what">How much the mic amplifies, 24 dB being its most.\n\nLess keeps loud voices and music from clipping in recordings and calls.</string>
+    <string name="kt_motor">Camera motor speed</string>
+    <string name="kt_motor_quick">Quick</string>
+    <string name="kt_motor_standard">Standard</string>
+    <string name="kt_motor_gentle">Gentle and quiet</string>
+    <string name="kt_motor_what">How fast the camera turns.\n\nQuick opens the camera sooner but the motor may slip and land a little off; Gentle turns it slower and quieter.</string>
+    <string name="kt_camera_park">Camera rests</string>
+    <string name="kt_camera_park_hidden">Hidden, sensor away</string>
+    <string name="kt_camera_park_front">Facing you</string>
+    <string name="kt_camera_park_back">Facing away</string>
+    <string name="kt_camera_park_what">Where the camera turns to while no app uses it.\n\nHidden keeps the sensor covered. Resting toward a side opens the camera that way at once.</string>
+    <string name="kt_cat_graphics">Graphics</string>
+    <string name="kt_cat_storage">Storage</string>
+    <string name="kt_gpu">GPU top speed</string>
+    <string name="kt_gpu_value"><xliff:g id="mhz">%d</xliff:g> MHz</string>
+    <string name="kt_gpu_what">The fastest the graphics chip runs.\n\nLower keeps the r1 cooler and the battery going longer in games and animations; the full speed keeps them smooth.</string>
+    <string name="kt_governor">CPU governor</string>
+    <string name="kt_governor_schedutil">Balanced, follows the load</string>
+    <string name="kt_governor_performance">Performance, always the top speed</string>
+    <string name="kt_governor_powersave">Battery, always the lowest speed</string>
+    <string name="kt_governor_what">How the cores pick their speed.\n\nBalanced speeds up with the work. Performance keeps every core at its top speed, hot and hungry; Battery keeps them at the lowest, slow but frugal.</string>
+    <string name="kt_swappiness">Memory pressure</string>
+    <string name="kt_swappiness_low">Keep apps in RAM (<xliff:g id="value">%d</xliff:g>)</string>
+    <string name="kt_swappiness_value">Standard (<xliff:g id="value">%d</xliff:g>)</string>
+    <string name="kt_swappiness_high">Compress early (<xliff:g id="value">%d</xliff:g>)</string>
+    <string name="kt_swappiness_what">How readily idle memory goes to the compressed swap.\n\nLower keeps more in RAM, quicker to switch back to but sooner full. Higher compresses early, keeping more apps around at a little CPU cost.</string>
+    <string name="kt_io_sched">I/O scheduler</string>
+    <string name="kt_io_sched_what">How the storage orders its reads and writes.\n\nmq-deadline keeps reads quick under load, kyber aims for steady latency, none leaves the order to the eMMC itself.</string>
+    <string name="kt_read_ahead">Read-ahead</string>
+    <string name="kt_read_ahead_value"><xliff:g id="kib">%d</xliff:g> KB</string>
+    <string name="kt_read_ahead_what">How much the storage reads past what an app asks for.\n\nMore speeds up reading big files and starting apps, less wastes no memory on what isn\'t read.</string>
     <string name="kt_zram_what">Memory set aside to keep idle apps compressed instead of closing them.\n\nMore keeps more apps open in the background but takes RAM from the app in front. Changing it takes a moment while swapped out apps move back.</string>
 
     <string name="kt_show_docs">Show explanations</string>
@@ -86,13 +123,13 @@
     <string name="oc_title">CPU overclock</string>
     <string name="oc_switch">Overclock</string>
     <string name="oc_on_summary">Big cores up to <xliff:g id="big" example="2.4 GHz">%1$s</xliff:g>, little cores up to <xliff:g id="little" example="1.8 GHz">%2$s</xliff:g></string>
-    <string name="oc_needs_tweaks">Switch on Kernel Tweaks first</string>
+    <string name="oc_needs_tweaks">Switch on kernel tweaks first</string>
     <string name="oc_speed">Speed</string>
     <string name="oc_big">Big cores</string>
     <string name="oc_little">Little cores</string>
     <string name="oc_ghz"><xliff:g id="ghz" example="2.4">%.1f</xliff:g> GHz</string>
     <string name="oc_stock">Stock, <xliff:g id="speed" example="2.2 GHz">%s</xliff:g></string>
-    <string name="oc_step"><xliff:g id="speed" example="2.4 GHz">%1$s</xliff:g> · stock <xliff:g id="stock" example="2.2 GHz">%2$s</xliff:g></string>
+    <string name="oc_step"><xliff:g id="speed" example="2.4 GHz">%1$s</xliff:g> - stock <xliff:g id="stock" example="2.2 GHz">%2$s</xliff:g></string>
     <string name="oc_untested">Stock. Run the stress test to unlock faster speeds.</string>
     <string name="oc_test">Stress test</string>
     <string name="oc_test_summary">A minute at each speed on all eight cores, checking every result. Let the r1 cool down first; it gets warm.</string>

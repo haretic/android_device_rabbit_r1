@@ -1,0 +1,3 @@
+# ktweaks/r1-ktweaks.sh, applying the Kernel Tweaks as root (system_ext/r1_performance.te). Public
+# for the vendor's rules on the nodes it labels (r1_ktweaks_vendor.te).
+type r1_ktweaks, domain;

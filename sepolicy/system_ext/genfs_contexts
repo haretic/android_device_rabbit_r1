@@ -1,3 +1,5 @@
 # The MT6370 ADC's hwmon view (iio-hwmon on power-monitor): USB, system and battery
 # voltages and currents. Battery details shows the USB voltage.
 genfscon sysfs /devices/platform/power-monitor/hwmon u:object_r:sysfs_r1_power_monitor:s0
+# Kernel Tweaks' memory pressure (r1_performance.te)
+genfscon proc /sys/vm/swappiness u:object_r:proc_r1_swappiness:s0

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 
@@ -46,6 +47,15 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private Preference mOverclock;
     private ListPreference mTrip;
     private ListPreference mZram;
+    private ListPreference mGovernor;
+    private ListPreference mGpu;
+    private ListPreference mSwappiness;
+    private ListPreference mIoSched;
+    private ListPreference mReadAhead;
+    private ListPreference mSpeaker;
+    private ListPreference mMic;
+    private ListPreference mMotor;
+    private ListPreference mCameraPark;
     private SwitchPreferenceCompat mShowDocs;
 
     @Override
@@ -113,6 +123,98 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mZram.setEntries(sizes.toArray(new CharSequence[0]));
         mZram.setEntryValues(sizeValues.toArray(new CharSequence[0]));
         bind(mZram, defaultZram);
+
+        mGovernor = findPreference(KernelTweaks.GOVERNOR);
+        mGovernor.setEntries(new CharSequence[] {getString(R.string.kt_governor_schedutil),
+                getString(R.string.kt_governor_performance),
+                getString(R.string.kt_governor_powersave)});
+        mGovernor.setEntryValues(new CharSequence[] {"schedutil", "performance", "powersave"});
+        bind(mGovernor, startValue(KernelTweaks.GOVERNOR, "schedutil"));
+
+        // The GPU's own steps, fastest first: the fastest is the default
+        mGpu = findPreference(KernelTweaks.GPU_MAX);
+        final int[] steps = KernelTweaks.gpuSteps();
+        final CharSequence[] gpu = new CharSequence[steps.length];
+        final CharSequence[] gpuValues = new CharSequence[steps.length];
+        for (int i = 0; i < steps.length; i++) {
+            final int mhz = steps[steps.length - 1 - i];
+            gpu[i] = getString(R.string.kt_gpu_value, mhz);
+            gpuValues[i] = Integer.toString(mhz);
+        }
+        mGpu.setEntries(gpu);
+        mGpu.setEntryValues(gpuValues);
+        mGpu.setEnabled(steps.length > 1);
+        bind(mGpu, gpuDefault());
+
+        mSwappiness = findPreference(KernelTweaks.SWAPPINESS);
+        final int standard = parse(startValue(KernelTweaks.SWAPPINESS, "60"), 60);
+        final int low = Math.max(0, standard / 3);
+        final int high = Math.min(200, standard * 2 + 40);
+        mSwappiness.setEntries(new CharSequence[] {getString(R.string.kt_swappiness_low, low),
+                getString(R.string.kt_swappiness_value, standard),
+                getString(R.string.kt_swappiness_high, high)});
+        mSwappiness.setEntryValues(new CharSequence[] {Integer.toString(low),
+                Integer.toString(standard), Integer.toString(high)});
+        bind(mSwappiness, Integer.toString(standard));
+
+        mIoSched = findPreference(KernelTweaks.IO_SCHED);
+        final String[] schedulers = KernelTweaks.ioSchedulers();
+        mIoSched.setEntries(schedulers);
+        mIoSched.setEntryValues(schedulers);
+        mIoSched.setEnabled(schedulers.length > 1);
+        bind(mIoSched, startValue(KernelTweaks.IO_SCHED, ""));
+
+        mReadAhead = findPreference(KernelTweaks.READ_AHEAD);
+        final String[] kib = {"128", "256", "512", "1024"};
+        final CharSequence[] readAhead = new CharSequence[kib.length];
+        for (int i = 0; i < kib.length; i++) {
+            readAhead[i] = getString(R.string.kt_read_ahead_value, Integer.parseInt(kib[i]));
+        }
+        mReadAhead.setEntries(readAhead);
+        mReadAhead.setEntryValues(kib);
+        bind(mReadAhead, startValue(KernelTweaks.READ_AHEAD, "128"));
+
+        mSpeaker = findPreference(KernelTweaks.SPEAKER);
+        final CharSequence[] speaker = new CharSequence[11];
+        final CharSequence[] speakerValues = new CharSequence[11];
+        for (int i = 0; i < 11; i++) {
+            final int db = 4 - i;
+            speaker[i] = getString(R.string.kt_db_value, db);
+            speakerValues[i] = Integer.toString(db);
+        }
+        mSpeaker.setEntries(speaker);
+        mSpeaker.setEntryValues(speakerValues);
+        bind(mSpeaker, "0");
+
+        mMic = findPreference(KernelTweaks.MIC);
+        final CharSequence[] mic = new CharSequence[5];
+        final CharSequence[] micValues = new CharSequence[5];
+        for (int i = 0; i < 5; i++) {
+            final int db = 24 - 6 * i;
+            mic[i] = getString(R.string.kt_mic_value, db);
+            micValues[i] = Integer.toString(db);
+        }
+        mMic.setEntries(mic);
+        mMic.setEntryValues(micValues);
+        bind(mMic, "24");
+
+        mMotor = findPreference(KernelTweaks.MOTOR_STEP);
+        mMotor.setEntries(new CharSequence[] {getString(R.string.kt_motor_quick),
+                getString(R.string.kt_motor_standard), getString(R.string.kt_motor_gentle)});
+        mMotor.setEntryValues(new CharSequence[] {"250", "360", "600"});
+        bind(mMotor, "360");
+
+        // The camera HAL's own setting, outside the tweaks' switch
+        mCameraPark = findPreference("camera_park");
+        mCameraPark.setEntries(new CharSequence[] {getString(R.string.kt_camera_park_hidden),
+                getString(R.string.kt_camera_park_front), getString(R.string.kt_camera_park_back)});
+        mCameraPark.setEntryValues(new CharSequence[] {"90", "0", "180"});
+        mCameraPark.setOnPreferenceChangeListener((p, value) -> {
+            SystemProperties.set(KernelTweaks.CAMERA_PARK,
+                    "90".equals(value) ? "" : (String) value);
+            mHandler.post(mUpdate);
+            return true;
+        });
 
         mShowDocs = findPreference("show_docs");
         mShowDocs.setChecked(Profiles.prefs(context).getBoolean(KEY_SHOW_DOCS, false));
@@ -200,6 +302,44 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mOverclock.setSummary(OverclockFragment.summary(requireContext()));
         show(mTrip, DEFAULT_TRIP, R.string.kt_trip_what);
         show(mZram, KernelTweaks.defaultZram(), R.string.kt_zram_what);
+        show(mGovernor, startValue(KernelTweaks.GOVERNOR, "schedutil"), R.string.kt_governor_what);
+        show(mGpu, gpuDefault(), R.string.kt_gpu_what);
+        show(mSwappiness, startValue(KernelTweaks.SWAPPINESS, "60"), R.string.kt_swappiness_what);
+        show(mIoSched, startValue(KernelTweaks.IO_SCHED, ""), R.string.kt_io_sched_what);
+        show(mReadAhead, startValue(KernelTweaks.READ_AHEAD, "128"), R.string.kt_read_ahead_what);
+        show(mSpeaker, "0", R.string.kt_speaker_what);
+        show(mMic, "24", R.string.kt_mic_what);
+        show(mMotor, "360", R.string.kt_motor_what);
+        final String cameraPark = SystemProperties.get(KernelTweaks.CAMERA_PARK, "");
+        mCameraPark.setValue(TextUtils.isEmpty(cameraPark) ? "90" : cameraPark);
+        String cameraParkSummary = TextUtils.isEmpty(cameraPark)
+                ? getString(R.string.kt_default, mCameraPark.getEntry())
+                : getString(R.string.kt_changed, mCameraPark.getEntry());
+        if (mShowDocs.isChecked()) {
+            cameraParkSummary = cameraParkSummary + "\n\n"
+                    + getString(R.string.kt_camera_park_what);
+        }
+        mCameraPark.setSummary(cameraParkSummary);
+    }
+
+    /** What the device started with, or {@code fallback} before the script noted it. */
+    private static String startValue(String key, String fallback) {
+        final String value = KernelTweaks.startValue(key);
+        return TextUtils.isEmpty(value) ? fallback : value;
+    }
+
+    /** The GPU's top speed, its fastest step. */
+    private static String gpuDefault() {
+        final int[] steps = KernelTweaks.gpuSteps();
+        return steps.length == 0 ? "" : Integer.toString(steps[steps.length - 1]);
+    }
+
+    private static int parse(String value, int fallback) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     /** The value, "(default)" or "changed", and the explanation when they are on. */

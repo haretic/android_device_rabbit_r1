@@ -5,7 +5,8 @@ set_prop(system_app, powerhal_held_hints_prop)
 set_prop(system_app, r1_ktweaks_prop)
 
 # ktweaks/r1-ktweaks.sh: applies the Kernel Tweaks as root
-type r1_ktweaks, domain, coredomain;
+# Declared in system_ext_public, for the vendor's rules on the GPU and eMMC nodes it labels
+typeattribute r1_ktweaks coredomain;
 type r1_ktweaks_exec, exec_type, file_type, system_file_type;
 init_daemon_domain(r1_ktweaks)
 
@@ -32,3 +33,12 @@ allow r1_ktweaks self:capability sys_admin;
 # Overclock stress test: hashes framework.jar on every core, stops its own workers when hot
 allow r1_ktweaks system_file:file r_file_perms;
 allow r1_ktweaks self:process { signal sigkill };
+# CPU governor presets, GPU top speed (the vendor allows its node), memory pressure, eMMC queue
+type proc_r1_swappiness, fs_type, proc_type;
+allow r1_ktweaks proc_r1_swappiness:file rw_file_perms;
+# The camera motor's resting position, which the camera HAL reads
+set_prop(system_app, r1_camera_park_prop)
+# Speaker and mic gains, set with tinymix2 on the sound card's controls
+allow r1_ktweaks system_file:file execute_no_trans;
+allow r1_ktweaks audio_device:dir r_dir_perms;
+allow r1_ktweaks audio_device:chr_file rw_file_perms;

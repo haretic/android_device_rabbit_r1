@@ -11,9 +11,30 @@ on property:sys.boot_completed=1
 on property:sys.r1.kt.apply=*
     start r1-ktweaks
 
-service r1-ktweaks /system_ext/bin/r1-ktweaks.sh apply
+# The power HAL sets the GPU's top speed with its hints (extreme saver), the cap goes back on after
+on property:sys.powerhal.held_hints=*
+    start r1-ktweaks-gpu
+
+# The audio HAL sets the card's gains up again when it starts
+on property:init.svc.vendor.audio-hal-aidl-mainline=running && property:sys.boot_completed=1
+    start r1-ktweaks-audio
+
+service r1-ktweaks-audio /system_ext/bin/r1-ktweaks.sh audio
+    user root
+    group root audio
+    disabled
+    oneshot
+
+service r1-ktweaks-gpu /system_ext/bin/r1-ktweaks.sh gpu
     user root
     group root
+    disabled
+    oneshot
+
+service r1-ktweaks /system_ext/bin/r1-ktweaks.sh apply
+    user root
+    # audio for the speaker and mic gains
+    group root audio
     disabled
     oneshot
 

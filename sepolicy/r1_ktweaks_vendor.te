@@ -1,0 +1,8 @@
+# ktweaks/r1-ktweaks.sh (system_ext): the Kernel Tweaks' GPU speed cap and eMMC I/O, on nodes
+# labelled here
+allow r1_ktweaks sysfs_r1_gpu_qos:file rw_file_perms;
+r_dir_file(r1_ktweaks, sysfs_gpu)
+allow r1_ktweaks sysfs_r1_mmc:dir search;
+allow r1_ktweaks sysfs_r1_mmc:file rw_file_perms;
+# The camera motor's speed (camera/sepolicy labels the node)
+allow r1_ktweaks sysfs_r1_camera_motor:file rw_file_perms;
