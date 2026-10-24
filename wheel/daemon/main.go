@@ -106,6 +106,7 @@ const (
 	keyScrollDown     = 178
 	keyBrightnessDown = 224
 	keyBrightnessUp   = 225
+	keySelect         = 353
 	keyMax            = 0x2ff
 	absMax            = 0x3f
 
@@ -241,11 +242,13 @@ var modeKeys = map[mode][2]chord{
 		{mods: []uint16{keyLeftCtrl}, key: keyMinus}},
 }
 
-// Every key r1-wheel can send
+// Every key r1-wheel can send. Select it never sends: with it r1-wheel has the D-pad's five keys,
+// so Android takes it for a D-pad and its steps move the focus out of text as a remote's do; a
+// keyboard's arrows stay in a text view (TextView keeps them from a keyboard-only source)
 var outKeys = []uintptr{
 	keyMinus, keyEqual, keyTab, keyLeftCtrl, keyLeftShift, keyUp, keyPageUp, keyLeft,
 	keyRight, keyDown, keyPageDown, keyVolumeDown, keyVolumeUp, keyNextSong,
-	keyPreviousSong, keyScrollUp, keyScrollDown, keyBrightnessDown, keyBrightnessUp,
+	keyPreviousSong, keyScrollUp, keyScrollDown, keyBrightnessDown, keyBrightnessUp, keySelect,
 }
 
 type daemon struct {

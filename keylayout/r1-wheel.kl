@@ -22,3 +22,5 @@ key 177   NAVIGATE_PREVIOUS
 key 178   NAVIGATE_NEXT
 key 224   BRIGHTNESS_DOWN
 key 225   BRIGHTNESS_UP
+# Never sent; makes r1-wheel a D-pad (it needs all five D-pad keys)
+key 353   DPAD_CENTER
