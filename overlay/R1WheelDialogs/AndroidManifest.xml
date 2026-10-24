@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The wheel UI's dialogs, their buttons a list: SystemUI's WheelOverlays enables it with
+     LineageSettings.Secure.WHEEL_DIALOGS. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.rabbit.r1.overlay.wheeldialogs">
+    <overlay android:targetPackage="android" android:isStatic="false" />
+</manifest>
