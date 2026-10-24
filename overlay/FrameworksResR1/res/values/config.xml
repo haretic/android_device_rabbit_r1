@@ -44,6 +44,23 @@
         <item>cat.kenny.r1.problemreport=app</item>
         <item>com.android.settings=app</item>
         <item>org.lineageos.lineageparts=app</item>
+        <!-- Pages and dialogs Settings opens in other packages: the wheel goes through them as
+             through Settings -->
+        <item>com.android.permissioncontroller=app</item>
+        <item>com.android.settings.intelligence=app</item>
+        <item>com.android.storagemanager=app</item>
+        <item>com.android.packageinstaller=app</item>
+        <item>com.android.certinstaller=app</item>
+        <item>com.android.credentialmanager=app</item>
+        <item>com.android.healthconnect.controller=app</item>
+        <item>com.android.htmlviewer=app</item>
+        <item>com.android.emergency=app</item>
+        <item>com.android.cellbroadcastreceiver=app</item>
+        <item>com.android.cellbroadcastreceiver.module=app</item>
+        <item>com.android.wifi.dialog=app</item>
+        <item>com.android.bluetooth=app</item>
+        <item>org.lineageos.updater=app</item>
+        <item>org.lineageos.audiofx=app</item>
         <!-- Home: the wheel goes through the list and its tabs; the side button's double press
              still brings the taskbar -->
         <item>com.android.launcher3=app</item>
