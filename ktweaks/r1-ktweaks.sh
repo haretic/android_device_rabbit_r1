@@ -11,6 +11,14 @@
 #                               speed the power HAL then holds (OC_* hints, the Controller)
 #   persist.sys.r1.kt.oc_big    2300 | 2400, the big cores' top speed in MHz
 #   persist.sys.r1.kt.oc_little 1700 | 1800, the little cores'
+#   persist.sys.r1.kt.gpu_max   the GPU's top speed in MHz, the fastest step at or below it
+#   persist.sys.r1.kt.governor  schedutil | performance | powersave, both clusters' governor
+#   persist.sys.r1.kt.swappiness 0..200, how readily memory goes to the compressed swap
+#   persist.sys.r1.kt.io_sched  the eMMC's I/O scheduler, one of sys.r1.kt.io_schedulers
+#   persist.sys.r1.kt.read_ahead 128 | 256 | 512 | 1024, the eMMC's read-ahead in KiB
+#   persist.sys.r1.kt.speaker   -6..4, the speaker line out's gain in dB (0 by default)
+#   persist.sys.r1.kt.mic       0..24 in steps of 6, the mic's gain in dB (24 by default)
+#   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
 # and then sys.r1.kt.apply to anything new. Unset means the default. Writes
 # sys.r1.kt.result (ok, or the tweaks that could not be set) for the page.
 #
@@ -23,6 +31,8 @@
 #
 #   r1-ktweaks.sh start    at post-fs-data: counts the start
 #   r1-ktweaks.sh apply    once Android is up and after every change
+#   r1-ktweaks.sh gpu      the GPU cap again, after the power HAL changed the GPU's top speed
+#   r1-ktweaks.sh audio    the gains again, after the audio HAL set the card up anew
 #   r1-ktweaks.sh settle   two minutes later: the start was good
 #   r1-ktweaks.sh octest   the overclock stress test
 
@@ -31,6 +41,10 @@ BIG=$CPU/cpufreq/policy0
 LITTLE=$CPU/cpufreq/policy4
 BOOST=$CPU/cpufreq/boost
 ZRAM=/sys/block/zram0
+GPU=/sys/class/devfreq/13000000.gpu
+EMMC=/sys/block/mmcblk0/queue
+SWAPPINESS=/proc/sys/vm/swappiness
+MOTOR=/sys/devices/platform/stepper-motor/step_us
 # The CPU passive trip in the device tree
 DEFAULT_TRIP=85000
 
@@ -94,7 +108,68 @@ set_oc() {
 	done
 }
 
+# The fastest GPU step at or below $1 MHz, in Hz; the fastest of all with none asked for
+gpu_step() {
+	best="" top=""
+	for f in $(cat $GPU/available_frequencies 2>/dev/null); do
+		[ -z "$top" ] || [ "$f" -gt "$top" ] && top=$f
+		[ -n "$1" ] && [ "$f" -le $(( $1 * 1000000 )) ] &&
+			{ [ -z "$best" ] || [ "$f" -gt "$best" ]; } && best=$f
+	done
+	echo "${best:-$top}"
+}
+
+set_gpu() {
+	hz=$(gpu_step "$1")
+	[ -n "$hz" ] || { [ -n "$1" ] && fail gpu; return; }
+	[ "$(cat $GPU/max_freq)" = "$hz" ] || echo "$hz" > $GPU/max_freq 2>/dev/null || fail gpu
+}
+
+set_governor() {
+	for policy in $BIG $LITTLE; do
+		case " $(cat $policy/scaling_available_governors) " in
+		*" $1 "*) ;;
+		*) fail governor; continue ;;
+		esac
+		[ "$(cat $policy/scaling_governor)" = "$1" ] ||
+			echo "$1" > $policy/scaling_governor 2>/dev/null || fail governor
+	done
+}
+
+set_io() {
+	[ -n "$1" ] && { echo "$1" > $EMMC/scheduler 2>/dev/null || fail io_sched; }
+	[ -n "$2" ] && { echo "$2" > $EMMC/read_ahead_kb 2>/dev/null || fail read_ahead; }
+}
+
+# The gains, as the audio HAL's UCM boot sequence has them: line out 10 (0 dB, -10 dB + 1 dB a
+# step), mic 4 (24 dB, 6 dB a step)
+set_audio() {
+	line=$(( 10 + ${1:-0} )) mic=$(( ${2:-24} / 6 ))
+	tinymix2 -D 0 set "Lineout Volume" $line $line >/dev/null 2>&1 || fail speaker
+	tinymix2 -D 0 set "Mic Volume" $mic >/dev/null 2>&1 || fail mic
+}
+
+set_motor() {
+	[ -f $MOTOR ] || { [ "$1" = 360 ] || fail motor_step; return; }
+	[ "$(cat $MOTOR)" = "$1" ] || echo "$1" > $MOTOR 2>/dev/null || fail motor_step
+}
+
+# What the device starts with, before the first change of this start, to go back to and for
+# the page to show as the default
+note_defaults() {
+	[ -n "$(getprop sys.r1.kt.default_governor)" ] && return
+	setprop sys.r1.kt.default_governor "$(cat $BIG/scaling_governor)"
+	setprop sys.r1.kt.default_swappiness "$(cat $SWAPPINESS)"
+	sched=$(cat $EMMC/scheduler)
+	current=${sched#*[}
+	setprop sys.r1.kt.default_io_sched "${current%%]*}"
+	setprop sys.r1.kt.io_schedulers "$(echo $sched | tr -d '[]')"
+	setprop sys.r1.kt.default_read_ahead "$(cat $EMMC/read_ahead_kb)"
+	setprop sys.r1.kt.gpu_freqs "$(cat $GPU/available_frequencies 2>/dev/null)"
+}
+
 apply() {
+	note_defaults
 	# The default size, taken before the first change of this start: in bytes to put it back
 	# exactly, in MiB for the page
 	if [ -z "$(getprop sys.r1.kt.default_zram_bytes)" ]; then
@@ -108,9 +183,27 @@ apply() {
 		if [ "$(prop oc)" = 1 ]; then
 			oc_big=$(oc_step big) oc_little=$(oc_step little)
 		fi
+		gpu=$(prop gpu_max) governor=$(prop governor) swappiness=$(prop swappiness)
+		io_sched=$(prop io_sched) read_ahead=$(prop read_ahead)
+		speaker=$(prop speaker) mic=$(prop mic) motor_step=$(prop motor_step)
 	else
 		mem_sleep="" cores="" trip="" zram="" oc_big="" oc_little=""
+		gpu="" governor="" swappiness="" io_sched="" read_ahead=""
+		speaker="" mic="" motor_step=""
 	fi
+	case "$speaker" in -[1-6]|[0-4]) ;; *) speaker=0 ;; esac
+	case "$mic" in 0|6|12|18|24) ;; *) mic=24 ;; esac
+	case "$motor_step" in 250|360|600) ;; *) motor_step=360 ;; esac
+	case "$gpu" in *[!0-9]*) gpu="" ;; esac
+	case "$governor" in schedutil|performance|powersave) ;;
+	*) governor=$(getprop sys.r1.kt.default_governor) ;; esac
+	case "$swappiness" in ''|*[!0-9]*) swappiness=$(getprop sys.r1.kt.default_swappiness) ;; esac
+	case " $(getprop sys.r1.kt.io_schedulers) " in
+	*" $io_sched "*) [ -n "$io_sched" ] || io_sched=$(getprop sys.r1.kt.default_io_sched) ;;
+	*) io_sched=$(getprop sys.r1.kt.default_io_sched) ;;
+	esac
+	case "$read_ahead" in 128|256|512|1024) ;;
+	*) read_ahead=$(getprop sys.r1.kt.default_read_ahead) ;; esac
 	case "$mem_sleep" in deep|s2idle) ;; *) mem_sleep=deep ;; esac
 	case "$cores" in [1-8]) ;; *) cores=8 ;; esac
 	case "$trip" in 75|80|85|90) trip=$(( trip * 1000 )) ;; *) trip=$DEFAULT_TRIP ;; esac
@@ -124,6 +217,12 @@ apply() {
 	set_trip "$trip"
 	set_zram "$zram"
 	set_oc "$oc_big" "$oc_little"
+	set_gpu "$gpu"
+	set_governor "$governor"
+	[ -n "$swappiness" ] && { echo "$swappiness" > $SWAPPINESS 2>/dev/null || fail swappiness; }
+	set_io "$io_sched" "$read_ahead"
+	set_audio "$speaker" "$mic"
+	set_motor "$motor_step"
 	setprop sys.r1.kt.result "${failed:-ok}"
 }
 
@@ -227,6 +326,16 @@ apply)
 	;;
 octest)
 	octest
+	;;
+audio)
+	# After the HAL's UCM boot sequence
+	sleep 2
+	if enabled; then set_audio "$(prop speaker)" "$(prop mic)"; fi
+	;;
+gpu)
+	# After the power HAL's own write
+	sleep 1
+	if enabled; then set_gpu "$(prop gpu_max)"; fi
 	;;
 settle)
 	sleep 120

@@ -131,7 +131,7 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
         return getString(R.string.oc_ghz, Integer.parseInt(mhz) / 1000f);
     }
 
-    /** "2.4 GHz · stock 2.2 GHz" style summary for the Kernel Tweaks list. */
+    /** "2.4 GHz - stock 2.2 GHz" style summary for the Kernel Tweaks list. */
     static String summary(android.content.Context context) {
         if (!Overclock.isOn()) {
             return context.getString(R.string.oc_off);

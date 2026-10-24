@@ -5,6 +5,10 @@ import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.text.TextUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * The Kernel Tweaks choices, kept in persist.sys.r1.kt.* where ktweaks/r1-ktweaks.sh picks
  * them up as root. Empty means the default. "Big cores off while the screen is off" is the
@@ -22,8 +26,19 @@ final class KernelTweaks {
     static final String CORES = "cores";
     static final String TRIP = "trip";
     static final String ZRAM = "zram";
+    static final String GOVERNOR = "governor";
+    static final String GPU_MAX = "gpu_max";
+    static final String SWAPPINESS = "swappiness";
+    static final String IO_SCHED = "io_sched";
+    static final String READ_AHEAD = "read_ahead";
+    static final String SPEAKER = "speaker";
+    static final String MIC = "mic";
+    static final String MOTOR_STEP = "motor_step";
+    /** Not a Kernel Tweak: the camera HAL reads it, whether the tweaks are on or not. */
+    static final String CAMERA_PARK = "persist.sys.r1.camera.park";
     /** The tweaks, as counted by changedCount(). */
-    static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, Overclock.ON, TRIP, ZRAM};
+    static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, Overclock.ON, TRIP, GOVERNOR, GPU_MAX,
+            ZRAM, SWAPPINESS, IO_SCHED, READ_AHEAD, SPEAKER, MIC, MOTOR_STEP};
 
     private KernelTweaks() {
     }
@@ -85,6 +100,31 @@ final class KernelTweaks {
     /** "ok", or the tweaks the script couldn't set, comma separated. */
     static String result() {
         return SystemProperties.get("sys.r1.kt.result", "");
+    }
+
+    /** What the device starts with for {@code key}, as the script noted it. */
+    static String startValue(String key) {
+        return SystemProperties.get("sys.r1.kt.default_" + key, "");
+    }
+
+    /** The GPU's speeds in MHz, slowest first, as the script found them. */
+    static int[] gpuSteps() {
+        final String[] hz = SystemProperties.get("sys.r1.kt.gpu_freqs", "").trim().split("\\s+");
+        final List<Integer> mhz = new ArrayList<>();
+        for (String step : hz) {
+            try {
+                mhz.add((int) (Long.parseLong(step) / 1000000));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        Collections.sort(mhz);
+        return mhz.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /** The eMMC's I/O schedulers, as the script found them. */
+    static String[] ioSchedulers() {
+        final String list = SystemProperties.get("sys.r1.kt.io_schedulers", "").trim();
+        return list.isEmpty() ? new String[0] : list.split("\\s+");
     }
 
     /** The compressed swap size the device starts with, in MiB. */
