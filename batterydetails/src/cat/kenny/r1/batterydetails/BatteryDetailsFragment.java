@@ -144,7 +144,7 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         showChargeCurrent();
     }
 
-    /** e.g. "Charging · full in about 40 min" */
+    /** e.g. "Charging - full in about 40 min" */
     private String status(Reading r) {
         if (r.isFull()) {
             return getString(R.string.status_full);
@@ -200,7 +200,7 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         });
     }
 
-    /** "0.8 A · gentler, slower", and why it's less right now while plugged in. */
+    /** "0.8 A - gentler, slower", and why it's less right now while plugged in. */
     private void showChargeCurrent() {
         if (mChargeCurrent == null) {
             return;
