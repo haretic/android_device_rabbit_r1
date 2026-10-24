@@ -64,6 +64,7 @@ final class Stats {
 
     private final Context mContext;
     private final BatteryManager mBatteryManager;
+    private final TaskFps mTaskFps;
     private final AppFrames mAppFrames;
     private IBinder mSurfaceFlinger;
     /** SurfaceFlinger refused the page flip count: newer ones no longer have it. */
@@ -78,11 +79,13 @@ final class Stats {
     Stats(Context context) {
         mContext = context;
         mBatteryManager = context.getSystemService(BatteryManager.class);
+        mTaskFps = new TaskFps(context);
         mAppFrames = new AppFrames(context);
     }
 
     /** Forget the last sample, e.g. after the screen was off. */
     void reset() {
+        mTaskFps.stop();
         mAppFrames.reset();
         mLastFlips = -1;
         mLastCpuBusy = -1;
@@ -114,6 +117,15 @@ final class Stats {
     }
 
     private void sampleFps() {
+        // SurfaceFlinger's count for the app's task, else its layer's frames, else the screen's
+        final int task = mTaskFps.sample();
+        if (task >= 0) {
+            fps = task;
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "fps: task " + task);
+            }
+            return;
+        }
         sampleScreenFps();
         final int app = mAppFrames.sample();
         fps = app >= 0 ? app : screenFps;

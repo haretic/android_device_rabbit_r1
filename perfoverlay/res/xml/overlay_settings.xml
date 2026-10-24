@@ -16,7 +16,7 @@
 
     <ListPreference
         android:key="position"
-        android:defaultValue="top_left"
+        android:defaultValue="status_bar"
         android:entries="@array/position_entries"
         android:entryValues="@array/position_values"
         android:summary="%s"

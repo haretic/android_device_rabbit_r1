@@ -42,7 +42,7 @@ final class Hud {
     }
 
     static String getPosition(Context context) {
-        return prefs(context).getString(KEY_POSITION, "top_left");
+        return prefs(context).getString(KEY_POSITION, "status_bar");
     }
 
     /** Remembers the choice and starts or stops the overlay to match. */
