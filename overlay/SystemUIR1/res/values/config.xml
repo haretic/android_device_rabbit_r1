@@ -18,4 +18,12 @@
     <!-- Its last button: its own settings app -->
     <string name="config_wheelTaskbarSettings" translatable="false">cat.kenny.r1.wheel.settings/.WheelActivity</string>
     <bool name="config_r1CompactQs">true</bool>
+
+    <!-- No Wallet (the r1 has no NFC) or torch (its camera reports none); battery saver instead -->
+    <string name="quick_settings_tiles_default" translatable="false">
+        internet,bt,dnd,airplane,rotation,battery,saver,alarm,cast,screenrecord,controls
+    </string>
+    <string name="quick_settings_tiles_default_split" translatable="false">
+        wifi,bt,cell,dnd,airplane,rotation,battery,saver,alarm,cast,screenrecord,controls
+    </string>
 </resources>
