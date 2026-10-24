@@ -13,3 +13,5 @@ r_dir_file(hal_camera_default, sysfs)
 
 # Turn the camera module to the front or back on open, park it on close.
 allow hal_camera_default sysfs_r1_camera_motor:file rw_file_perms;
+# Where the module rests while closed, picked in the Performance app
+get_prop(hal_camera_default, r1_camera_park_prop)

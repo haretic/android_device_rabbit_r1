@@ -1,3 +1,6 @@
 # Hints the power HAL holds until they leave the list (comma separated): the CPU profile and
 # games, picked by the Performance app (system_app).
 system_restricted_prop(powerhal_held_hints_prop)
+# Where the camera module rests while closed (the Performance app's camera motor page, system_app),
+# read by the camera HAL.
+system_public_prop(r1_camera_park_prop)

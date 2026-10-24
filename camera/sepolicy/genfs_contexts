@@ -1,1 +1,2 @@
 genfscon sysfs /devices/platform/stepper-motor/orientation u:object_r:sysfs_r1_camera_motor:s0
+genfscon sysfs /devices/platform/stepper-motor/step_us u:object_r:sysfs_r1_camera_motor:s0
