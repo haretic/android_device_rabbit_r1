@@ -44,6 +44,9 @@
         <item>cat.kenny.r1.problemreport=app</item>
         <item>com.android.settings=app</item>
         <item>org.lineageos.lineageparts=app</item>
+        <!-- Home: the wheel goes through the list and its tabs; the side button's double press
+             still brings the taskbar -->
+        <item>com.android.launcher3=app</item>
     </string-array>
 
     <bool name="config_r1SideButtonInput">true</bool>
