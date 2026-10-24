@@ -3,6 +3,8 @@
     package="cat.kenny.r1.perfoverlay"
     android:sharedUserId="android.uid.system">
 
+    <!-- The front app's frame rate, from SurfaceFlinger (TaskFps) -->
+    <uses-permission android:name="android.permission.ACCESS_FPS_COUNTER" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

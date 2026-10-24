@@ -281,9 +281,19 @@ public class HudService extends Service
         // Clear of the status bar and the navigation handle while they show, at the very edge
         // when a game hides them
         lp.setFitInsetsTypes(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+        // Above the status bar in z-order, the window has its insets only this way
+        lp.receiveInsetsIgnoringZOrder = true;
         lp.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
         final String position = Hud.getPosition(this);
+        if (position.equals("status_bar")) {
+            // In the status bar's middle, clear of the clock, the icons and of what apps and
+            // the shade draw under it
+            lp.setFitInsetsTypes(WindowInsets.Type.navigationBars());
+            lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+            lp.y = dp(4);
+            return lp;
+        }
         lp.gravity = (position.startsWith("bottom") ? Gravity.BOTTOM : Gravity.TOP)
                 | (position.endsWith("right") ? Gravity.RIGHT : Gravity.LEFT);
         lp.x = dp(4);
