@@ -61,6 +61,16 @@
         <item>com.android.bluetooth=app</item>
         <item>org.lineageos.updater=app</item>
         <item>org.lineageos.audiofx=app</item>
+        <!-- Stock apps that work with the highlight: the wheel moves it through them, the
+             side button's double press still brings the taskbar -->
+        <item>com.android.dialer=app</item>
+        <item>org.lineageos.glimpse=app</item>
+        <item>com.android.documentsui=app</item>
+        <item>org.lineageos.etar=app</item>
+        <item>com.android.calculator2=app</item>
+        <item>com.android.messaging=app</item>
+        <item>org.lineageos.recorder=app</item>
+        <item>org.lineageos.twelve=app</item>
         <!-- Home: the wheel goes through the list and its tabs; the side button's double press
              still brings the taskbar -->
         <item>com.android.launcher3=app</item>
