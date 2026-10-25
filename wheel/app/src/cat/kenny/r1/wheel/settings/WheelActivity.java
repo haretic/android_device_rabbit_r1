@@ -22,11 +22,7 @@ public class WheelActivity extends CollapsingToolbarBaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
-        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
-            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-                setTitle(R.string.wheel_title);
-            }
-        });
+        getSupportFragmentManager().addOnBackStackChangedListener(this::updateTitle);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
@@ -42,9 +38,26 @@ public class WheelActivity extends CollapsingToolbarBaseActivity
         page.setArguments(pref.getExtras());
         getSupportFragmentManager().beginTransaction()
                 .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame, page)
-                .addToBackStack(null)
+                .addToBackStack(String.valueOf(pref.getTitle()))
                 .commit();
         setTitle(pref.getTitle());
         return true;
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Turned or brought back, the toolbar keeps the title it had: the page's own again
+        updateTitle();
+    }
+
+    /** The title of the page up: this one's, or the page's opened over it, by its entry. */
+    private void updateTitle() {
+        final int pages = getSupportFragmentManager().getBackStackEntryCount();
+        if (pages == 0) {
+            setTitle(R.string.wheel_title);
+        } else {
+            setTitle(getSupportFragmentManager().getBackStackEntryAt(pages - 1).getName());
+        }
     }
 }
