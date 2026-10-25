@@ -22,7 +22,9 @@ public class WheelActivity extends CollapsingToolbarBaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
-        getSupportFragmentManager().addOnBackStackChangedListener(this::updateTitle);
+        // Told while a pop still counts the page going: the title once it has gone
+        getSupportFragmentManager().addOnBackStackChangedListener(
+                () -> getWindow().getDecorView().post(this::updateTitle));
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
