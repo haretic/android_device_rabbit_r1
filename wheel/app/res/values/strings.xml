@@ -104,7 +104,7 @@
     <string name="app_modes_summary">%1$d with a wheel mode of their own</string>
     <string name="app_modes_none">All apps open the taskbar</string>
     <string name="mode_taskbar">Taskbar</string>
-    <string name="mode_app">Scroll the app</string>
+    <string name="mode_app">Move the highlight</string>
     <string name="mode_scroll">Smooth scroll</string>
     <string name="mode_tab">Tab through links</string>
     <string name="mode_arrows">Left and right</string>
@@ -114,6 +114,18 @@
     <string name="mode_media">Tracks</string>
     <string name="mode_zoom">Zoom</string>
     <string name="mode_touch">Touch zones</string>
+    <!-- Under each mode in the picker: what the wheel and the side button do in it -->
+    <string name="mode_taskbar_desc">The wheel opens the taskbar</string>
+    <string name="mode_app_desc">The wheel moves the highlight from item to item, a press opens it</string>
+    <string name="mode_scroll_desc">The wheel scrolls the page as a finger would</string>
+    <string name="mode_tab_desc">The wheel steps through links and buttons, a press opens one</string>
+    <string name="mode_arrows_desc">The wheel steps left and right, as for games and pickers</string>
+    <string name="mode_page_desc">The wheel turns a page at a time</string>
+    <string name="mode_volume_desc">The wheel sets the volume</string>
+    <string name="mode_brightness_desc">The wheel sets the screen brightness</string>
+    <string name="mode_media_desc">The wheel skips tracks, a press plays and pauses</string>
+    <string name="mode_zoom_desc">The wheel zooms in and out</string>
+    <string name="mode_touch_desc">The wheel taps two places you pick on the screen</string>
     <!-- TouchZonesActivity, over the app: the wheel's steps tap the screen where these say -->
     <string name="touch_zones_hint_up">Tap where a step up should tap</string>
     <string name="touch_zones_hint_down">Now tap where a step down should tap</string>

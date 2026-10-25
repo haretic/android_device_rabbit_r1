@@ -6,9 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.UserHandle;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.widget.ArrayAdapter;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
@@ -80,14 +85,15 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
         final CharSequence[] labels = new CharSequence[MODES.length];
         int checked = 0;
         for (int i = 0; i < MODES.length; i++) {
-            labels[i] = label(MODES[i]);
+            labels[i] = choice(MODES[i]);
             if (MODES[i].equals(mode(current))) {
                 checked = i;
             }
         }
         WheelSelect.attach(new AlertDialog.Builder(requireContext())
                 .setTitle(app)
-                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
+                .setSingleChoiceItems(new ArrayAdapter<>(requireContext(), R.layout.mode_choice,
+                        android.R.id.text1, labels), checked, (dialog, which) -> {
                     dialog.dismiss();
                     if (MODES[which].equals("touch")) {
                         placeZones(requireContext(), pkg);
@@ -139,6 +145,33 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
             case "touch" -> R.string.mode_touch;
             default -> R.string.mode_taskbar;
         });
+    }
+
+    /** The mode's name over a line on what the wheel and the side button do in it. */
+    private CharSequence choice(String mode) {
+        final String name = label(mode).toString();
+        final SpannableString choice = new SpannableString(name + "\n" + getString(
+                switch (mode(mode)) {
+                    case "app" -> R.string.mode_app_desc;
+                    case "scroll" -> R.string.mode_scroll_desc;
+                    case "tab" -> R.string.mode_tab_desc;
+                    case "arrows" -> R.string.mode_arrows_desc;
+                    case "page" -> R.string.mode_page_desc;
+                    case "volume" -> R.string.mode_volume_desc;
+                    case "brightness" -> R.string.mode_brightness_desc;
+                    case "media" -> R.string.mode_media_desc;
+                    case "zoom" -> R.string.mode_zoom_desc;
+                    case "touch" -> R.string.mode_touch_desc;
+                    default -> R.string.mode_taskbar_desc;
+                }));
+        final TypedArray a = requireContext().obtainStyledAttributes(
+                new int[] {android.R.attr.textColorSecondary});
+        final int secondary = a.getColor(0, 0);
+        a.recycle();
+        final int start = name.length() + 1;
+        choice.setSpan(new RelativeSizeSpan(0.8f), start, choice.length(), 0);
+        choice.setSpan(new ForegroundColorSpan(secondary), start, choice.length(), 0);
+        return choice;
     }
 
     static Map<String, String> read(Context context) {
