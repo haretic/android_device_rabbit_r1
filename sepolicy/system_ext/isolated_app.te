@@ -1,0 +1,3 @@
+# Browser renderers ask for the content capture service as they start; isolated processes may
+# not have it, and the browser carries on without.
+dontaudit isolated_app content_capture_service:service_manager find;
