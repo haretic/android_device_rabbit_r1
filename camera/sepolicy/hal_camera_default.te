@@ -15,3 +15,6 @@ r_dir_file(hal_camera_default, sysfs)
 allow hal_camera_default sysfs_r1_camera_motor:file rw_file_perms;
 # Where the module rests while closed, picked in the Performance app
 get_prop(hal_camera_default, r1_camera_park_prop)
+# libcamera's software ISP debayers on the GPU: EGL's graphics environment reads whether the
+# zygote preloads GL, as in every process that draws
+get_prop(hal_camera_default, zygote_config_prop)
