@@ -29,6 +29,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_VENDOR_PROPERTIES += \
     ro.hardware.camera=libcamera
 
+# The HAL's own metadata queue sizes, under the vendor names it reads first: unset, it falls
+# back to the old ro.camera ones, which vendor processes may not read
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.vendor.camera.req.fmq.size=1048576 \
+    ro.vendor.camera.res.fmq.size=1048576
+
 PRODUCT_COPY_FILES += \
     $(R1_CAMERA_PATH)/camera_hal.yaml:$(TARGET_COPY_OUT_VENDOR)/etc/libcamera/camera_hal.yaml \
     $(R1_CAMERA_PATH)/configuration.yaml:$(TARGET_COPY_OUT_VENDOR)/etc/libcamera/configuration.yaml \
