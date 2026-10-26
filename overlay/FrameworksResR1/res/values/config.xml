@@ -64,6 +64,7 @@
         <!-- Stock apps that work with the highlight: the wheel moves it through them, the
              side button's double press still brings the taskbar -->
         <item>com.android.dialer=app</item>
+        <item>org.lineageos.glimpse=app</item>
         <item>com.android.documentsui=app</item>
         <item>org.lineageos.etar=app</item>
         <item>com.android.calculator2=app</item>
