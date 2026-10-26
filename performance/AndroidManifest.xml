@@ -31,7 +31,11 @@
                 android:value="com.android.settings.category.ia.homepage" />
             <meta-data
                 android:name="com.android.settings.order"
-                android:value="-55" />
+                android:value="-40" />
+            <!-- In the homepage's Storage and Battery card, between the two -->
+            <meta-data
+                android:name="com.android.settings.group_key"
+                android:value="top_level_system_info_category" />
             <meta-data
                 android:name="com.android.settings.keyhint"
                 android:value="top_level_r1_performance" />

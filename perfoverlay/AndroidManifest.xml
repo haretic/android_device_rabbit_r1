@@ -31,11 +31,13 @@
             <meta-data
                 android:name="com.android.settings.category"
                 android:value="com.android.settings.category.ia.homepage" />
-            <!-- Same order as Controller test; ties sort by title, so this lands right
-                 after it and before Storage (-60). -->
             <meta-data
                 android:name="com.android.settings.order"
-                android:value="-61" />
+                android:value="-35" />
+            <!-- In the homepage's Storage and Battery card, between the two -->
+            <meta-data
+                android:name="com.android.settings.group_key"
+                android:value="top_level_system_info_category" />
             <meta-data
                 android:name="com.android.settings.keyhint"
                 android:value="top_level_perf_overlay" />
