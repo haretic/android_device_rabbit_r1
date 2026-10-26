@@ -163,7 +163,7 @@ note_defaults() {
 	sched=$(cat $EMMC/scheduler)
 	current=${sched#*[}
 	setprop sys.r1.kt.default_io_sched "${current%%]*}"
-	setprop sys.r1.kt.io_schedulers "$(echo $sched | tr -d '[]')"
+	setprop sys.r1.kt.io_schedulers "$(echo "$sched" | tr -d '[]')"
 	setprop sys.r1.kt.default_read_ahead "$(cat $EMMC/read_ahead_kb)"
 	setprop sys.r1.kt.gpu_freqs "$(cat $GPU/available_frequencies 2>/dev/null)"
 }
