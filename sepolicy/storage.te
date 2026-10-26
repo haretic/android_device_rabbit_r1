@@ -7,3 +7,11 @@ allow init sysfs_r1_mmc:file w_file_perms;
 
 # fsck checks the NV filesystems before they are mounted.
 allow fsck { nvdata_device nvcfg_block_device protect1_block_device protect2_block_device }:blk_file rw_file_perms;
+
+# fsck reads its block devices' limits through it, storaged their stats (system_ext/storage.te).
+r_dir_file(fsck, sysfs_r1_mmc)
+
+# dumpstate.rc hands the eMMC's ext_csd (its health and life time) to bug reports; phones with
+# UFS have none, so the platform policy doesn't let init change it. debugfs is only mounted on
+# debug builds, as is the rule.
+userdebug_or_eng(`allow init debugfs_mmc:file setattr;')

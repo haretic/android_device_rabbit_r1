@@ -1,0 +1,3 @@
+# The eMMC host's sysfs tree (genfs_contexts). Public for storaged's rule on it
+# (system_ext/storage.te), the platform's own domain.
+type sysfs_r1_mmc, fs_type, sysfs_type;
