@@ -1,0 +1,2 @@
+# storaged reads the eMMC's I/O stats and wear through the host's sysfs tree.
+r_dir_file(storaged, sysfs_r1_mmc)
