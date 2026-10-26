@@ -1,0 +1,4 @@
+# The kernel's own devtmpfs gets a node for each device that probes after the policy loads, as
+# the sound, input and display drivers loaded as modules do. Android doesn't mount it: ueventd
+# makes the nodes in /dev, so the kernel's copy is left unmade.
+dontaudit kernel device:dir { write add_name };
