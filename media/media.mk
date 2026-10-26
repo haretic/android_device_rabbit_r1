@@ -61,6 +61,7 @@ PRODUCT_COPY_FILES += \
     $(R1_MEDIA_BLOBS)/lib/libmtkperf_client_vendor.so:$(TARGET_COPY_OUT_VENDOR)/lib/libmtkperf_client_vendor.so \
     $(R1_MEDIA_BLOBS)/lib/libpowerhalwrap_vendor.so:$(TARGET_COPY_OUT_VENDOR)/lib/libpowerhalwrap_vendor.so \
     $(R1_MEDIA_BLOBS)/lib/r1-c2/libsfplugin_ccodec_utils.so:$(TARGET_COPY_OUT_VENDOR)/lib/r1-c2/libsfplugin_ccodec_utils.so \
+    $(R1_MEDIA_BLOBS)/lib/libmpvr.so:$(TARGET_COPY_OUT_VENDOR)/lib/libmpvr.so \
     $(R1_MEDIA_BLOBS)/lib/libsrv_um.so:$(TARGET_COPY_OUT_VENDOR)/lib/libsrv_um.so \
     $(R1_MEDIA_BLOBS)/lib/r1-c2/libstagefright_bufferpool@2.0.1.so:$(TARGET_COPY_OUT_VENDOR)/lib/r1-c2/libstagefright_bufferpool@2.0.1.so \
     $(R1_MEDIA_BLOBS)/lib/libthha.so:$(TARGET_COPY_OUT_VENDOR)/lib/libthha.so \
