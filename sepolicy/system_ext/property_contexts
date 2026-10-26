@@ -9,3 +9,9 @@ persist.sys.r1.camera.park u:object_r:r1_camera_park_prop:s0 exact int
 # MediaTek's modem init checks for debuggerd, gone since Android split it up: its status is
 # exported as adbd's and bugreport's are, for vendor processes to read it empty
 init.svc.debuggerd u:object_r:init_service_status_prop:s0 exact string
+# and for MediaTek's modem loggers, which it starts on a modem exception and this build has none of
+init.svc.mdlogger u:object_r:init_service_status_prop:s0 exact string
+init.svc.dualmdlogger u:object_r:init_service_status_prop:s0 exact string
+init.svc.emdlogger1 u:object_r:init_service_status_prop:s0 exact string
+init.svc.emdlogger2 u:object_r:init_service_status_prop:s0 exact string
+init.svc.emdlogger3 u:object_r:init_service_status_prop:s0 exact string
