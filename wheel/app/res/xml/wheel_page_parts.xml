@@ -16,6 +16,13 @@
             android:title="@string/part_lockscreen_title"
             android:summary="@string/part_lockscreen_summary"
             android:persistent="false" />
+        <ListPreference
+            android:key="wheel_unlock"
+            android:dependency="wheel_lockscreen"
+            android:title="@string/unlock_title"
+            android:entries="@array/unlock_entries"
+            android:entryValues="@array/unlock_values"
+            android:persistent="false" />
         <SwitchPreferenceCompat
             android:key="wheel_dialogs"
             android:title="@string/part_dialogs_title"

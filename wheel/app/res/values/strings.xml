@@ -48,6 +48,13 @@
     <string name="running_off">None, only pinned apps</string>
     <string name="running_summary">Up to %1$s besides the pinned ones; apps the system closed leave the bar</string>
 
+    <string name="unlock_title">Entering the PIN</string>
+    <string-array name="unlock_entries" translatable="false">
+        <item>@string/unlock_drum</item><item>@string/unlock_dial</item>
+    </string-array>
+    <string-array name="unlock_values" translatable="false"><item>0</item><item>1</item></string-array>
+    <string name="unlock_drum">PIN drum: turn to each digit, press to enter it</string>
+    <string name="unlock_dial">Combination: turn one way as many steps as the digit, turn back for the next</string>
     <string name="edge_title">Edge</string>
     <string-array name="edge_entries" translatable="false">
         <item>@string/edge_right</item><item>@string/edge_left</item>

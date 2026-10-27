@@ -32,6 +32,7 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_BUTTON_COLUMNS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SHADE, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_LOCKSCREEN, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_UNLOCK, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_DIALOGS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SETTINGS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_HOME, 1),
