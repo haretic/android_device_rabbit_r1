@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The apps' bars made for a phone, smaller on the R1's 480 x 640: each overlay applies these
+     to one app, the names its toolkit (AppCompat, Material) gives them -->
+<resources>
+    <!-- Toolbars and action bars -->
+    <dimen name="abc_action_bar_default_height_material">44dp</dimen>
+    <dimen name="m3_comp_app_bar_small_container_height">48dp</dimen>
+    <!-- Bottom navigation, Material 3 and 2 -->
+    <dimen name="m3_bottom_nav_min_height">56dp</dimen>
+    <dimen name="m3_bottom_nav_item_padding_top">6dp</dimen>
+    <dimen name="m3_bottom_nav_item_padding_bottom">6dp</dimen>
+    <dimen name="design_bottom_navigation_height">48dp</dimen>
+</resources>

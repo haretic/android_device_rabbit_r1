@@ -68,6 +68,7 @@
         <item>com.android.documentsui=app</item>
         <item>org.lineageos.etar=app</item>
         <item>com.android.calculator2=app</item>
+        <item>com.android.deskclock=app</item>
         <item>com.android.messaging=app</item>
         <item>org.lineageos.recorder=app</item>
         <item>org.lineageos.twelve=app</item>
