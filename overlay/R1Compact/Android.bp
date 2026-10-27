@@ -1,0 +1,97 @@
+runtime_resource_overlay {
+    name: "R1CompactDeskClock",
+    vendor: true,
+    manifest: "manifests/DeskClock.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactGlimpse",
+    vendor: true,
+    manifest: "manifests/Glimpse.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactTwelve",
+    vendor: true,
+    manifest: "manifests/Twelve.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactDialer",
+    vendor: true,
+    manifest: "manifests/Dialer.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactEtar",
+    vendor: true,
+    manifest: "manifests/Etar.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactRecorder",
+    vendor: true,
+    manifest: "manifests/Recorder.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactAudioFX",
+    vendor: true,
+    manifest: "manifests/AudioFX.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactMessaging",
+    vendor: true,
+    manifest: "manifests/Messaging.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactDocumentsUI",
+    vendor: true,
+    manifest: "manifests/DocumentsUI.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactContacts",
+    vendor: true,
+    manifest: "manifests/Contacts.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactJelly",
+    vendor: true,
+    manifest: "manifests/Jelly.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactUpdater",
+    vendor: true,
+    manifest: "manifests/Updater.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactAperture",
+    vendor: true,
+    manifest: "manifests/Aperture.xml",
+    resource_dirs: ["res"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactCalculator",
+    vendor: true,
+    manifest: "manifests/Calculator.xml",
+    resource_dirs: ["res"],
+}

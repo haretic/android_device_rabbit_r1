@@ -70,6 +70,20 @@ PRODUCT_PACKAGES += \
     android.hardware.boot-service.r1 \
     android.hardware.boot-service.r1_recovery \
     FrameworksResR1 \
+    R1CompactDeskClock \
+    R1CompactGlimpse \
+    R1CompactTwelve \
+    R1CompactDialer \
+    R1CompactEtar \
+    R1CompactRecorder \
+    R1CompactAudioFX \
+    R1CompactMessaging \
+    R1CompactDocumentsUI \
+    R1CompactContacts \
+    R1CompactJelly \
+    R1CompactUpdater \
+    R1CompactAperture \
+    R1CompactCalculator \
     SettingsR1 \
     SettingsProviderR1 \
     LineageSdkR1 \

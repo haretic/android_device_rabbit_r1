@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.rabbit.r1.overlay.compact.dialer">
+    <overlay android:targetPackage="com.android.dialer" android:isStatic="true" android:priority="0" />
+</manifest>
