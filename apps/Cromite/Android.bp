@@ -5,5 +5,4 @@ android_app_import {
     presigned: true,
     product_specific: true,
     dex_preopt: { enabled: false },
-    preferred_arch: ["arm64"],
 }
