@@ -3,6 +3,8 @@ android_app_import {
     name: "Cromite",
     apk: "Cromite.apk",
     presigned: true,
+    // Signed with signature v2; zipaligned and with uncompressed native libraries as shipped
+    preprocessed: true,
     product_specific: true,
     dex_preopt: { enabled: false },
 }
