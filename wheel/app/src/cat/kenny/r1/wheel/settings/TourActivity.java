@@ -102,8 +102,10 @@ public class TourActivity extends Activity {
         top.addView(skip, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
         root.addView(top, new LinearLayout.LayoutParams(-1, -2));
 
-        mGadget = new Gadget(this);
-        final LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(-1, dp(150));
+        // The gadget takes the room the page's text leaves, up to its full size, centred in it:
+        // smaller on a page with the exercise rows, no hole under a short page's text
+        mGadget = new Gadget(this, dp(150));
+        final LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(-1, 0, 1);
         glp.topMargin = dp(8);
         root.addView(mGadget, glp);
 
@@ -132,9 +134,6 @@ public class TourActivity extends Activity {
         }
         root.addView(mRows, new LinearLayout.LayoutParams(-1, -2));
 
-        final View space = new View(this);
-        root.addView(space, new LinearLayout.LayoutParams(-1, 0, 1));
-
         final FrameLayout bottom = new FrameLayout(this);
         mHint = text(14, mAccent, true);
         mHint.setGravity(Gravity.CENTER_VERTICAL);
@@ -146,7 +145,9 @@ public class TourActivity extends Activity {
         mNext.setFocusable(false);
         mNext.setOnClickListener(v -> next());
         bottom.addView(mNext, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
-        root.addView(bottom, new LinearLayout.LayoutParams(-1, -2));
+        final LinearLayout.LayoutParams flp = new LinearLayout.LayoutParams(-1, -2);
+        flp.topMargin = dp(16);
+        root.addView(bottom, flp);
         return root;
     }
 
@@ -362,13 +363,14 @@ public class TourActivity extends Activity {
 
         private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF mRect = new RectF();
-        private final int mAccent, mBody, mScreen, mEdge;
+        private final int mAccent, mBody, mScreen, mEdge, mMaxHeight;
         private int mMode;
         private float mGroove, mPulse;
         private ValueAnimator mAnim;
 
-        Gadget(Context context) {
+        Gadget(Context context, int maxHeight) {
             super(context);
+            mMaxHeight = maxHeight;
             mAccent = context.getColor(android.R.color.system_accent1_200);
             mBody = 0xFFE8572A;
             mScreen = 0xFF101010;
@@ -409,9 +411,14 @@ public class TourActivity extends Activity {
 
         @Override
         protected void onDraw(Canvas canvas) {
-            final float h = getHeight(), w = h * 1.08f;
-            final float left = (getWidth() - w) / 2f, top = 0;
             final float d = getResources().getDisplayMetrics().density;
+            // Its button's cue reaches 32dp right of the body
+            final float h = Math.min(Math.min(getHeight(), mMaxHeight),
+                    (getWidth() - 64 * d) / 1.08f), w = h * 1.08f;
+            if (h < 48 * d) {
+                return;
+            }
+            final float left = (getWidth() - w) / 2f, top = (getHeight() - h) / 2f;
             // The body
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setColor(mBody);
