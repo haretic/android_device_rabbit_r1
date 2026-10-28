@@ -1,0 +1,5 @@
+# The gadget HAL takes the USB device emulator's functions (sys.r1.usbemu.*) and answers
+# in vendor.r1.usbemu.state
+vendor_restricted_prop(vendor_r1_usbemu_state_prop)
+get_prop(hal_usb_gadget_default, r1_usbemu_prop)
+set_prop(hal_usb_gadget_default, vendor_r1_usbemu_state_prop)

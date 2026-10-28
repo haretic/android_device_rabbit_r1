@@ -4,3 +4,6 @@ system_restricted_prop(powerhal_held_hints_prop)
 # Where the camera module rests while closed (the Performance app's camera motor page, system_app),
 # read by the camera HAL.
 system_public_prop(r1_camera_park_prop)
+# The USB device emulator's functions lent to the gadget HAL, and their id (sys.r1.usbemu.*):
+# set by the emulator, read by the HAL, which links them after Android's
+system_restricted_prop(r1_usbemu_prop)

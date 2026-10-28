@@ -15,3 +15,6 @@ init.svc.dualmdlogger u:object_r:init_service_status_prop:s0 exact string
 init.svc.emdlogger1 u:object_r:init_service_status_prop:s0 exact string
 init.svc.emdlogger2 u:object_r:init_service_status_prop:s0 exact string
 init.svc.emdlogger3 u:object_r:init_service_status_prop:s0 exact string
+# The USB device emulator's request to the gadget HAL (functions, id)
+sys.r1.usbemu.functions u:object_r:r1_usbemu_prop:s0 exact string
+sys.r1.usbemu.id        u:object_r:r1_usbemu_prop:s0 exact string
