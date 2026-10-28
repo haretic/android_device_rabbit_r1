@@ -70,6 +70,7 @@ PRODUCT_PACKAGES += \
     android.hardware.boot-service.r1 \
     android.hardware.boot-service.r1_recovery \
     FrameworksResR1 \
+    Cromite \
     R1CompactDeskClock \
     R1CompactGlimpse \
     R1CompactTwelve \
