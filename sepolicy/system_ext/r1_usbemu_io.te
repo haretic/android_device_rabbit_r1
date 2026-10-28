@@ -1,0 +1,29 @@
+# PCM/HID transport only; the existing broker remains the sole lease requester.
+type r1_usbemu_io, domain, coredomain;
+type r1_usbemu_io_exec, exec_type, file_type, system_file_type;
+init_daemon_domain(r1_usbemu_io)
+typeattribute r1_usbemu_io mlstrustedsubject;
+type r1_usbemu_input_socket, file_type, coredomain_socket, mlstrustedobject;
+type r1_usbemu_audio_socket, file_type, coredomain_socket, mlstrustedobject;
+allow system_app { r1_usbemu_input_socket r1_usbemu_audio_socket }:sock_file write;
+allow system_app r1_usbemu_io:unix_stream_socket connectto;
+allow r1_usbemu_io self:unix_stream_socket create_stream_socket_perms;
+get_prop(r1_usbemu_io, r1_usbemu_status_prop)
+get_prop(r1_usbemu_io, r1_usbemu_prop)
+# hidg has a dedicated device label; apps never receive raw device access.
+type r1_usbemu_hid_device, dev_type;
+allow r1_usbemu_io r1_usbemu_hid_device:chr_file { open read write getattr };
+allow r1_usbemu_io configfs:dir r_dir_perms;
+allow r1_usbemu_io configfs:file r_file_perms;
+allow r1_usbemu_io configfs:lnk_file r_file_perms;
+allow r1_usbemu_io proc_asound:dir r_dir_perms;
+allow r1_usbemu_io proc_asound:file r_file_perms;
+allow r1_usbemu_io audio_device:dir r_dir_perms;
+# ALSA card indices are dynamic, so file_contexts cannot restrict audio_device
+# to UAC2Gadget by card name. Io.cpp resolves /proc/asound/cards and never opens
+# a physical card. No app, broker, block-device or input-device grants added.
+allow r1_usbemu_io audio_device:chr_file rw_file_perms;
+allowxperm r1_usbemu_io audio_device:chr_file ioctl { 0x4100-0x41ff 0x5500-0x55ff };
+neverallow r1_usbemu_io dev_type:blk_file *;
+neverallow r1_usbemu_io configfs:file { write append };
+neverallow r1_usbemu_io configfs:dir { add_name remove_name };

@@ -38,10 +38,12 @@ public final class SessionService extends Service {
     private volatile String activeToken = "";
     private int queued;
     private volatile boolean stopping;
-    private String lastSession = "";
+    private String lastSession = "", audioGeneration = "";
+    private AudioBridge audio;
     private final Runnable monitor = new Runnable() {
         @Override public void run() {
             String session = Control.prop("st.session");
+            syncAudio();
             if (!session.equals(lastSession)) {
                 lastSession = session;
                 notifySession();
@@ -81,11 +83,28 @@ public final class SessionService extends Service {
         if (android.os.UserHandle.myUserId() != 0) { stopSelf(); return START_NOT_STICKY; }
         if (intent == null) { notifySession(); return START_STICKY; }
         final String action = intent.getAction();
-        if ("observe".equals(action)) return START_STICKY;
+        if ("observe".equals(action)) { syncAudio(); return START_STICKY; }
+        if ("microphone".equals(action) || "speaker".equals(action)) {
+            syncAudio();
+            if (audio != null) {
+                if ("speaker".equals(action)) AudioBridge.speakerMuted = !AudioBridge.speakerMuted;
+                else {
+                    boolean unmute = AudioBridge.micMuted && checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                            == android.content.pm.PackageManager.PERMISSION_GRANTED;
+                    try {
+                        startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                                | (unmute ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE : 0));
+                        AudioBridge.micMuted = !unmute;
+                    } catch (SecurityException e) { AudioBridge.micMuted = true; AudioBridge.status = "error"; }
+                }
+            }
+            return START_STICKY;
+        }
         if ("cancel".equals(action) || "stop".equals(action)) {
             cancel = true;
             if (!activeToken.isEmpty()) SystemProperties.set(Control.PREFIX + "req.cancel", activeToken);
             if ("cancel".equals(action)) return START_STICKY;
+            if (audio != null) { audio.close(); audio = null; audioGeneration = ""; }
             stopping = true;
             Control.prefs(this).edit().putBoolean("busy", true).putString("job", "stop").apply();
             final String token = token();
@@ -110,7 +129,7 @@ public final class SessionService extends Service {
         worker.execute(() -> {
             String error = "";
             try {
-                if (!Control.hasFolder(this)) throw new IOException("folder");
+                if (!action.equals("sound") && !action.equals("input") && !Control.hasFolder(this)) throw new IOException("folder");
                 switch (action) {
                     case "import": importImage(intent.getData()); call("scan", null, true, 0, "", false); break;
                     case "create":
@@ -123,7 +142,8 @@ public final class SessionService extends Service {
                             callImage("start", image, false);
                         }
                         break;
-                    case "start": case "swap":
+                    case "sound": case "input": call(action, null, true, 0, "", false); break;
+                    case "start": case "start_input": case "swap":
                         Images image = new Images(intent.getStringExtra("image"), intent.getStringExtra("stamp"),
                                 intent.getBooleanExtra("ro", true));
                         callImage(action, image, image.readOnly); break;
@@ -296,14 +316,26 @@ public final class SessionService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         PendingIntent stop = PendingIntent.getService(this, 1, new Intent(this, SessionService.class).setAction("stop"),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        String[] session = Images.session();
         return new Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_usb)
                 .setContentTitle(getString(R.string.app_name)).setContentText(Control.running()
-                        ? getString(R.string.tile_running, session[1]) : getString(R.string.preparing))
+                        ? getString(R.string.tile_running, Control.label(this)) : getString(R.string.preparing))
                 .setContentIntent(open).setOngoing(true)
                 .addAction(new Notification.Action.Builder(null, getString(R.string.stop), stop).build()).build();
     }
     private void notifySession() { getSystemService(NotificationManager.class).notify(1, notification()); }
-    @Override public void onDestroy() { handler.removeCallbacks(monitor); worker.shutdown(); super.onDestroy(); }
+    private void syncAudio() {
+        String generation = Control.prop("st.generation");
+        boolean sound = !stopping && "sound".equals(Control.prop("st.session"))
+                && !generation.isEmpty() && !generation.equals("0");
+        if (audio != null && (!sound || !generation.equals(audioGeneration))) {
+            audio.close(); audio = null; audioGeneration = "";
+            startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        }
+        if (sound && audio == null) { audioGeneration = generation; audio = new AudioBridge(this, generation); }
+    }
+    @Override public void onDestroy() {
+        if (audio != null) audio.close();
+        handler.removeCallbacks(monitor); worker.shutdown(); super.onDestroy();
+    }
     @Override public IBinder onBind(Intent intent) { return null; }
 }

@@ -5,3 +5,11 @@ sh_binary {
     system_ext_specific: true,
     init_rc: ["r1-usbemu.rc"],
 }
+
+cc_binary {
+    name: "r1-usbemu-io",
+    srcs: ["native/Io.cpp"],
+    shared_libs: ["libcutils", "libtinyalsa"],
+    system_ext_specific: true,
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

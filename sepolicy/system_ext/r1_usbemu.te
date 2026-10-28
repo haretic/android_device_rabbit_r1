@@ -1,4 +1,4 @@
-# Phase A image-backed storage broker. No block-device or gadget binding access.
+# Image/audio/HID lease broker. No block-device or gadget binding access.
 typeattribute r1_usbemu coredomain;
 type r1_usbemu_exec, exec_type, file_type, system_file_type;
 init_daemon_domain(r1_usbemu)

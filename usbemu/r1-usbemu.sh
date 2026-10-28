@@ -138,13 +138,13 @@ wait_idle() {
     fail hal_timeout
 }
 release() {
+    put st.generation 0 || return 1
     put functions none || return 1
     wait_idle || return 1
     # HAL publishes idle before tearing down its old links. Retry rmdir until
     # that teardown actually completes; never unlink a HAL-owned config link.
     clock_now || return 1; deadline=$((clock_seconds + 10))
-    while [ -d "$F" ]; do
-        rmdir "$F" 2>/dev/null && break
+    while ! remove_stale; do
         clock_now && [ "$clock_seconds" -lt "$deadline" ] || { fail cleanup; return 1; }
         sleep 0.1
     done
@@ -179,25 +179,94 @@ recover() {
 }
 save_session() {
     # Root-private authority plus read-only UI projection (the app cannot edit it).
-    printf '%s\n' "$folder" "$name" "$ro" "$bytes" "$generation" >"$STATE/session.tmp"
+    printf '%s\n' "$folder" "$name" "$ro" "$bytes" "$generation" "$mode" >"$STATE/session.tmp"
     fsync "$STATE/session.tmp" && mv "$STATE/session.tmp" "$STATE/session" && fsync "$STATE" || return 1
     cp "$STATE/session" "$IPC/status/session.tmp" || return 1
     chown root:system "$IPC/status/session.tmp" && chmod 0640 "$IPC/status/session.tmp" || return 1
     mv "$IPC/status/session.tmp" "$IPC/status/session" || return 1
-    if [ "$cdrom" = 1 ]; then put st.session cd; else put st.session drive; fi
+    put st.generation "$generation" && put st.session "$mode"
+}
+# Directional endpoint costs, excluding ep0. adb is conservatively reserved even
+# when disabled: 1 IN + 1 OUT. UAC2: data IN + feedback IN + status IN, data OUT.
+endpoint_budget() {
+    ep_in=1; ep_out=1
+    case $mode in
+        drive|cd) ep_in=$((ep_in+1)); ep_out=$((ep_out+1)) ;;
+        input) ep_in=$((ep_in+2)) ;;
+        drive_input|cd_input) ep_in=$((ep_in+3)); ep_out=$((ep_out+1)) ;;
+        sound) ep_in=$((ep_in+3)); ep_out=$((ep_out+1)) ;;
+        *) fail request; return 1 ;;
+    esac
+    check_endpoints
+}
+check_endpoints() {
+    [ "$ep_in" -le 7 ] && [ "$ep_out" -le 7 ] || { fail endpoints; return 1; }
+}
+setup_hid() {
+    keyboard=$FUNCTIONS/hid.usbemu0; mouse=$FUNCTIONS/hid.usbemu1
+    mkdir "$keyboard" && mkdir "$mouse" || return 1
+    printf '1\n' >"$keyboard/subclass" && printf '1\n' >"$keyboard/protocol" &&
+        printf '8\n' >"$keyboard/report_length" && printf '1\n' >"$keyboard/no_out_endpoint" || return 1
+    # andr36oid Controller.cpp hidDescriptor(true), HID 1.11 Appendix E.6.
+    printf '\005\001\011\006\241\001\005\007\031\340\051\347\025\000\045\001\165\001\225\010\201\002\225\001\165\010\201\001\225\005\165\001\005\010\031\001\051\005\221\002\225\001\165\003\221\001\225\006\165\010\025\000\045\163\005\007\031\000\051\163\201\000\300' >"$keyboard/report_desc" || return 1
+    # Report mouse with relative X/Y/wheel; protocol 0 avoids boot hosts treating
+    # this four-byte report as a three-byte boot mouse.
+    printf '0\n' >"$mouse/subclass" && printf '0\n' >"$mouse/protocol" &&
+        printf '4\n' >"$mouse/report_length" && printf '1\n' >"$mouse/no_out_endpoint" || return 1
+    # andr36oid mouseDescriptor(true).
+    printf '\005\001\011\002\241\001\011\001\241\000\005\011\031\001\051\003\025\000\045\001\225\003\165\001\201\002\225\001\165\005\201\001\005\001\011\060\011\061\011\070\025\201\045\177\165\010\225\003\201\006\300\300' >"$mouse/report_desc"
+}
+setup_sound() {
+    audio=$FUNCTIONS/uac2.usbemu0
+    mkdir "$audio" || return 1
+    # p = gadget playback to host (R1 microphone); c = gadget capture from host.
+    for direction in p c; do
+        printf '3\n' >"$audio/${direction}_chmask" &&
+            printf '48000\n' >"$audio/${direction}_srate" &&
+            printf '2\n' >"$audio/${direction}_ssize" || return 1
+        for control in mute volume; do
+            # Feature units are optional on older kernels; reserve status IN
+            # regardless. The bridge reads their ALSA controls when present.
+            attr=$audio/${direction}_${control}_present
+            [ ! -e "$attr" ] || printf '1\n' >"$attr" || return 1
+        done
+        for setting in min max res; do
+            case $setting in min) value=-24576 ;; max) value=0 ;; res) value=256 ;; esac
+            attr=$audio/${direction}_volume_$setting
+            [ ! -e "$attr" ] || printf '%s\n' "$value" >"$attr" || return 1
+        done
+    done
+    [ ! -e "$audio/c_sync" ] || printf 'async\n' >"$audio/c_sync" || return 1
+    [ ! -e "$audio/function_name" ] || printf 'R1 USB Audio\n' >"$audio/function_name"
 }
 start_drive() {
-    [ ! -f "$STATE/session" ] && [ ! -d "$F" ] || { fail active; return 1; }
-    validate_folder && open_image && journal start || return 1
-    mkdir "$F" || return 1
-    printf '%s\n' "$cdrom" >"$F/lun.0/cdrom" && printf '%s\n' "$ro" >"$F/lun.0/ro" &&
-        printf '1\n' >"$F/lun.0/removable" && printf '%s\n' "$imagefd" >"$F/lun.0/file" || return 1
+    [ ! -f "$STATE/session" ] || { fail active; return 1; }
+    mode=drive
+    case $op in
+        sound|input) mode=$op; folder=$MEDIA; name=$op.img; ro=1; bytes=0; cdrom=0 ;;
+        *) validate_folder && open_image || return 1
+           [ "$cdrom" = 0 ] || mode="cd"
+           [ "$op" != start_input ] || mode=${mode}_input ;;
+    esac
+    endpoint_budget && journal start || return 1
+    function_list=
+    case $mode in drive*|cd*)
+        mkdir "$F" || return 1
+        printf '%s\n' "$cdrom" >"$F/lun.0/cdrom" && printf '%s\n' "$ro" >"$F/lun.0/ro" &&
+            printf '1\n' >"$F/lun.0/removable" && printf '%s\n' "$imagefd" >"$F/lun.0/file" || return 1
+        function_list=mass_storage.usbemu0 ;;
+    esac
+    case $mode in *input)
+        setup_hid || return 1
+        function_list=${function_list:+$function_list,}hid.usbemu0,hid.usbemu1 ;;
+        sound) setup_sound || return 1; function_list=uac2.usbemu0 ;;
+    esac
     generation=$(cat "$STATE/generation" 2>/dev/null) || generation=0
     case $generation in ''|*[!0-9]*|??????????*) generation=0 ;; esac
     generation=$((generation + 1))
     printf '%s\n' "$generation" >"$STATE/generation"
     fsync "$STATE/generation" "$STATE" || return 1
-    put id 1d6b:0104 && put functions "$generation:mass_storage.usbemu0" || return 1
+    put id 1d6b:0104 && put functions "$generation:$function_list" || return 1
     progress connecting 0
     clock_now || return 1; deadline=$((clock_seconds + 10))
     while clock_now && [ "$clock_seconds" -lt "$deadline" ]; do
@@ -211,11 +280,12 @@ start_drive() {
     fail hal_timeout
 }
 swap_disc() {
-    [ -f "$STATE/session" ] && [ "$(prop st.session)" = cd ] || { fail session; return 1; }
+    [ -f "$STATE/session" ] && case $(prop st.session) in cd|cd_input) true ;; *) false ;; esac || { fail session; return 1; }
     old_folder=$(sed -n '1p' "$STATE/session")
     [ "$folder" = "$old_folder" ] || { fail folder; return 1; }
     validate_folder && open_image && [ "$cdrom" = 1 ] || { fail image; return 1; }
     [ "$force" = 1 ] || { fail confirm; return 1; }
+    mode=$(sed -n '6p' "$STATE/session"); mode=${mode:-cd}
     generation=$(sed -n '5p' "$STATE/session")
     [ "$(getprop vendor.r1.usbemu.state)" = "$generation applied" ] || { fail hal_failed; return 1; }
     journal swap || return 1
@@ -377,7 +447,7 @@ main() {
             if [ -d "$STATE/journal" ] && ! recover; then result error; exit 1; fi
             result working; progress validate 0
             if read_request; then
-                case $op in scan) scan_images ;; start) start_drive ;; swap) swap_disc ;; create) create_image ;; *) fail request ;; esac
+                case $op in scan) scan_images ;; start|start_input|sound|input) start_drive ;; swap) swap_disc ;; create) create_image ;; *) fail request ;; esac
                 rc=$?
             else rc=1; fi
             if [ "$rc" = 0 ]; then result "done"

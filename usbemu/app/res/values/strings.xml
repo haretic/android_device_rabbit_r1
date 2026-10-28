@@ -2,8 +2,8 @@
 <!-- SPDX-License-Identifier: Apache-2.0. Text follows the approved R1 mockups. -->
 <resources>
     <string name="app_name">USB devices</string>
-    <string name="settings_summary">Share a USB drive or CD image with a PC</string>
-    <string name="service_subtype">Maintain an image-backed USB gadget session and prepare its images</string>
+    <string name="settings_summary">Share a drive, sound card, keyboard or mouse with a PC</string>
+    <string name="service_subtype">Maintain a USB device session, bridge its audio and prepare drive images</string>
     <string name="back">Back</string>
     <string name="back_arrow" translatable="false">←</string>
     <string name="forward_arrow" translatable="false">›</string>
@@ -36,7 +36,7 @@
     <string name="no_images">No ISO or IMG images in this folder</string>
     <string name="images_explanation">ISO becomes a CD drive. IMG becomes a USB stick. Choose an image to review and start.</string>
     <string name="cd_description">CD drive - %1$s - %2$s</string>
-    <string name="drive_description">USB drive - %1$s - %2$s</string>
+    <string name="drive_description">USB - %1$s - %2$s</string>
     <string name="read_only">read-only</string>
     <string name="writable">writable</string>
     <string name="gb_format">%.1f GB</string>
@@ -45,7 +45,7 @@
     <string name="use_cd">Use this CD</string>
     <string name="use_drive">Use this USB drive</string>
     <string name="pc_cd">PC sees a CD drive - %1$s</string>
-    <string name="pc_drive">PC sees a USB drive - %1$s</string>
+    <string name="pc_drive">PC sees a USB - %1$s</string>
     <string name="access">Access</string>
     <string name="access_read_only">Read-only</string>
     <string name="access_writable">Writable</string>
@@ -132,7 +132,7 @@
     <string name="change_anyway">Change disc anyway</string>
     <string name="swap_keeps_running">Only the read-only CD changes. If the PC still shows the old files, refresh or reopen its CD drive.</string>
     <string name="off">Off</string>
-    <string name="tile_running">USB drive - %1$s</string>
+    <string name="tile_running">USB - %1$s</string>
     <string name="tile_stop">Click to stop</string>
     <string name="tile_choose">Click to choose a USB device</string>
     <string name="problem">USB devices needs attention</string>
@@ -151,4 +151,49 @@
     <string name="recovery_error">USB cleanup is still needed. Use Stop to retry before starting another session.</string>
     <string name="format_error">The image could not be formatted. Check the folder and available space, then try again.</string>
     <string name="io_error">The image operation could not finish. Check the image and folder, then try again.</string>
+    <string name="sound_sub">PC audio through the R1 speaker and mic</string>
+    <string name="input_sub">Touchpad, wheel scrolling and typing</string>
+    <string name="combine_sub">Share a drive and control the PC together</string>
+    <string name="drive_budget">2 IN - 2 OUT, including adb</string>
+    <string name="combo_budget">4 IN - 2 OUT, including adb</string>
+    <string name="microphone">PC records the R1 mic</string>
+    <string name="mic_muted">Microphone muted - click to unmute</string>
+    <string name="mic_live">Microphone on - click to mute</string>
+    <string name="speaker">PC plays on R1 speaker</string>
+    <string name="speaker_muted">Speaker muted - click to unmute</string>
+    <string name="speaker_live">Speaker on - click to mute</string>
+    <string name="audio_guidance">Choose R1 USB Audio on the PC as its output or input. The mic starts muted. Stop ends both streams.</string>
+    <string name="audio_ready">Audio bridge ready - 48 kHz, 16-bit stereo</string>
+    <string name="audio_waiting">Waiting for PC audio…</string>
+    <string name="audio_error">Audio is unavailable. Check microphone permission and the PC audio selection, or Stop and retry.</string>
+    <string name="select_on_pc">Select it on the PC</string>
+    <string name="touchpad">Touchpad - wheel scrolls PC</string>
+    <string name="input_guidance">Focus the touchpad: wheel scrolls the PC, side button clicks. Touch moves the pointer; tap clicks. Hold the side button to return to Stop.</string>
+    <string name="shared_image">Also sharing %1$s - eject on the PC before Stop</string>
+    <string name="move_pointer">Move pointer</string>
+    <string name="type_text">Type text</string>
+    <string name="left_click">Left click</string>
+    <string name="right_click">Right click</string>
+    <string name="pointer_guidance">Wheel selects a direction. Side button moves the pointer 16 pixels. Reverse wheel from Up reaches Stop.</string>
+    <string name="up">Up</string>
+    <string name="right">Right</string>
+    <string name="down">Down</string>
+    <string name="left">Left</string>
+    <string name="done">Done</string>
+    <string name="draft_empty">Your text appears here</string>
+    <string name="typing_guidance">Focus a text box on the PC. English (US) - match the PC layout. Send text sends the draft once, with no Enter. Up to 60 characters.</string>
+    <string name="send_text">Send text</string>
+    <string name="shift">Shift</string>
+    <string name="numbers">123</string>
+    <string name="space">Space</string>
+    <string name="delete">Delete</string>
+    <string name="lower_keys" translatable="false">qwertyuiop asdfghjkl zxcvbnm</string>
+    <string name="upper_keys" translatable="false">QWERTYUIOP ASDFGHJKL ZXCVBNM</string>
+    <string name="number_keys" translatable="false">1234567890 -_=+.,/?!</string>
+    <string name="input_error">Input disconnected. Return to the session to retry, or choose Stop.</string>
+    <string name="text_error">The text was not sent. Use up to 60 English (US) characters and try again.</string>
+    <string name="endpoints_error">This combination needs more USB endpoints than the R1 can provide. Choose fewer devices.</string>
+    <string name="level_db">%1$d dBFS</string>
+    <string name="text_separator" translatable="false">\u0020-\u0020</string>
+    <string name="input_connected">PC sees a keyboard and mouse</string>
 </resources>

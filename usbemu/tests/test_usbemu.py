@@ -26,6 +26,8 @@ elif command == 'setprop':
     (p / a[0]).write_text(a[1])
     if a[0] == 'sys.r1.usbemu.functions':
         value = a[1]
+        if value == 'none':
+            (p/'revocation_at_release').write_text((p/'sys.r1.usbemu.st.generation').read_text())
         hal = 'idle' if value == 'none' else value.split(':')[0] + (' failed' if (p/'fail_bind').exists() else ' applied')
         if not (p/'timeout').exists(): (p/'vendor.r1.usbemu.state').write_text(hal)
 elif command == 'mkdir':
@@ -34,6 +36,13 @@ elif command == 'mkdir':
     if rc == 0 and a[-1].endswith('/mass_storage.usbemu0'):
         lun = pathlib.Path(a[-1])/'lun.0'; lun.mkdir()
         for f in ('cdrom','ro','removable','file','forced_eject'): (lun/f).touch()
+    if rc == 0 and a[-1].endswith('/uac2.usbemu0'):
+        function = pathlib.Path(a[-1])
+        for f in ('p_mute_present','c_mute_present','p_volume_present','c_volume_present',
+                  'p_volume_min','p_volume_max','p_volume_res','c_volume_min','c_volume_max','c_volume_res','c_sync','function_name'):
+            (function/f).touch()
+    if rc == 0 and (p/'fail_hid_setup').exists() and a[-1].endswith('/hid.usbemu1'):
+        sys.exit(1)
     sys.exit(rc)
 elif command == 'rmdir':
     path = pathlib.Path(a[-1])
@@ -43,6 +52,8 @@ elif command == 'rmdir':
         if lun.exists():
             for f in lun.iterdir(): f.unlink()
             lun.rmdir()
+    if path.name.startswith(('hid.usbemu','uac2.usbemu')):
+        for f in path.iterdir(): f.unlink()
     try: path.rmdir()
     except OSError: sys.exit(1)
 elif command == 'chown':
@@ -331,6 +342,109 @@ class Broker(unittest.TestCase):
         self.assertIn('disc.iso',inventory);self.assertIn('drive.IMG',inventory)
         self.assertNotIn('short.iso',inventory);self.assertNotIn('bad.qcow2',inventory)
         self.assertFalse((self.root/'functions/mass_storage.usbemu0').exists())
+
+    def test_sound_stereo_directions_feature_units_and_stop(self):
+        result,error=self.request('sound',folder=self.root/'missing')
+        self.assertTrue(result.endswith(':done'),error)
+        self.assertEqual(self.prop('st.session'),'sound')
+        self.assertEqual(self.prop('functions'),'1:uac2.usbemu0')
+        self.assertEqual(self.prop('st.generation'),'1')
+        audio=self.root/'functions/uac2.usbemu0'
+        for direction in ('p','c'):
+            for key,value in [('chmask','3'),('srate','48000'),('ssize','2'),
+                              ('volume_present','1'),('mute_present','1'),
+                              ('volume_min','-24576'),('volume_max','0'),('volume_res','256')]:
+                self.assertEqual((audio/(direction+'_'+key)).read_text().strip(),value)
+        self.assertEqual((audio/'c_sync').read_text().strip(),'async')
+        self.assertEqual((audio/'function_name').read_text().strip(),'R1 USB Audio')
+        self.stop()
+        self.assertEqual(self.prop('st.generation'),'0')
+        self.assertEqual((self.props/'revocation_at_release').read_text(),'0')
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+
+    def test_input_reports_no_out_endpoints_and_stop(self):
+        result,error=self.request('input')
+        self.assertTrue(result.endswith(':done'),error)
+        self.assertEqual(self.prop('st.session'),'input')
+        self.assertEqual(self.prop('functions'),'1:hid.usbemu0,hid.usbemu1')
+        keyboard=self.root/'functions/hid.usbemu0';mouse=self.root/'functions/hid.usbemu1'
+        for function,length,subclass,protocol in [(keyboard,'8','1','1'),(mouse,'4','0','0')]:
+            for key,value in [('report_length',length),('subclass',subclass),('protocol',protocol),('no_out_endpoint','1')]:
+                self.assertEqual((function/key).read_text().strip(),value)
+        # Exact andr36oid keyboard and wheel-mouse descriptors, no report IDs.
+        self.assertEqual((keyboard/'report_desc').read_bytes(),bytes.fromhex(
+            '05010906a101050719e029e71500250175019508810295017508810195057501050819012905910295017503910195067508150025730507190029738100c0'))
+        self.assertEqual((mouse/'report_desc').read_bytes(),bytes.fromhex(
+            '05010902a1010901a1000509190129031500250195037501810295017505810105010930093109381581257f750895038106c0c0'))
+        self.stop()
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+
+    def test_composite_cd_swap_preserves_input_and_generation(self):
+        one=self.image();two=self.image('second.iso')
+        result,error=self.request('start_input',one)
+        self.assertTrue(result.endswith(':done'),error)
+        functions=self.prop('functions')
+        self.assertEqual(functions,'1:mass_storage.usbemu0,hid.usbemu0,hid.usbemu1')
+        self.assertEqual(self.prop('st.session'),'cd_input')
+        result,error=self.request('swap',two)
+        self.assertTrue(result.endswith(':done'),error)
+        self.assertEqual(self.prop('functions'),functions)
+        self.assertEqual(self.prop('st.session'),'cd_input')
+        self.assertTrue((self.root/'functions/hid.usbemu1').exists())
+        self.stop()
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+
+    def test_drive_composite_and_budget(self):
+        result,error=self.request('start_input',self.image('drive.img'))
+        self.assertTrue(result.endswith(':done'),error)
+        self.assertEqual(self.prop('st.session'),'drive_input')
+        for mode,counts in [('drive','2:2'),('cd','2:2'),('input','3:1'),('sound','4:2'),
+                            ('drive_input','4:2'),('cd_input','4:2')]:
+            self.assertEqual(self.shell(f'mode={mode}; endpoint_budget && printf "%s:%s" "$ep_in" "$ep_out"').stdout,counts)
+        self.assertNotEqual(self.shell('mode=arbitrary; endpoint_budget',check=False).returncode,0)
+
+    def test_endpoint_limits_reject_each_exhausted_direction(self):
+        for ins,outs,ok in [(7,7,True),(8,1,False),(1,8,False),(8,8,False)]:
+            result=self.shell(f'ep_in={ins}; ep_out={outs}; error=; check_endpoints; rc=$?; printf "%s:%s" "$rc" "$error"')
+            self.assertEqual(result.stdout,'0:' if ok else '1:endpoints')
+
+    def test_partial_hid_setup_rolls_back_all_functions(self):
+        (self.props/'fail_hid_setup').touch()
+        result,error=self.request('start_input',self.image())
+        self.assertTrue(result.endswith(':error'))
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+        self.assertFalse((self.root/'state/journal').exists())
+        self.assertEqual(self.prop('functions'),'none')
+
+    def test_sound_failed_lease_and_late_failure_cleanup(self):
+        (self.props/'fail_bind').touch()
+        result,error=self.request('sound')
+        self.assertTrue(result.endswith(':error'));self.assertEqual(error,'hal_failed')
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+        (self.props/'fail_bind').unlink()
+        self.request('sound')
+        generation=self.prop('st.generation')
+        (self.props/'vendor.r1.usbemu.state').write_text(generation+' failed')
+        self.shell('main check')
+        self.assertEqual(self.prop('st.session'),'idle')
+        self.assertEqual(self.prop('st.generation'),'0')
+        self.assertEqual((self.props/'revocation_at_release').read_text(),'0')
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+
+    def test_active_input_cannot_be_replaced_by_sound(self):
+        self.request('input');functions=self.prop('functions')
+        result,error=self.request('sound')
+        self.assertTrue(result.endswith(':error'));self.assertEqual(error,'active')
+        self.assertEqual(self.prop('functions'),functions)
+        self.assertEqual(self.prop('st.session'),'input')
+
+    def test_boot_cleans_composite_journal_without_replaying(self):
+        self.env.update(folder=str(self.folder),name='disc.iso',token='333')
+        self.shell('journal start; mkdir "$F"; setup_hid; setup_sound')
+        self.shell('main boot')
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+        self.assertEqual(self.prop('st.generation'),'0')
+        self.assertEqual(self.prop('st.session'),'idle')
 
 
 if __name__ == '__main__':

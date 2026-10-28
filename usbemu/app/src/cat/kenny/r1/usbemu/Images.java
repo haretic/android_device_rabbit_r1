@@ -89,7 +89,7 @@ final class Images {
     static String[] session() {
         try {
             List<String> fields = Files.readAllLines(new File(STATUS, "session").toPath());
-            if (fields.size() == 5 && imageName(fields.get(1)) && fields.get(2).matches("[01]")
+            if ((fields.size() == 5 || fields.size() == 6) && imageName(fields.get(1)) && fields.get(2).matches("[01]")
                     && fields.get(3).matches("[0-9]+") && fields.get(4).matches("[0-9]+")) {
                 return fields.toArray(new String[0]);
             }

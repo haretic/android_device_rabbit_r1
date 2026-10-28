@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Native rendition of the approved 01-04 mockups, using UsbMode's workflows. */
+/** Native rendition of the approved 01-06 mockups, using UsbMode's workflows. */
 public final class UsbActivity extends FragmentActivity {
     private static final int TREE = 1, IMPORT = 2;
     private static final int INK = 0xffe8eef0, MUTED = 0xffa7b4b9, ACCENT = 0xffa7d6e1;
@@ -51,7 +51,15 @@ public final class UsbActivity extends FragmentActivity {
     private int gb = 4;
     private long lastCompletion;
     private float scale = 1;
-    private boolean landscape;
+    private boolean landscape, combineInput, shiftKeys, numericKeys;
+    private String draft = "";
+    private HidInput hid;
+    private int inputEpoch;
+    private String inputGeneration = "";
+    private View touchpad;
+    private float touchX, touchY, startX, startY;
+    private boolean moved;
+    private static final int MICROPHONE = 3;
     private LinearLayout root, body;
     private TextView back;
     private final BroadcastReceiver usb = new BroadcastReceiver() {
@@ -71,6 +79,7 @@ public final class UsbActivity extends FragmentActivity {
         WheelSelect.attach(this);
         getWindow().setDecorFitsSystemWindows(false);
         if (saved != null) {
+            combineInput = saved.getBoolean("combineInput"); draft = saved.getString("draft", "");
             page = saved.getString("page", "hub");
             previous = saved.getString("previous", "hub");
             createName = saved.getString("name", "transfer");
@@ -91,10 +100,11 @@ public final class UsbActivity extends FragmentActivity {
         if ("android.service.quicksettings.action.QS_TILE_PREFERENCES".equals(intent.getAction())) navigate("hub");
     }
     @Override protected void onResume() { super.onResume(); if (UserHandle.myUserId() == 0) handler.post(poll); }
-    @Override protected void onPause() { handler.removeCallbacks(poll); super.onPause(); }
+    @Override protected void onPause() { handler.removeCallbacks(poll); closeInput(); super.onPause(); }
     @Override protected void onDestroy() { if (receiverRegistered) unregisterReceiver(usb); super.onDestroy(); }
     @Override protected void onSaveInstanceState(Bundle out) {
         super.onSaveInstanceState(out);
+        out.putBoolean("combineInput", combineInput); out.putString("draft", draft);
         out.putString("page", page); out.putString("previous", previous); out.putString("name", createName);
         out.putString("fs", filesystem); out.putInt("gb", gb); out.putBoolean("ro", readOnly);
         saveImage(out, "selected", selected); saveImage(out, "next", nextDisc);
@@ -107,7 +117,20 @@ public final class UsbActivity extends FragmentActivity {
         try { return new Images(in.getString(key), in.getString(key + "Stamp"), in.getBoolean(key + "Ro")); }
         catch (RuntimeException e) { return null; }
     }
+    private void closeInput() { inputEpoch++; if (hid != null) hid.close(); hid = null; inputGeneration = ""; }
+    private void syncInput() {
+        String generation = Control.prop("st.generation");
+        if (!Control.input() || generation.equals("0") || generation.isEmpty()) { closeInput(); return; }
+        if (hid == null || !generation.equals(inputGeneration)) {
+            closeInput(); inputGeneration = generation;
+            final int epoch = inputEpoch;
+            hid = new HidInput(generation, () -> handler.post(() -> {
+                if (epoch == inputEpoch) { uiError = "input"; closeInput(); }
+            }));
+        }
+    }
     private void refresh() {
+        syncInput();
         boolean busy = Control.busy(this);
         if (busy) lastJob = Control.prefs(this).getString("job", "");
         long completion = Control.prefs(this).getLong("completion", 0);
@@ -116,7 +139,7 @@ public final class UsbActivity extends FragmentActivity {
             String error = Control.prefs(this).getString("error", "");
             if (error.isEmpty()) {
                 if (Control.running() && !lastJob.equals("scan")) page = "session";
-                else if (!lastJob.equals("scan")) page = "images";
+                else if (!lastJob.equals("scan")) page = lastJob.equals("stop") ? "hub" : "images";
             } else if (error.equals("cancelled")) page = lastJob.equals("create") ? "create" : "images";
         }
         wasBusy = busy;
@@ -124,7 +147,8 @@ public final class UsbActivity extends FragmentActivity {
         String state = page + busy + connected + configured + Control.prop("st.session")
                 + Control.prop("st.stage") + Control.prop("st.percent") + Control.prop("st.result")
                 + Control.prefs(this).getString("error", "") + Control.prefs(this).getInt("importPercent", 0)
-                + Images.session()[1] + Control.hasFolder(this);
+                + Images.session()[1] + Control.hasFolder(this) + uiError
+                + (Control.prop("st.session").equals("sound") ? AudioBridge.micMuted + ":" + AudioBridge.speakerMuted + AudioBridge.status + AudioBridge.playbackLevel + ":" + AudioBridge.captureLevel : "");
         if (!state.equals(fingerprint)) { fingerprint = state; render(true); }
     }
     private int px(float value) { return Math.round(value * scale); }
@@ -182,6 +206,8 @@ public final class UsbActivity extends FragmentActivity {
             case "create": createPage(); break;
             case "size": sizePage(); break;
             case "session": sessionPage(); break;
+            case "pointer": pointerPage(); break;
+            case "typing": typingPage(); break;
             case "swap": imagesPage(true); break;
             case "confirm": confirmPage(); break;
             default: hubPage(); break;
@@ -213,36 +239,47 @@ public final class UsbActivity extends FragmentActivity {
             case "import": return R.string.import_title;
             case "create": return R.string.create_title;
             case "size": return R.string.drive_size;
-            case "session": return R.string.session_title;
+            case "pointer": return R.string.move_pointer;
+            case "typing": return R.string.type_text;
+            case "session": return Control.prop("st.session").equals("sound") ? R.string.sound
+                    : Control.input() ? R.string.keyboard : R.string.session_title;
             case "swap": case "confirm": return R.string.change_disc;
             default: return R.string.app_name;
         }
     }
     private void hubPage() {
-        note(body, s(R.string.breadcrumb), 14, 6);
+        if (!landscape) note(body, s(R.string.breadcrumb), 14, 6);
         connection(body);
         LinearLayout choices = column(); add(body, choices, -2, 10);
         if (landscape) {
             // Fill the available height with the two grid rows; preserve type size.
             LinearLayout top = row(), bottom = row();
-            choices.setMinimumHeight(px(187));
-            add(choices, top, 90, 0); add(choices, bottom, 90, 7);
+            choices.setMinimumHeight(px(141));
+            add(choices, top, 68, 0); add(choices, bottom, 68, 5);
             hubChoice(top, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xff5ad2f5, true);
-            hubChoice(top, R.string.sound, R.string.coming_soon, R.drawable.ic_sound, 0xffffafe8, false);
-            hubChoice(bottom, R.string.keyboard, R.string.coming_soon, R.drawable.ic_keyboard, 0xffa1c7ff, false);
+            hubChoice(top, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xffffafe8, true);
+            hubChoice(bottom, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffa1c7ff, true);
             hubChoice(bottom, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
         } else {
             hubChoice(choices, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xff5ad2f5, true);
-            hubChoice(choices, R.string.sound, R.string.coming_soon, R.drawable.ic_sound, 0xffffafe8, false);
-            hubChoice(choices, R.string.keyboard, R.string.coming_soon, R.drawable.ic_keyboard, 0xffa1c7ff, false);
+            hubChoice(choices, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xffffafe8, true);
+            hubChoice(choices, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffa1c7ff, true);
             hubChoice(choices, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
         }
+        View combine = card(s(R.string.drive_input), s(R.string.combine_sub), R.drawable.ic_combo, 0, true,
+                () -> { if (Control.running()) navigate("session"); else { combineInput = true; navigate("images"); scan(); } }, 54);
+        add(body, combine, 54, 8);
         View unavailable = card(s(R.string.flipper_combo), s(R.string.combo_unavailable), R.drawable.ic_combo, 0, false, null, landscape ? 54 : 58);
         unavailable.setAlpha(.55f); add(body, unavailable, landscape ? 54 : 58, landscape ? 8 : 10);
     }
     private void hubChoice(LinearLayout parent, int title, int sub, int icon, int color, boolean enabled) {
         View item = card(s(title), s(sub), icon, color, enabled,
-                () -> { navigate(Control.running() ? "session" : "images"); if (!Control.running()) scan(); }, landscape ? 90 : 77);
+                () -> {
+                    if (Control.running()) { navigate("session"); return; }
+                    if (title == R.string.sound || title == R.string.keyboard) {
+                        Control.request(this, title == R.string.sound ? "sound" : "input", null, true); refresh();
+                    } else { combineInput = false; navigate("images"); scan(); }
+                }, landscape ? 68 : 77);
         if (!enabled) { item.setEnabled(false); item.setAlpha(.55f); }
         if (landscape) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1); lp.rightMargin = px(7); parent.addView(item, lp);
@@ -252,8 +289,8 @@ public final class UsbActivity extends FragmentActivity {
         String title = configured ? s(R.string.pc_connected) : connected ? s(R.string.cable_connected) : s(R.string.not_connected);
         String sub = configured ? (adb() ? s(R.string.adb_kept) : s(R.string.data_connected))
                 : connected ? s(R.string.wait_pc) : s(R.string.plug_cable);
-        View connection = card(title, sub, R.drawable.ic_usb, 0, false, null, landscape ? (page.equals("hub") ? 48 : 62) : 58);
-        connection.setBackground(background(CYAN, 18)); add(parent, connection, landscape ? (page.equals("hub") ? 48 : 62) : 58, 9);
+        View connection = card(title, sub, R.drawable.ic_usb, 0, false, null, landscape ? (page.equals("hub") ? 42 : 62) : 58);
+        connection.setBackground(background(CYAN, 18)); add(parent, connection, landscape ? (page.equals("hub") ? 42 : 62) : 58, 9);
     }
     private boolean adb() { return ("," + android.os.SystemProperties.get("sys.usb.config", "") + ",").contains(",adb,"); }
     private void folderButton() {
@@ -321,13 +358,14 @@ public final class UsbActivity extends FragmentActivity {
                 !selected.readOnly ? () -> { readOnly = !readOnly; render(true); } : null);
         add(body, access, 69, 2);
         note(body, s(R.string.use_together), 14, 8);
-        add(body, card(s(R.string.drive_only), s(adb() ? R.string.adb_included : R.string.android_functions), R.drawable.ic_radio_on, 0, false, null, 54), 54, 2);
-        View input = card(s(R.string.drive_input), s(R.string.coming_soon), R.drawable.ic_radio, 0, false, null, 54);
-        input.setAlpha(.5f); add(body, input, 54, 2);
-        View other = card(s(R.string.add_sound_flipper), s(R.string.coming_soon), 0, 0, false, null, 50);
-        other.setAlpha(.5f); add(body, other, 50, 2);
+        add(body, card(s(R.string.drive_only), s(R.string.drive_budget),
+                combineInput ? R.drawable.ic_radio : R.drawable.ic_radio_on, 0, true,
+                () -> { combineInput = false; render(true); }, 54), 54, 2);
+        add(body, card(s(R.string.drive_input), s(R.string.combo_budget),
+                combineInput ? R.drawable.ic_radio_on : R.drawable.ic_radio, 0, true,
+                () -> { combineInput = true; render(true); }, 54), 54, 2);
         View start = action(body, s(selected.iso ? R.string.start_cd : R.string.start_drive), true,
-                () -> { Control.request(this, "start", selected, readOnly); refresh(); }, 58);
+                () -> { Control.request(this, combineInput ? "start_input" : "start", selected, readOnly); refresh(); }, 58);
         note(body, s(selected.iso ? R.string.cd_guidance : R.string.drive_guidance), 15, 10);
         if (selected.iso) { targets.remove(start); targets.add(0, start); }
     }
@@ -428,7 +466,9 @@ public final class UsbActivity extends FragmentActivity {
     }
     private void sessionPage() {
         if (!Control.running()) { page = "hub"; hubPage(); return; }
-        String[] session = Images.session(); boolean cd = Control.prop("st.session").equals("cd");
+        if (Control.prop("st.session").equals("sound")) { soundPage(); return; }
+        if (Control.input()) { inputPage(); return; }
+        String[] session = Images.session(); boolean cd = Control.prop("st.session").startsWith("cd");
         LinearLayout left = body, right = body;
         if (landscape) {
             LinearLayout split = row(); body.addView(split, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -457,6 +497,141 @@ public final class UsbActivity extends FragmentActivity {
                 () -> { navigate("swap"); scan(); }, landscape ? 80 : 68), landscape ? 80 : 68, 10);
         else if (!landscape) guide(right, R.drawable.ic_info, s(R.string.eject_title), s(R.string.eject_guidance), GUIDE);
         guide(right, R.drawable.ic_info, s(R.string.qs_stop), s(R.string.qs_guidance), GUIDE);
+    }
+    private void stopButton(LinearLayout parent) {
+        View stop = action(parent, s(R.string.stop), true, () -> Control.request(this, "stop", null, true), landscape ? 48 : 58);
+        ((LinearLayout.LayoutParams) stop.getLayoutParams()).topMargin = 0;
+    }
+    private LinearLayout sessionColumns() {
+        if (!landscape) { stopButton(body); return body; }
+        LinearLayout split = row(); add(body, split, -2, 4);
+        LinearLayout left = column(), right = column();
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(px(192), -2); lp.rightMargin = px(12);
+        split.addView(left, lp); split.addView(right, new LinearLayout.LayoutParams(0, -2, 1));
+        stopButton(left);
+        note(left, s(page.equals("typing") ? R.string.typing_guidance : Control.prop("st.session").equals("sound") ? R.string.audio_guidance : R.string.input_guidance), 15, 8);
+        if (Control.prop("st.session").contains("_")) note(left, s(R.string.shared_image, Images.session()[1]), 14, 8);
+        return right;
+    }
+    private void soundPage() {
+        LinearLayout panel = sessionColumns();
+        if (!landscape) connection(panel);
+        // Microphone is the first audio control, always muted for a new session.
+        audioCard(panel, R.string.microphone, AudioBridge.micMuted ? R.string.mic_muted : R.string.mic_live,
+                R.drawable.ic_mic, !AudioBridge.micMuted, AudioBridge.captureLevel, this::toggleMic);
+        audioCard(panel, R.string.speaker, AudioBridge.speakerMuted ? R.string.speaker_muted : R.string.speaker_live,
+                R.drawable.ic_sound, !AudioBridge.speakerMuted, AudioBridge.playbackLevel,
+                () -> Control.request(this, "speaker", null, true));
+        note(panel, s(AudioBridge.status.equals("error") ? R.string.audio_error
+                : AudioBridge.status.equals("playing") ? R.string.audio_ready : R.string.audio_waiting), 15, 8);
+        if (!landscape) guide(panel, R.drawable.ic_info, s(R.string.select_on_pc), s(R.string.audio_guidance), GUIDE);
+    }
+    private void audioCard(LinearLayout parent, int title, int detail, int icon, boolean on, int level, Runnable toggle) {
+        LinearLayout panel = column(); panel.setBackground(background(CARD, 18));
+        panel.setPadding(0, 0, 0, px(8)); add(parent, panel, -2, 6);
+        LinearLayout heading = (LinearLayout) card(s(title), s(detail), icon, 0, false, null, 68);
+        android.widget.Switch state = new android.widget.Switch(this); state.setChecked(on);
+        state.setClickable(false); state.setFocusable(false); state.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        heading.addView(state, new LinearLayout.LayoutParams(-2, -2));
+        target(heading, toggle); heading.setContentDescription(s(title) + s(R.string.text_separator) + s(detail));
+        add(panel, heading, landscape ? 57 : 66, 0);
+        ProgressBar meter = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        meter.setMax(96); meter.setProgress(level);
+        meter.setProgressTintList(android.content.res.ColorStateList.valueOf(ACCENT));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, px(5)); lp.setMargins(px(18), 0, px(18), 0);
+        panel.addView(meter, lp);
+        TextView value = text(s(R.string.level_db, level - 96), 13, MUTED);
+        value.setGravity(Gravity.END); value.setPadding(0, px(3), px(18), 0); add(panel, value, -2, 0);
+    }
+    private void toggleMic() {
+        if (AudioBridge.micMuted && checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {android.Manifest.permission.RECORD_AUDIO}, MICROPHONE);
+        } else Control.request(this, "microphone", null, true);
+    }
+    @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(code, permissions, results);
+        if (code == MICROPHONE && results.length > 0 && results[0] == android.content.pm.PackageManager.PERMISSION_GRANTED
+                && Control.prop("st.session").equals("sound") && AudioBridge.micMuted) {
+            Control.request(this, "microphone", null, true);
+        }
+    }
+    private void inputPage() {
+        LinearLayout panel = sessionColumns();
+        if (!landscape) note(panel, s(R.string.input_connected), 14, 5);
+        TextView pad = text(s(R.string.touchpad), 22, ACCENT); pad.setGravity(Gravity.CENTER);
+        pad.setBackground(background(GUIDE, 22)); touchpad = pad;
+        target(pad, () -> { if (hid != null) hid.click(1); });
+        pad.setOnTouchListener((v, event) -> {
+            switch (event.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                    v.requestFocus();
+                    v.getParent().requestDisallowInterceptTouchEvent(true);
+                    startX = touchX = event.getX(); startY = touchY = event.getY(); moved = false; return true;
+                case android.view.MotionEvent.ACTION_MOVE:
+                    if (Math.hypot(event.getX() - startX, event.getY() - startY) > px(6)) moved = true;
+                    int x = (int) ((event.getX() - touchX) / scale), y = (int) ((event.getY() - touchY) / scale);
+                    if (hid != null && (x != 0 || y != 0)) hid.mouse(0, x, y, 0);
+                    touchX += x * scale; touchY += y * scale; return true;
+                case android.view.MotionEvent.ACTION_UP:
+                    if (!moved) v.performClick();
+                    v.getParent().requestDisallowInterceptTouchEvent(false); return true;
+                case android.view.MotionEvent.ACTION_CANCEL:
+                    v.getParent().requestDisallowInterceptTouchEvent(false); return true;
+                default: return true;
+            }
+        });
+        add(panel, pad, landscape ? 84 : 145, 6);
+        LinearLayout pair = row(); add(panel, pair, landscape ? 44 : 52, 8);
+        pairAction(pair, s(R.string.move_pointer), false, () -> navigate("pointer"));
+        pairAction(pair, s(R.string.type_text), false, () -> navigate("typing"));
+        LinearLayout clicks = row(); add(panel, clicks, landscape ? 40 : 48, 6);
+        pairAction(clicks, s(R.string.left_click), false, () -> { if (hid != null) hid.click(1); });
+        pairAction(clicks, s(R.string.right_click), false, () -> { if (hid != null) hid.click(2); });
+        if (!landscape) note(panel, s(R.string.input_guidance), 15, 8);
+        if (Control.prop("st.session").contains("_") && !landscape) note(panel, s(R.string.shared_image, Images.session()[1]), 15, 8);
+        if (Control.prop("st.session").equals("cd_input")) action(panel, s(R.string.change_disc), false,
+                () -> { navigate("swap"); scan(); }, 42);
+    }
+    private void pointerPage() {
+        if (!Control.input()) { navigate("hub"); return; }
+        stopButton(body); note(body, s(R.string.pointer_guidance), 16, 8);
+        LinearLayout directions = row(); add(body, directions, 58, 8);
+        pairAction(directions, s(R.string.up), false, () -> move(0, -16));
+        pairAction(directions, s(R.string.right), false, () -> move(16, 0));
+        pairAction(directions, s(R.string.down), false, () -> move(0, 16));
+        pairAction(directions, s(R.string.left), false, () -> move(-16, 0));
+        action(body, s(R.string.done), false, () -> navigate("session"), 44);
+    }
+    private void move(int x, int y) { if (hid != null) hid.mouse(0, x, y, 0); }
+    private void typingPage() {
+        if (!Control.input()) { navigate("hub"); return; }
+        LinearLayout panel = sessionColumns();
+        if (!landscape) note(panel, s(R.string.typing_guidance), 15, 6);
+        TextView preview = text(draft.isEmpty() ? s(R.string.draft_empty) : draft, 19, INK);
+        preview.setBackground(background(CARD, 10)); preview.setPadding(px(8), px(6), px(8), px(6));
+        add(panel, preview, 40, 6);
+        LinearLayout send = row(); add(panel, send, 40, 6);
+        pairAction(send, s(R.string.cancel), false, () -> navigate("session"));
+        pairAction(send, s(R.string.send_text), true, () -> {
+            if (hid != null && hid.type(draft)) { draft = ""; navigate("session"); }
+            else { uiError = "text"; render(true); }
+        });
+        String keys = s(numericKeys ? R.string.number_keys : shiftKeys ? R.string.upper_keys : R.string.lower_keys);
+        for (String letters : keys.split(" ")) {
+            LinearLayout row = row(); add(panel, row, landscape ? 32 : 39, 4);
+            for (char key : letters.toCharArray()) {
+                pairAction(row, Character.toString(key), false, () -> {
+                    if (draft.length() < 60) draft += key;
+                    preview.setText(draft);
+                });
+            }
+        }
+        LinearLayout controls = row(); add(panel, controls, 38, 4);
+        pairAction(controls, s(R.string.shift), shiftKeys, () -> { shiftKeys = !shiftKeys; render(true); });
+        pairAction(controls, s(R.string.numbers), numericKeys, () -> { numericKeys = !numericKeys; render(true); });
+        pairAction(controls, s(R.string.space), false, () -> { if (draft.length() < 60) draft += " "; preview.setText(draft); });
+        pairAction(controls, s(R.string.delete), false, () -> { if (!draft.isEmpty()) draft = draft.substring(0, draft.length()-1); preview.setText(draft); });
     }
     private void confirmPage() {
         if (nextDisc == null || !Control.running()) { navigate("session"); return; }
@@ -503,12 +678,24 @@ public final class UsbActivity extends FragmentActivity {
             case "images": case "session": navigate("hub"); break;
             case "size": navigate("create"); break;
             case "confirm": navigate("swap"); break;
-            case "swap": navigate("session"); break;
+            case "swap": case "pointer": case "typing": navigate("session"); break;
             default: navigate("images"); break;
         }
     }
     @Override public void onBackPressed() { goBack(); }
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        if (touchpad != null && touchpad.hasFocus() && page.equals("session") && Control.input()) {
+            int key = event.getKeyCode();
+            if (key == KeyEvent.KEYCODE_DPAD_UP || key == KeyEvent.KEYCODE_DPAD_DOWN) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN && hid != null) hid.mouse(0, 0, 0, key == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1);
+                return true;
+            }
+            if (key == KeyEvent.KEYCODE_BACK) {
+                if (event.getAction() == KeyEvent.ACTION_UP && !targets.isEmpty()) targets.get(0).requestFocus();
+                return true;
+            }
+        }
+
         if ((event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP)
                 && !targets.isEmpty()) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -634,6 +821,9 @@ public final class UsbActivity extends FragmentActivity {
     }
     private String errorText(String code) {
         switch (code) {
+            case "input": return s(R.string.input_error);
+            case "text": return s(R.string.text_error);
+            case "endpoints": return s(R.string.endpoints_error);
             case "provider": return s(R.string.provider_error);
             case "folder": return s(R.string.folder_error);
             case "name": return s(R.string.name_error);

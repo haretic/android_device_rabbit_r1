@@ -35,7 +35,7 @@ public final class UsbTileService extends TileService {
         boolean running = Control.running();
         tile.setIcon(Icon.createWithResource(this, R.drawable.ic_usb));
         tile.setLabel(getString(R.string.app_name));
-        tile.setSubtitle(running ? getString(R.string.tile_running, Images.session()[1]) : getString(R.string.off));
+        tile.setSubtitle(running ? getString(R.string.tile_running, Control.label(this)) : getString(R.string.off));
         tile.setContentDescription(getString(running ? R.string.tile_stop : R.string.tile_choose));
         tile.setState(running ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE); tile.updateTile();
     }

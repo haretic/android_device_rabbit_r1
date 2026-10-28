@@ -8,6 +8,6 @@ android_app {
     system_ext_specific: true,
     privileged: true,
     static_libs: ["r1-wheelselect", "androidx.fragment_fragment"],
-    required: ["r1-usbemu.sh"],
+    required: ["r1-usbemu.sh", "r1-usbemu-io"],
     optimize: { enabled: false },
 }

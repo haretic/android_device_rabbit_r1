@@ -60,3 +60,15 @@ service r1-usbemu-check /system_ext/bin/r1-usbemu.sh check
     group root system media_rw
     disabled
     oneshot
+
+# No configfs mutations or HAL control in this domain. Opens only the discovered
+# UAC2Gadget card and the two leased HID nodes. Revocation closes every handle.
+service r1-usbemu-io /system_ext/bin/r1-usbemu-io
+    user root
+    group root audio
+    socket r1-usbemu-input seqpacket 0660 root system
+    socket r1-usbemu-audio seqpacket 0660 root system
+    disabled
+
+on property:sys.boot_completed=1
+    start r1-usbemu-io

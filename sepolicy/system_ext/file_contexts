@@ -9,3 +9,7 @@
 /data/system/r1-usbemu u:object_r:r1_usbemu_ipc_file:s0
 /data/system/r1-usbemu/requests(/.*)? u:object_r:r1_usbemu_request_file:s0
 /data/system/r1-usbemu/status(/.*)? u:object_r:r1_usbemu_status_file:s0
+/(system_ext|system/system_ext)/bin/r1-usbemu-io u:object_r:r1_usbemu_io_exec:s0
+/dev/socket/r1-usbemu-input u:object_r:r1_usbemu_input_socket:s0
+/dev/socket/r1-usbemu-audio u:object_r:r1_usbemu_audio_socket:s0
+/dev/hidg[0-9]+ u:object_r:r1_usbemu_hid_device:s0

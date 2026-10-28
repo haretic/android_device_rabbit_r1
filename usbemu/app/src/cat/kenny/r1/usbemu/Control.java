@@ -54,6 +54,13 @@ final class Control {
                 .putExtra("image", name + ".img").putExtra("size", gb)
                 .putExtra("fs", fs).putExtra("use", use));
     }
-    // Later phases add typed sound/HID/Flipper requests here. No arbitrary
-    // function/VID/PID editor; the root broker retains descriptor policy.
+    static boolean input() { return prop("st.session").endsWith("input"); }
+    static String label(Context c) {
+        switch (prop("st.session")) {
+            case "sound": return c.getString(R.string.sound);
+            case "input": return c.getString(R.string.keyboard);
+            case "drive_input": case "cd_input": return c.getString(R.string.drive_input);
+            default: return Images.session()[1];
+        }
+    }
 }
