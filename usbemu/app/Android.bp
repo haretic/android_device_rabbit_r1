@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: Apache-2.0
+android_app {
+    name: "R1UsbEmu",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    certificate: "platform",
+    platform_apis: true,
+    system_ext_specific: true,
+    privileged: true,
+    static_libs: ["r1-wheelselect", "androidx.fragment_fragment"],
+    required: ["r1-usbemu.sh"],
+    optimize: { enabled: false },
+}

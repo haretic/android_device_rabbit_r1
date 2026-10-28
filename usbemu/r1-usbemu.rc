@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: Apache-2.0
+on post-fs-data
+    mkdir /data/misc/r1-usbemu 0700 root root
+    mkdir /data/system/r1-usbemu 0750 root system
+    mkdir /data/system/r1-usbemu/requests 0770 root system
+    mkdir /data/system/r1-usbemu/status 0750 root system
+    restorecon_recursive /data/misc/r1-usbemu /data/system/r1-usbemu
+
+# Wait for CE media and for the gadget HAL to exist. It may start after boot.
+on property:sys.boot_completed=1
+    start r1-usbemu-boot
+
+# Also retry cleanup if the HAL became available after the boot action.
+on property:init.svc.vendor.usb-gadget-hal=running && property:sys.boot_completed=1
+    start r1-usbemu-boot
+
+on property:sys.r1.usbemu.req.run=*
+    start r1-usbemu
+
+on property:sys.r1.usbemu.req.stop=*
+    start r1-usbemu-stop
+
+service r1-usbemu /system_ext/bin/r1-usbemu.sh run
+    user root
+    group root system media_rw
+    disabled
+    oneshot
+
+service r1-usbemu-stop /system_ext/bin/r1-usbemu.sh stop
+    user root
+    group root system media_rw
+    disabled
+    oneshot
+
+service r1-usbemu-boot /system_ext/bin/r1-usbemu.sh boot
+    user root
+    group root system media_rw
+    disabled
+    oneshot
+
+# A killed helper leaves durable intent; recovery never replays the mutation.
+on property:init.svc.r1-usbemu=stopped
+    start r1-usbemu-recover
+
+on property:init.svc.r1-usbemu-stop=stopped
+    start r1-usbemu-recover
+
+# Framework USB changes may cause a later HAL fallback during a live session.
+on property:vendor.r1.usbemu.state=*
+    start r1-usbemu-check
+
+service r1-usbemu-recover /system_ext/bin/r1-usbemu.sh recover
+    user root
+    group root system media_rw
+    disabled
+    oneshot
+
+service r1-usbemu-check /system_ext/bin/r1-usbemu.sh check
+    user root
+    group root system media_rw
+    disabled
+    oneshot

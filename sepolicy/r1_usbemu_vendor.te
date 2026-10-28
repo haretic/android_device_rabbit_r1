@@ -1,0 +1,2 @@
+# The USB device emulator (r1_usbemu, system_ext) reads the gadget HAL's answer
+get_prop(r1_usbemu, vendor_r1_usbemu_state_prop)

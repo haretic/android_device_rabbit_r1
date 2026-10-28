@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0
+sh_binary {
+    name: "r1-usbemu.sh",
+    src: "r1-usbemu.sh",
+    system_ext_specific: true,
+    init_rc: ["r1-usbemu.rc"],
+}

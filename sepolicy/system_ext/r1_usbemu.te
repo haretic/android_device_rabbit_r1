@@ -1,0 +1,54 @@
+# Phase A image-backed storage broker. No block-device or gadget binding access.
+typeattribute r1_usbemu coredomain;
+type r1_usbemu_exec, exec_type, file_type, system_file_type;
+init_daemon_domain(r1_usbemu)
+system_internal_prop(r1_usbemu_request_prop)
+system_internal_prop(r1_usbemu_status_prop)
+set_prop(system_app, r1_usbemu_request_prop)
+get_prop(system_app, r1_usbemu_status_prop)
+get_prop(r1_usbemu, r1_usbemu_request_prop)
+set_prop(r1_usbemu, r1_usbemu_status_prop)
+set_prop(r1_usbemu, r1_usbemu_prop)
+
+type r1_usbemu_data_file, file_type, data_file_type, core_data_file_type;
+type r1_usbemu_ipc_file, file_type, data_file_type, core_data_file_type;
+type r1_usbemu_request_file, file_type, data_file_type, core_data_file_type;
+type r1_usbemu_status_file, file_type, data_file_type, core_data_file_type;
+allow r1_usbemu r1_usbemu_data_file:dir create_dir_perms;
+allow r1_usbemu r1_usbemu_data_file:file create_file_perms;
+allow r1_usbemu r1_usbemu_ipc_file:dir r_dir_perms;
+allow r1_usbemu r1_usbemu_request_file:dir rw_dir_perms;
+allow r1_usbemu r1_usbemu_request_file:file { r_file_perms unlink };
+allow r1_usbemu r1_usbemu_status_file:dir rw_dir_perms;
+allow r1_usbemu r1_usbemu_status_file:file create_file_perms;
+allow system_app r1_usbemu_ipc_file:dir r_dir_perms;
+allow system_app r1_usbemu_request_file:dir rw_dir_perms;
+allow system_app r1_usbemu_request_file:file create_file_perms;
+allow system_app r1_usbemu_status_file:dir r_dir_perms;
+allow system_app r1_usbemu_status_file:file r_file_perms;
+
+allow r1_usbemu { shell_exec toolbox_exec }:file rx_file_perms;
+# newfs_msdos and mkfs.exfat, platform binaries labelled system_file, run in this domain
+allow r1_usbemu system_file:file rx_file_perms;
+allow r1_usbemu self:capability chown;
+allow r1_usbemu self:process { signal sigkill };
+allow r1_usbemu self:dir r_dir_perms;
+allow r1_usbemu self:lnk_file r_file_perms;
+allow r1_usbemu { proc_mounts proc_uptime }:file r_file_perms;
+# Only read loop backing names to reject images already in use. Never open loops.
+allow r1_usbemu sysfs:dir r_dir_perms;
+allow r1_usbemu sysfs_loop:dir r_dir_perms;
+allow r1_usbemu sysfs_loop:file r_file_perms;
+allow r1_usbemu sysfs:lnk_file r_file_perms;
+allow r1_usbemu media_rw_data_file:dir rw_dir_perms;
+allow r1_usbemu media_rw_data_file:file { create_file_perms link };
+# exfatprogs probes sector size even for regular files (returns ENOTTY).
+allowxperm r1_usbemu media_rw_data_file:file ioctl { BLKSSZGET };
+# The gadget's functions/ in configfs, which takes no per-path labels (the kernel labels
+# configfs as a whole): makes and fills the *.usbemu* functions; the gadget HAL alone links
+# and binds them (UsbGadget.cpp), which the script never writes
+allow r1_usbemu configfs:dir create_dir_perms;
+allow r1_usbemu configfs:file rw_file_perms;
+allow r1_usbemu configfs:lnk_file r_file_perms;
+neverallow r1_usbemu dev_type:blk_file *;
+neverallow system_app r1_usbemu_status_prop:property_service set;
