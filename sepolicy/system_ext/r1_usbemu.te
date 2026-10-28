@@ -44,11 +44,12 @@ allow r1_usbemu media_rw_data_file:dir rw_dir_perms;
 allow r1_usbemu media_rw_data_file:file { create_file_perms link };
 # exfatprogs probes sector size even for regular files (returns ENOTTY).
 allowxperm r1_usbemu media_rw_data_file:file ioctl { BLKSSZGET };
-# The gadget's functions/ in configfs, which takes no per-path labels (the kernel labels
-# configfs as a whole): makes and fills the *.usbemu* functions; the gadget HAL alone links
-# and binds them (UsbGadget.cpp), which the script never writes
-allow r1_usbemu configfs:dir create_dir_perms;
-allow r1_usbemu configfs:file rw_file_perms;
-allow r1_usbemu configfs:lnk_file r_file_perms;
+# The gadget's *.usbemu* functions in configfs (genfs_contexts, the kernel labelling configfs
+# by path): makes, fills and removes them; the gadget HAL alone links and binds them
+# (UsbGadget.cpp), the rest of configfs read-only here
+allow r1_usbemu configfs:dir { r_dir_perms add_name remove_name write };
+type_transition r1_usbemu configfs:dir r1_usbemu_configfs "mass_storage.usbemu0";
+allow r1_usbemu r1_usbemu_configfs:dir create_dir_perms;
+allow r1_usbemu r1_usbemu_configfs:file rw_file_perms;
 neverallow r1_usbemu dev_type:blk_file *;
 neverallow system_app r1_usbemu_status_prop:property_service set;

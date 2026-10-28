@@ -3,3 +3,9 @@
 genfscon sysfs /devices/platform/power-monitor/hwmon u:object_r:sysfs_r1_power_monitor:s0
 # Kernel Tweaks' memory pressure (r1_performance.te)
 genfscon proc /sys/vm/swappiness u:object_r:proc_r1_swappiness:s0
+# The USB device emulator's gadget functions, filled by its helper (r1_usbemu.te)
+genfscon configfs /usb_gadget/g1/functions/mass_storage.usbemu u:object_r:r1_usbemu_configfs:s0
+genfscon configfs /usb_gadget/g1/functions/uac2.usbemu u:object_r:r1_usbemu_configfs:s0
+genfscon configfs /usb_gadget/g1/functions/hid.usbemu u:object_r:r1_usbemu_configfs:s0
+genfscon configfs /usb_gadget/g1/functions/ffs.usbemu u:object_r:r1_usbemu_configfs:s0
+genfscon configfs /usb_gadget/g1/functions/acm.usbemu u:object_r:r1_usbemu_configfs:s0

@@ -1,3 +1,4 @@
 # usbemu/r1-usbemu.sh, the USB device emulator's root helper (system_ext/r1_usbemu.te). Public for
 # the vendor's rule on the gadget HAL's answer it reads (r1_usbemu_vendor.te).
 type r1_usbemu, domain;
+type r1_usbemu_configfs, fs_type;

@@ -1,2 +1,5 @@
 # The USB device emulator (r1_usbemu, system_ext) reads the gadget HAL's answer
 get_prop(r1_usbemu, vendor_r1_usbemu_state_prop)
+# and links the functions the helper made into its configuration
+allow hal_usb_gadget_default r1_usbemu_configfs:dir r_dir_perms;
+allow hal_usb_gadget_default r1_usbemu_configfs:file r_file_perms;
