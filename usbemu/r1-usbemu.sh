@@ -75,6 +75,12 @@ not_mounted() {
         [ -e "$backing" ] || continue
         loop_path=$(cat "$backing") || { fail mounted; return 1; }
         [ -n "$loop_path" ] || continue
+        # Only a backing file in shared storage can be an image; the rest, as an APEX's, are
+        # closed to this domain
+        case $loop_path in
+            "$MEDIA"/*|/data/media/*|/storage/*|/mnt/*|/sdcard/*) ;;
+            *) continue ;;
+        esac
         loop_path=$(readlink -f "$loop_path" 2>/dev/null) || { fail mounted; return 1; }
         case $loop_path in
             /storage/emulated/0/*) loop_path=$MEDIA/${loop_path#/storage/emulated/0/} ;;
