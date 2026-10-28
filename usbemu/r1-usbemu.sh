@@ -423,8 +423,13 @@ main() {
         recover)
             if [ -d "$STATE/journal" ]; then
                 token=$(cat "$STATE/journal/token")
+                # The run's own answer stands; a run that died before giving one gets this
+                case $(prop st.result) in
+                    "$token:done"|"$token:error"|"$token:cancelled") reported=1 ;;
+                    *) reported=0 ;;
+                esac
                 if recover; then error=interrupted; else error=recovery; fi
-                result error
+                [ "$reported" = 1 ] || result error
             fi
             ;;
         check)

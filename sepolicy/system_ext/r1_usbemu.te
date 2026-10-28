@@ -30,7 +30,9 @@ allow system_app r1_usbemu_status_file:file r_file_perms;
 allow r1_usbemu { shell_exec toolbox_exec }:file rx_file_perms;
 # newfs_msdos and mkfs.exfat, platform binaries labelled system_file, run in this domain
 allow r1_usbemu system_file:file rx_file_perms;
-allow r1_usbemu self:capability chown;
+# chown for the images it makes; fowner as fsync opens O_NOATIME, the image folder being
+# media_rw's
+allow r1_usbemu self:capability { chown fowner };
 allow r1_usbemu self:process { signal sigkill };
 allow r1_usbemu self:dir r_dir_perms;
 allow r1_usbemu self:lnk_file r_file_perms;
