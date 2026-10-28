@@ -37,6 +37,11 @@ cd_size() {
     awk -v bytes="$1" 'BEGIN {exit !(bytes>=614400 && bytes<=2359293952 && bytes%2048==0)}'
 }
 stamp() { stat -Lc '%d:%i:%s' "$1"; }
+# Bytes free and in all on the folder's filesystem, from it alone: df would look at every
+# mount, most of them closed to this domain
+space() {
+    stat -f -c '%a:%S:%b' "$1" | awk -F: 'NF==3 {printf "%.0f\n%.0f\n",$1*$2,$3*$2}'
+}
 identity() { stat -Lc '%d:%i' "$1"; }
 fail() { error=$1; return 1; }
 clock_now() {
@@ -247,7 +252,7 @@ create_image() {
     # Android mksh arithmetic is 32-bit, including on arm64. Keep byte sizes
     # as exact decimal strings; only the sector count fits shell arithmetic.
     bytes=$(awk -v gb="$size" 'BEGIN {printf "%.0f",gb*1073741824}')
-    free=$(df -Pk "$dirfd" | awk 'NR==2 {printf "%.0f",$4*1024}')
+    free=$(space "$dirfd" | sed -n 1p)
     awk -v n="$bytes" -v free="$free" 'BEGIN {exit !(free>=n+1073741824)}' || { fail space; return 1; }
     [ ! -e "$dirfd/$name" ] && [ ! -L "$dirfd/$name" ] || { fail exists; return 1; }
     journal create || return 1
@@ -279,7 +284,7 @@ create_image() {
 }
 scan_images() {
     validate_folder || return 1
-    df -Pk "$dirfd" | awk 'NR==2 {printf "%.0f\n%.0f\n",$4*1024,$2*1024}' >"$IPC/status/space" || return 1
+    space "$dirfd" >"$IPC/status/space" && [ -s "$IPC/status/space" ] || return 1
     chmod 0640 "$IPC/status/space" && chown root:system "$IPC/status/space" || return 1
     : >"$IPC/status/inventory.tmp" || return 1
     for path in "$folder"/*; do

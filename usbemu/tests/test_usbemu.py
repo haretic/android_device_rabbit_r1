@@ -50,9 +50,11 @@ elif command == 'chown':
 elif command == 'fsync':
     for path in a:
         fd=os.open(path,os.O_RDONLY);os.fsync(fd);os.close(fd)
-elif command == 'df':
-    print('Filesystem 1024-blocks Used Available Capacity Mounted on')
-    print('fake 67108864 1 ' + ('1048576' if (p/'no_space').exists() else '60000000') + ' 1% /fake')
+elif command == 'stat' and a[:1] == ['-f']:
+    # The folder's filesystem in 4 KiB blocks: free, block size, all
+    print(('262144' if (p/'no_space').exists() else '15000000') + ':4096:16777216')
+elif command == 'stat':
+    os.execv('/usr/bin/stat', ['stat'] + a)
 elif command in ('newfs_msdos','mkfs.exfat'):
     (p/'formatter_args').write_text('\n'.join([command]+a))
     if (p/'cancel_format').exists():
@@ -84,7 +86,7 @@ class Broker(unittest.TestCase):
         self.props = self.root/'props'
         (self.root/'mountinfo').write_text('1 0 0:1 / / rw - rootfs rootfs rw\n')
         mock = self.root/'bin/mock'; mock.write_text(MOCK); mock.chmod(0o755)
-        for tool in ('getprop','setprop','mkdir','rmdir','chown','fsync','df','newfs_msdos','mkfs.exfat'):
+        for tool in ('getprop','setprop','mkdir','rmdir','chown','fsync','stat','newfs_msdos','mkfs.exfat'):
             (self.root/'bin'/tool).symlink_to(mock)
         self.env = dict(os.environ, STATE=str(self.root/'state'), IPC=str(self.root/'ipc'),
                         MEDIA=str(self.root/'media'), FUNCTIONS=str(self.root/'functions'),
