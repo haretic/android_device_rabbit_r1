@@ -1,0 +1,9 @@
+// The APK is hydrated by r1-tools scripts/ensure-r1-cromite.py from android/cromite-pin.json, not committed.
+android_app_import {
+    name: "Cromite",
+    apk: "Cromite.apk",
+    presigned: true,
+    product_specific: true,
+    dex_preopt: { enabled: false },
+    preferred_arch: ["arm64"],
+}

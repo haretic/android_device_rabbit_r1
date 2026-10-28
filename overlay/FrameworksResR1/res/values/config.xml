@@ -35,6 +35,8 @@
     <!-- r1-wheeld (wheel/daemon) owns the wheel: its input device and its init socket -->
     <string name="config_wheelDaemonInputDevice" translatable="false">r1-wheel</string>
     <string name="config_wheelDaemonSocket" translatable="false">r1-wheel</string>
+    <!-- Cromite handles web links by default -->
+    <string name="config_defaultBrowser" translatable="false">org.cromite.cromite</string>
     <!-- Apps made for the wheel scroll with it until the user picks otherwise -->
     <string-array name="config_wheelAppModeDefaults" translatable="false">
         <item>cat.kenny.r1.wheel.settings=app</item>
@@ -43,6 +45,7 @@
         <item>cat.kenny.r1.batterydetails=app</item>
         <item>cat.kenny.r1.problemreport=app</item>
         <item>com.android.settings=app</item>
+        <item>org.cromite.cromite=app</item>
         <item>org.lineageos.lineageparts=app</item>
         <!-- Pages and dialogs Settings opens in other packages: the wheel goes through them as
              through Settings -->
