@@ -49,6 +49,9 @@ allowxperm r1_usbemu media_rw_data_file:file ioctl { BLKSSZGET };
 # (UsbGadget.cpp), the rest of configfs read-only here
 allow r1_usbemu configfs:dir { r_dir_perms add_name remove_name write };
 type_transition r1_usbemu configfs:dir r1_usbemu_configfs "mass_storage.usbemu0";
+type_transition r1_usbemu configfs:dir r1_usbemu_configfs "uac2.usbemu0";
+type_transition r1_usbemu configfs:dir r1_usbemu_configfs "hid.usbemu0";
+type_transition r1_usbemu configfs:dir r1_usbemu_configfs "hid.usbemu1";
 allow r1_usbemu r1_usbemu_configfs:dir create_dir_perms;
 allow r1_usbemu r1_usbemu_configfs:file rw_file_perms;
 neverallow r1_usbemu dev_type:blk_file *;

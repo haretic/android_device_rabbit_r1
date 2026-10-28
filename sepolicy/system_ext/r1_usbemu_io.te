@@ -13,9 +13,10 @@ get_prop(r1_usbemu_io, r1_usbemu_prop)
 # hidg has a dedicated device label; apps never receive raw device access.
 type r1_usbemu_hid_device, dev_type;
 allow r1_usbemu_io r1_usbemu_hid_device:chr_file { open read write getattr };
-allow r1_usbemu_io configfs:dir r_dir_perms;
-allow r1_usbemu_io configfs:file r_file_perms;
-allow r1_usbemu_io configfs:lnk_file r_file_perms;
+# The emulator's own functions only (genfs_contexts), the rest of configfs being unlabelled
+allow r1_usbemu_io configfs:dir search;
+allow r1_usbemu_io r1_usbemu_configfs:dir r_dir_perms;
+allow r1_usbemu_io r1_usbemu_configfs:file r_file_perms;
 allow r1_usbemu_io proc_asound:dir r_dir_perms;
 allow r1_usbemu_io proc_asound:file r_file_perms;
 allow r1_usbemu_io audio_device:dir r_dir_perms;
@@ -25,5 +26,6 @@ allow r1_usbemu_io audio_device:dir r_dir_perms;
 allow r1_usbemu_io audio_device:chr_file rw_file_perms;
 allowxperm r1_usbemu_io audio_device:chr_file ioctl { 0x4100-0x41ff 0x5500-0x55ff };
 neverallow r1_usbemu_io dev_type:blk_file *;
+neverallow r1_usbemu_io { configfs r1_usbemu_configfs }:file { write append };
 neverallow r1_usbemu_io configfs:file { write append };
 neverallow r1_usbemu_io configfs:dir { add_name remove_name };
