@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The action bar of apps on the platform's own themes, as Messaging's, made for a phone:
+         smaller on the R1's 480 x 640, as R1Compact makes the apps' own toolkits' bars -->
+    <dimen name="action_bar_default_height_material">44dp</dimen>
+</resources>
