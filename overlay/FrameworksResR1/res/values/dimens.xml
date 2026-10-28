@@ -3,4 +3,7 @@
     <!-- The action bar of apps on the platform's own themes, as Messaging's, made for a phone:
          smaller on the R1's 480 x 640, as R1Compact makes the apps' own toolkits' bars -->
     <dimen name="action_bar_default_height_material">44dp</dimen>
+    <!-- A dialog in landscape (the major axis its width) as wide as the R1's 640 px leave it
+         room: at the stock 65% its insets left 380 px, a short message wrapping to three lines -->
+    <item type="dimen" name="dialog_min_width_major">85%</item>
 </resources>

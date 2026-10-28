@@ -187,7 +187,8 @@ public class TourActivity extends Activity {
             bg.setCornerRadius(dp(12));
             bg.setColor(i == picked ? mAccent : mSurface);
             if (on && i != picked) {
-                bg.setStroke(dp(2), mAccent);
+                // As wide as the wheel's own ring (ViewRootImpl WHEEL_FOCUS_WIDTH_DP), the one it teaches
+                bg.setStroke(dp(3), mAccent);
             }
             mRowViews[i].setBackground(bg);
             mRowViews[i].setTextColor(i == picked ? mOnAccent : mText);
