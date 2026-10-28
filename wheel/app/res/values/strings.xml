@@ -64,7 +64,8 @@
     <string name="edge_left">Left</string>
 
     <string name="push_title">Move the app aside</string>
-    <string name="push_summary">Off: the bar covers the edge of the app</string>
+    <string name="push_summary_on">The app makes room for the bar</string>
+    <string name="push_summary_off">The bar covers the edge of the app</string>
 
     <string name="list_end_title">At the end of a list</string>
     <string-array name="list_end_entries" translatable="false">

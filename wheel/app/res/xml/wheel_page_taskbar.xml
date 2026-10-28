@@ -25,7 +25,8 @@
         <SwitchPreferenceCompat
             android:key="wheel_taskbar_push"
             android:title="@string/push_title"
-            android:summary="@string/push_summary"
+            android:summaryOn="@string/push_summary_on"
+            android:summaryOff="@string/push_summary_off"
             android:persistent="false" />
     </PreferenceCategory>
 
