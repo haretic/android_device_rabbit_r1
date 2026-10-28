@@ -51,7 +51,7 @@ runtime_resource_overlay {
     name: "R1CompactMessaging",
     vendor: true,
     manifest: "manifests/Messaging.xml",
-    resource_dirs: ["res"],
+    resource_dirs: ["res-messaging", "res"],
 }
 
 runtime_resource_overlay {
