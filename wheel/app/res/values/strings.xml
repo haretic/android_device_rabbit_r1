@@ -120,7 +120,8 @@
     <string name="mode_volume">Volume</string>
     <string name="mode_brightness">Brightness</string>
     <string name="mode_media">Tracks</string>
-    <string name="mode_zoom">Zoom</string>
+    <string name="mode_pinch">Pinch zoom</string>
+    <string name="mode_zoom">Zoom keys</string>
     <string name="mode_touch">Touch zones</string>
     <!-- Under each mode in the picker: what the wheel and the side button do in it -->
     <string name="mode_taskbar_desc">The wheel opens the taskbar</string>
@@ -132,7 +133,8 @@
     <string name="mode_volume_desc">The wheel sets the volume</string>
     <string name="mode_brightness_desc">The wheel sets the screen brightness</string>
     <string name="mode_media_desc">The wheel skips tracks, a press plays and pauses</string>
-    <string name="mode_zoom_desc">The wheel zooms in and out</string>
+    <string name="mode_pinch_desc">The wheel pinches the screen in and out, as two fingers zoom maps, photos and pages</string>
+    <string name="mode_zoom_desc">The wheel zooms with the zoom keys, as a browser takes</string>
     <string name="mode_touch_desc">The wheel taps two places you pick on the screen</string>
     <!-- TouchZonesActivity, over the app: the wheel's steps tap the screen where these say -->
     <string name="touch_zones_hint_up">Tap where a step up should tap</string>

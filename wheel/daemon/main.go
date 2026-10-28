@@ -129,6 +129,14 @@ const (
 	stillBeforeLift = 50 * time.Millisecond
 	gripTop         = 0.15
 	gripBottom      = 0.85
+	// A pinch step zooms by this factor's log (1.15 times), gliding out as a scroll step;
+	// its two fingers stand on the screen's long middle line, this share of its length
+	// apart at the closest and the widest, and first move past the span's slop (Android's
+	// is twice the touch slop) before the zoom counts
+	pinchShare   = 0.14
+	pinchClosest = 0.12
+	pinchWidest  = 0.8
+	pinchSlop    = 3 * touchSlop
 	// A touch zone's tap: down this long, short of Android's long press
 	tapTime = 40 * time.Millisecond
 	// Android's touch slop, about 8 dp: the first part of a drag that only starts it
@@ -214,12 +222,13 @@ const (
 	modeMedia
 	modeZoom
 	modeTouch
+	modePinch
 )
 
 var modeNames = map[string]mode{
 	"taskbar": modeTaskbar, "app": modeApp, "scroll": modeScroll, "tab": modeTab,
 	"arrows": modeArrows, "page": modePage, "volume": modeVolume,
-	"brightness": modeBrightness, "media": modeMedia, "zoom": modeZoom,
+	"brightness": modeBrightness, "media": modeMedia, "zoom": modeZoom, "pinch": modePinch,
 }
 
 // chord is a key with the modifiers held around it.
@@ -279,6 +288,14 @@ type daemon struct {
 	zones [2][2]int32
 	// The tap's lift, pending while the finger is down for a zone
 	lift *time.Timer
+	// The pinch: the zoom still to glide out (log of its factor, out positive), its two
+	// fingers down and how far apart, the slop still to move before the zoom counts
+	pinch      float64
+	pinching   bool
+	pinchDown  bool
+	span       float64
+	spanSlop   float64
+	pinchMoved time.Time
 }
 
 // tuning is the user's, from SystemUI's "tune" lines.
@@ -345,7 +362,122 @@ func (d *daemon) setMode(m mode) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.liftTap()
+	d.liftPinch()
 	d.mode = m
+}
+
+// liftPinch lets go of a pinch's fingers, what is left of its zoom dropped. Locked.
+func (d *daemon) liftPinch() {
+	d.pinch = 0
+	if d.pinchDown {
+		d.fingers(false)
+	}
+}
+
+// fingers sends the pinch's two fingers: down span apart about the middle, or both up.
+func (d *daemon) fingers(down bool) {
+	x, y := d.width/2, float64(d.height)/2
+	for i, dy := range []float64{-d.span / 2, d.span / 2} {
+		write(d.touch, evAbs, absMtSlot, int32(i))
+		if !down {
+			write(d.touch, evAbs, absMtTrackingID, -1)
+			continue
+		}
+		if !d.pinchDown {
+			write(d.touch, evAbs, absMtTrackingID, d.tracking+int32(i))
+		}
+		write(d.touch, evAbs, absMtPositionX, x)
+		write(d.touch, evAbs, absMtPositionY, int32(y+dy))
+		if i == 0 {
+			write(d.touch, evAbs, absX, x)
+			write(d.touch, evAbs, absY, int32(y+dy))
+		}
+	}
+	if down && !d.pinchDown {
+		write(d.touch, evKey, btnTouch, 1)
+	} else if !down {
+		write(d.touch, evKey, btnTouch, 0)
+		d.tracking += 2
+	}
+	write(d.touch, evSyn, 0, 0)
+	d.pinchDown = down
+}
+
+// pinchStep adds a step's zoom to the pinch, starting it if it isn't running. Locked.
+func (d *daemon) pinchStep(direction int) {
+	d.pinch += float64(d.detents(direction)) * pinchShare * d.tuning.distance
+	if !d.pinching {
+		d.pinching = true
+		go d.pinchOut()
+	}
+}
+
+// pinchOut glides the pinch's zoom out a frame at a time as glideOut does a scroll's: two
+// fingers down close together to zoom in, wide apart to zoom out, moving past the slop first;
+// out of room they stand still and let go, and a new grip follows.
+func (d *daemon) pinchOut() {
+	closest := float64(d.height) * pinchClosest
+	widest := float64(d.height) * pinchWidest
+	for {
+		time.Sleep(glideFrame)
+		d.mu.Lock()
+		if d.pinch == 0 {
+			if d.pinchDown && time.Since(d.pinchMoved) >= liftAfter {
+				d.fingers(false)
+			}
+			if !d.pinchDown {
+				d.pinching = false
+				d.mu.Unlock()
+				return
+			}
+			d.mu.Unlock()
+			continue
+		}
+		dir := 1.0
+		if d.pinch < 0 {
+			dir = -1
+		}
+		if !d.pinchDown {
+			d.span = widest
+			if dir > 0 {
+				d.span = closest
+			}
+			d.spanSlop = pinchSlop
+			d.fingers(true)
+			d.pinchMoved = time.Now()
+			d.mu.Unlock()
+			continue
+		}
+		if d.spanSlop > 0 {
+			move := math.Min(d.spanSlop, touchSlop)
+			d.spanSlop -= move
+			d.span += dir * move
+			d.fingers(true)
+			d.pinchMoved = time.Now()
+			d.mu.Unlock()
+			continue
+		}
+		part := d.pinch * glideShare
+		if math.Abs(part) < 0.002 {
+			part = d.pinch
+		}
+		next := d.span * math.Exp(part)
+		if next < closest || next > widest {
+			if time.Since(d.pinchMoved) >= stillBeforeLift {
+				d.fingers(false)
+			}
+			d.mu.Unlock()
+			continue
+		}
+		d.pinch -= part
+		if math.Abs(d.pinch) < 0.001 {
+			d.pinch = 0
+		}
+		d.span = next
+		d.fingers(true)
+		d.pinchMoved = time.Now()
+		d.mu.Unlock()
+	}
 }
 
 // liftTap lets go of a touch zone's tap still down. Locked.
@@ -567,7 +699,23 @@ func (d *daemon) step(code uint16, value int32) {
 		}
 		return
 	}
+	if d.mode == modePinch && d.touch != nil {
+		if d.gliding {
+			// The scroll mode's drag is still out
+			return
+		}
+		if up {
+			d.pinchStep(1)
+		} else {
+			d.pinchStep(-1)
+		}
+		return
+	}
 	if d.mode == modeScroll && d.touch != nil {
+		if d.pinching {
+			// A pinch's fingers are still down, as just after the mode changed
+			return
+		}
 		if up {
 			d.scrollStep(1)
 		} else {
@@ -818,12 +966,13 @@ func main() {
 	xs := absInfo{Maximum: width - 1}
 	ys := absInfo{Maximum: height - 1}
 	touch, err := createDevice(touchName, productTouch, []uintptr{evKey, evAbs}, []uintptr{btnTouch},
-		[]axis{{absX, xs}, {absY, ys}, {absMtSlot, absInfo{}}, {absMtPositionX, xs},
+		[]axis{{absX, xs}, {absY, ys}, {absMtSlot, absInfo{Maximum: 1}}, {absMtPositionX, xs},
 			{absMtPositionY, ys}, {absMtTrackingID, absInfo{Maximum: 65535}}},
 		[]uintptr{inputPropDirect})
 	if err != nil {
-		logf("uinput: %v; scroll mode sends the D-pad", err)
+		logf("uinput: %v; scroll mode sends the D-pad, pinch zoom the zoom keys", err)
 		modeKeys[modeScroll] = modeKeys[modeApp]
+		modeKeys[modePinch] = modeKeys[modeZoom]
 	}
 	d := &daemon{mode: modeTaskbar, out: out, touch: touch, width: width, height: height,
 		clients: map[net.Conn]bool{}, tuning: defaultTuning}
