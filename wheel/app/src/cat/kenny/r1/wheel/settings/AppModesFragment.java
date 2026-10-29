@@ -207,6 +207,6 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
     static CharSequence summary(Context context) {
         final int count = read(context).size();
         return count == 0 ? context.getString(R.string.app_modes_none)
-                : context.getString(R.string.app_modes_summary, count);
+                : context.getResources().getQuantityString(R.plurals.app_modes_summary, count, count);
     }
 }

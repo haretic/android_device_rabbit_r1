@@ -114,7 +114,10 @@
     <string name="animations_off">None</string>
 
     <string name="app_modes_title">The wheel in each app</string>
-    <string name="app_modes_summary">%1$d with a wheel mode of their own</string>
+    <plurals name="app_modes_summary">
+        <item quantity="one">%1$d app set its own way</item>
+        <item quantity="other">%1$d apps set their own way</item>
+    </plurals>
     <string name="app_modes_none">All apps open the taskbar</string>
     <string name="mode_taskbar">Taskbar</string>
     <string name="mode_app">Move the highlight</string>
