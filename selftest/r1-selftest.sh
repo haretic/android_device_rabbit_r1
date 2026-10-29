@@ -51,6 +51,7 @@ for s in accelerometer_rotation user_rotation; do
 	echo "system $s $(settings get system $s)" >> $DIR/android
 done
 echo "secure r1_wheel_tour_done $(settings get secure r1_wheel_tour_done)" >> $DIR/android
+echo "global stay_on_while_plugged_in $(settings get global stay_on_while_plugged_in)" >> $DIR/android
 restore() {
 	local name value
 	while read -r name value; do
@@ -69,9 +70,17 @@ restore() {
 
 echo "running 0 0 starting" > $STATUS
 chmod 644 $STATUS
-R1_ONDEVICE=1 R1_SHOTS=$DIR/shots R1_STATUS=$STATUS R1_TOKEN=$token \
-	/system/bin/sh /system_ext/bin/r1-smoke.sh $tests > $DIR/log.txt 2>&1
-rc=$?
+# Its output through a pipe, as adb shell's is: the services the tests call (input, cmd)
+# write their replies to it, and may not write this directory's files. mksh keeps its
+# here-strings in TMPDIR.
+mkdir -p $DIR/tmp
+{
+	R1_ONDEVICE=1 R1_SHOTS=$DIR/shots R1_STATUS=$STATUS R1_TOKEN=$token TMPDIR=$DIR/tmp \
+		/system/bin/sh /system_ext/bin/r1-smoke.sh $tests
+	echo $? > $DIR/rc
+} 2>&1 | cat > $DIR/log.txt
+rc=$(cat $DIR/rc 2>/dev/null)
+rm -rf $DIR/tmp $DIR/rc
 restore
 chmod 644 $DIR/log.txt $DIR/shots/* 2>/dev/null
 

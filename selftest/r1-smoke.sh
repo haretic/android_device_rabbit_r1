@@ -122,7 +122,7 @@ t_dialog() {
 	# Bluetooth's "make visible" question: an alert dialog, which names the device too
 	sh "am start -a android.bluetooth.adapter.action.REQUEST_DISCOVERABLE"
 	sleep 3; shot dialog; ui dialog
-	grep -q 'resource-id="android:id/wheel_dialog_buttons"\|button1' $SHOTS/smoke-dialog.xml && ok "dialog shows" || bad "dialog shows"
+	grep -qE 'resource-id="android:id/wheel_dialog_buttons"|button1' $SHOTS/smoke-dialog.xml && ok "dialog shows" || bad "dialog shows"
 	[ "$(dev "logcat -b crash -d | grep -c application-specific")" = 0 ] && ok "no setTag crash" || bad "setTag crash"
 	key 4
 }
@@ -147,7 +147,7 @@ t_pin() {
 }
 
 # Whether the keyguard is up
-locked() { dev "dumpsys window" | grep -q 'mDreamingLockscreen=true\|isKeyguardShowing=true\|mShowingLockscreen=true'; }
+locked() { dev "dumpsys window" | grep -qE 'mDreamingLockscreen=true|isKeyguardShowing=true|mShowingLockscreen=true'; }
 
 t_passthrough() {
 	# A container an app focuses, as Files' whole window or the Dialer's box round its one
@@ -957,7 +957,7 @@ node_at() {
 }
 # The text of the focused node, or of the first text in it
 focused_text() {
-	xfocus $1 | awk -F '\t' '$1 != "out" && ($8 != "" || $9 != "") { print $8 != "" ? $8 : $9; exit }'
+	xfocus $1 | awk -F '\t' '$1 != "out" && ($8 != "" || $9 != "") { print ($8 != "" ? $8 : $9); exit }'
 }
 
 t_folder() {
@@ -1047,6 +1047,8 @@ tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch hom
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
 trap 'sh "settings put global stay_on_while_plugged_in ${stay:-0}"' EXIT
+# Killed, as by timeout, it puts it back too
+trap 'exit 143' TERM INT HUP
 sh "svc power stayon true"
 # The self test's runner (r1-selftest.sh) follows the run in R1_STATUS, and stops it between
 # tests when the page asks with the run's token
