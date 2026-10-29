@@ -21,3 +21,4 @@ sys.r1.usbemu.id        u:object_r:r1_usbemu_prop:s0 exact string
 # App requests and broker-only results; separate from the HAL lease above.
 sys.r1.usbemu.req. u:object_r:r1_usbemu_request_prop:s0 prefix string
 sys.r1.usbemu.st.  u:object_r:r1_usbemu_status_prop:s0 prefix string
+sys.r1.selftest.        u:object_r:r1_selftest_prop:s0

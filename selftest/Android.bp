@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
+// The self test (Developer options > Self test, in R1ProblemReport): r1-smoke.sh, the suite
+// the build is checked with from a host, run on the R1 itself by r1-selftest.sh as the shell
+// user, started by its init service.
+sh_binary {
+    name: "r1-selftest.sh",
+    src: "r1-selftest.sh",
+    system_ext_specific: true,
+    init_rc: ["r1-selftest.rc"],
+    required: ["r1-smoke.sh"],
+}
+
+sh_binary {
+    name: "r1-smoke.sh",
+    src: "r1-smoke.sh",
+    system_ext_specific: true,
+}

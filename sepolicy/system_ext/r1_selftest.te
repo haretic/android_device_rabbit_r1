@@ -1,0 +1,19 @@
+# The self test (selftest/): its page (problemreport/, system_app) asks for a run in
+# sys.r1.selftest.run and stops it with sys.r1.selftest.cancel; init runs r1-selftest.sh
+# in the shell domain, as adb shell would, so the suite has the shell's reach and no more.
+# Its results go to /data/misc/r1-selftest, which the page reads: system_app may not read
+# the shell's /data/local/tmp.
+system_internal_prop(r1_selftest_prop)
+set_prop(system_app, r1_selftest_prop)
+get_prop(shell, r1_selftest_prop)
+
+# The shell may not write input devices: the suite turns the wheel through r1-wheeld, as
+# "r1-wheeld inject", which only talks to the running daemon over its socket
+unix_socket_connect(shell, r1_wheel, r1_wheeld)
+allow shell r1_wheeld_exec:file rx_file_perms;
+
+type r1_selftest_data_file, file_type, data_file_type, core_data_file_type;
+allow shell r1_selftest_data_file:dir create_dir_perms;
+allow shell r1_selftest_data_file:file create_file_perms;
+allow system_app r1_selftest_data_file:dir r_dir_perms;
+allow system_app r1_selftest_data_file:file r_file_perms;

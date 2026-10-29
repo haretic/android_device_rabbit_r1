@@ -13,3 +13,4 @@
 /dev/socket/r1-usbemu-input u:object_r:r1_usbemu_input_socket:s0
 /dev/socket/r1-usbemu-audio u:object_r:r1_usbemu_audio_socket:s0
 /dev/hidg[0-9]+ u:object_r:r1_usbemu_hid_device:s0
+/data/misc/r1-selftest(/.*)? u:object_r:r1_selftest_data_file:s0

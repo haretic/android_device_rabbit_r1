@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+# Developer options > Self test (selftest/, r1-selftest.sh): the page asks for a run with
+# sys.r1.selftest.run, which starts the suite as the shell user in the shell domain, as
+# adb shell and init's own console run it. The shell may run the system's shell only, so
+# the script is its argument.
+on post-fs-data
+    mkdir /data/misc/r1-selftest 0755 shell shell
+
+on property:sys.r1.selftest.run=*
+    start r1-selftest
+
+service r1-selftest /system/bin/sh /system_ext/bin/r1-selftest.sh
+    user shell
+    # The groups adb shell has
+    group shell input log adb sdcard_rw sdcard_r ext_data_rw ext_obb_rw net_bt_admin net_bt inet net_bw_stats readproc uhid readtracefs
+    seclabel u:r:shell:s0
+    disabled
+    oneshot

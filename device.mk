@@ -122,6 +122,8 @@ PRODUCT_PACKAGES += R1HA
 
 # Settings > System > Problem report: logs as a .zip in Download/haretic-reports.
 PRODUCT_PACKAGES += R1ProblemReport
+# Developer options > Self test: the suite run on the R1 itself (selftest/)
+PRODUCT_PACKAGES += r1-selftest.sh
 
 # The logger validates expdb and bounds its mapping before loading pstore.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.r1.expdb.enabled=1
