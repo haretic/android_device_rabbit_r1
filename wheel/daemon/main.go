@@ -42,6 +42,13 @@
 //	guard     how long after the side button is let go its nudges are dropped, in ms (0 to 500);
 //	          0 keeps every step, while the button is held too
 //	reverse   1 turns the wheel's direction round
+//
+// The self test (selftest/, as the shell user) turns the wheel over the socket too,
+// "inject <up|down> <steps>": each step goes the way a turn of the wheel's own does, the
+// mode's, as the shell may not write the wheel's input device. "inject side <press|hold|
+// double>" presses the side button through r1-side, a uinput device made for it at the
+// first, its KEY_POWER as the side button's own (Generic.kl). "r1-wheeld inject down 3"
+// sends a line.
 
 // One thread is plenty, whatever the cgroup CPU quota says
 //
@@ -70,6 +77,7 @@ const (
 	outName   = "r1-wheel"
 
 	touchName = "r1-wheel-touch"
+	sideName  = "r1-side"
 
 	evSyn = 0x00
 	evKey = 0x01
@@ -114,6 +122,7 @@ const (
 	// Apart, or the input reader takes both devices for one and the finger for a touchpad
 	productKeys  = 0x0001
 	productTouch = 0x0002
+	productSide  = 0x0003
 
 	// Wheel steps this soon after the side button is let go are its nudge
 	buttonSettle = 150 * time.Millisecond
@@ -265,6 +274,8 @@ type daemon struct {
 	mode  mode
 	out   *os.File
 	touch *os.File
+	// The self test's side button, made at its first press
+	side *os.File
 	// The touchscreen's size in its own units
 	width, height int32
 	// Dragging still to glide out, in touch units (up positive), and whether a glide runs
@@ -930,10 +941,105 @@ func (d *daemon) serve(l net.Listener) {
 				if len(fields) == 3 && fields[0] == "tune" && d.tune(fields[1], fields[2]) {
 					continue
 				}
+				if len(fields) == 3 && fields[0] == "inject" && d.inject(fields[1], fields[2]) {
+					// Done: the client waits for it
+					conn.Write([]byte("injected\n"))
+					continue
+				}
 				logf("ignored %q", lines.Text())
 			}
 		}()
 	}
+}
+
+// inject turns the wheel as the self test asks, a step every 150 ms as a quick hand does,
+// or presses the side button; whether it knew the line.
+func (d *daemon) inject(way, count string) bool {
+	if way == "side" {
+		return d.injectSide(count)
+	}
+	n, err := strconv.Atoi(count)
+	if err != nil || n < 1 || n > 50 || way != "up" && way != "down" {
+		return false
+	}
+	code := uint16(keyDown)
+	if way == "up" {
+		code = keyUp
+	}
+	for i := 0; i < n; i++ {
+		if i > 0 {
+			time.Sleep(150 * time.Millisecond)
+		}
+		d.step(code, 1)
+	}
+	return true
+}
+
+// injectSide presses the side button: a press, a hold of 1.2 s (the long press), or two
+// presses 100 ms apart, the policy's double press.
+func (d *daemon) injectSide(how string) bool {
+	if how != "press" && how != "hold" && how != "double" {
+		return false
+	}
+	if d.side == nil {
+		side, err := createDevice(sideName, productSide, []uintptr{evKey}, []uintptr{keyPower}, nil, nil)
+		if err != nil {
+			logf("uinput: %v", err)
+			return false
+		}
+		d.side = side
+		// Android takes a moment to add a new device; a key before that is lost
+		time.Sleep(500 * time.Millisecond)
+	}
+	press := func(held time.Duration) {
+		d.setButton(true)
+		write(d.side, evKey, keyPower, 1)
+		write(d.side, evSyn, 0, 0)
+		time.Sleep(held)
+		write(d.side, evKey, keyPower, 0)
+		write(d.side, evSyn, 0, 0)
+		d.setButton(false)
+	}
+	switch how {
+	case "press":
+		press(0)
+	case "hold":
+		press(1200 * time.Millisecond)
+	case "double":
+		press(0)
+		time.Sleep(100 * time.Millisecond)
+		press(0)
+	}
+	return true
+}
+
+// injectClient is "r1-wheeld inject <up|down> [steps]" or "r1-wheeld inject side
+// <press|hold|double>": it asks the running daemon and waits until it is done.
+func injectClient(args []string) {
+	if len(args) == 1 {
+		args = append(args, "1")
+	}
+	if len(args) != 2 {
+		fmt.Fprintln(os.Stderr, "usage: r1-wheeld inject <up|down> [steps] | side <press|hold|double>")
+		os.Exit(2)
+	}
+	conn, err := net.Dial("unix", "/dev/socket/"+outName)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+	fmt.Fprintf(conn, "inject %s %s\n", args[0], args[1])
+	// Step lines come too, to every client; at most 50 steps take 7.5 s
+	conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+	lines := bufio.NewScanner(conn)
+	for lines.Scan() {
+		if lines.Text() == "injected" {
+			return
+		}
+	}
+	fmt.Fprintln(os.Stderr, "r1-wheeld didn't take it (see its log)")
+	os.Exit(1)
 }
 
 // initSocket is the listening socket init made from the rc file's socket line.
@@ -957,6 +1063,10 @@ func initSocket() (net.Listener, error) {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "inject" {
+		injectClient(os.Args[2:])
+		return
+	}
 	out, err := createDevice(outName, productKeys, []uintptr{evKey}, outKeys, nil, nil)
 	if err != nil {
 		logf("uinput: %v", err)
