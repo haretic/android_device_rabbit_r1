@@ -84,6 +84,19 @@ shots_differ() {
 		  if (i >= 0 && x >= x0 && x < x1 && y >= y0 && y < y1) { found = 1; exit } }
 		END { exit !found }'
 }
+# The screen's turn back as it was. A view dump's uiautomator, done, puts back the turn it
+# found, locked, a moment later: on the R1 that lands after these writes, so they go again
+# until they hold (from a host adb's own delay lets it land first)
+rotation_back() {
+	local i
+	for i in 1 2 3 4 5; do
+		sh "settings put system user_rotation $1; settings put system accelerometer_rotation $2"
+		sleep 1.5
+		[ "$(dev "settings get system accelerometer_rotation")" = "$2" ] && \
+			[ "$(dev "settings get system user_rotation")" = "$1" ] && return 0
+	done
+	echo "the screen's turn didn't stay as it was ($1, $2)"
+}
 # A field of the focused node (2 focused ... 8 content-desc, see xnodes)
 focus_field() { xfocus $1 | head -1 | cut -f$(($2 + 1)); }
 key() { sh "input keyevent $*"; }
@@ -527,7 +540,7 @@ t_rotation() {
 		[ $stuck = 0 ] && ok "rotation $r: 15 steps down Developer options stay in the list" \
 			|| bad "rotation $r: step $stuck focused '${f:-nothing}'"
 	done
-	sh "settings put system user_rotation ${user:-0}; settings put system accelerometer_rotation ${auto:-1}"
+	rotation_back "${user:-0}" "${auto:-1}"
 	key 4; key 3
 }
 
@@ -563,7 +576,7 @@ t_edge() {
 	done
 	lset wheel_taskbar_edge "${edge:-0}"
 	lset wheel_taskbar_timeout "${timeout:-3}"
-	sh "settings put system user_rotation ${user:-0}; settings put system accelerometer_rotation ${auto:-1}"
+	rotation_back "${user:-0}" "${auto:-1}"
 	key 4; key 3
 }
 t_turned() {
@@ -583,7 +596,7 @@ t_turned() {
 	shot turned
 	[ $stuck = 0 ] && ok "rotation 3: 10 steps the turned way go down Developer options" \
 		|| bad "rotation 3: step $stuck focused '${f:-nothing}'"
-	sh "settings put system user_rotation ${user:-0}; settings put system accelerometer_rotation ${auto:-1}"
+	rotation_back "${user:-0}" "${auto:-1}"
 	key 4; key 3
 }
 t_openwith() {
@@ -670,7 +683,7 @@ t_landshade() {
 	else
 		ok "turned shade is one column"
 	fi
-	sh "cmd statusbar collapse; settings put system user_rotation ${user:-0}; settings put system accelerometer_rotation ${auto:-1}"
+	sh "cmd statusbar collapse"; rotation_back "${user:-0}" "${auto:-1}"
 	key 3
 }
 
@@ -684,7 +697,7 @@ t_landpower() {
 	grep -q 'Recovery' $SHOTS/smoke-landpower.xml && ok "turned power menu is the list" \
 		|| bad "turned power menu is the grid"
 	key 4; sleep 1
-	sh "settings put system user_rotation ${user:-0}; settings put system accelerometer_rotation ${auto:-1}"
+	rotation_back "${user:-0}" "${auto:-1}"
 	key 3
 }
 

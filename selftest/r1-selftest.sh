@@ -58,13 +58,23 @@ restore() {
 		content insert --uri content://lineagesettings/secure --bind name:s:$name \
 			--bind "value:s:$(echo "$value" | sed 's/:/\\:/g')" >/dev/null 2>&1
 	done < $saved
-	while read -r table name value; do
-		if [ "$value" = null ]; then
-			settings delete $table $name >/dev/null 2>&1
-		else
-			settings put $table $name "$value"
-		fi
-	done < $DIR/android
+	# Again until they hold: a view dump's uiautomator puts back the screen's turn it found
+	# a moment after it is done
+	local i table now
+	for i in 1 2 3 4 5; do
+		while read -r table name value; do
+			if [ "$value" = null ]; then
+				settings delete $table $name >/dev/null 2>&1
+			else
+				settings put $table $name "$value"
+			fi
+		done < $DIR/android
+		sleep 1.5
+		now=$(while read -r table name value; do
+			[ "$(settings get $table $name)" = "$value" ] || echo $name
+		done < $DIR/android)
+		[ -z "$now" ] && break
+	done
 	input keyevent 3
 }
 
