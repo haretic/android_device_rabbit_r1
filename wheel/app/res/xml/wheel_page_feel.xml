@@ -29,6 +29,12 @@
             android:title="@string/reverse_title"
             android:summary="@string/reverse_summary"
             android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_turn_with_screen"
+            android:title="@string/turn_title"
+            android:summaryOn="@string/turn_summary_on"
+            android:summaryOff="@string/turn_summary_off"
+            android:persistent="false" />
         <Preference
             android:key="feel_footer"
             android:summary="@string/feel_footer"

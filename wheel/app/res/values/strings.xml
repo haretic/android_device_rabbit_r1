@@ -57,11 +57,16 @@
     <string name="unlock_dial">Combination: turn one way as many steps as the digit, turn back for the next</string>
     <string name="edge_title">Edge</string>
     <string-array name="edge_entries" translatable="false">
+        <item>@string/edge_wheel</item><item>@string/edge_across</item>
         <item>@string/edge_right</item><item>@string/edge_left</item>
     </string-array>
-    <string-array name="edge_values" translatable="false"><item>0</item><item>1</item></string-array>
-    <string name="edge_right">Right, beside the wheel</string>
-    <string name="edge_left">Left</string>
+    <string-array name="edge_values" translatable="false">
+        <item>0</item><item>1</item><item>2</item><item>3</item>
+    </string-array>
+    <string name="edge_wheel">Beside the wheel, whichever way the screen turns</string>
+    <string name="edge_across">Across from the wheel</string>
+    <string name="edge_right">Always the right of the screen</string>
+    <string name="edge_left">Always the left of the screen</string>
 
     <string name="push_title">Move the app aside</string>
     <string name="push_summary_on">The app makes room for the bar</string>
@@ -225,6 +230,9 @@
     </string-array>
     <string name="reverse_title">Reverse direction</string>
     <string name="reverse_summary">Turning the wheel down moves up</string>
+    <string name="turn_title">Turn with the screen</string>
+    <string name="turn_summary_on">With the screen upside down or turned right, the wheel still moves towards the top and start of the screen as it did</string>
+    <string name="turn_summary_off">The wheel goes the same way whichever way the screen turns</string>
     <string name="feel_footer">Scroll distance and spin acceleration apply where the wheel scrolls the app smoothly. The press guard drops the wheel\'s steps a press of the side button nudges.</string>
     <string name="side_button_title">Side button</string>
     <string name="side_button_press">Side button press</string>
