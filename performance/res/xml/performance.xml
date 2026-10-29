@@ -29,6 +29,14 @@
             android:key="app_profiles"
             android:title="@string/app_profiles_title"
             android:fragment="cat.kenny.r1.performance.AppProfilesFragment" />
+        <Preference
+            android:key="perf_overlay"
+            android:title="@string/perf_overlay_title"
+            android:summary="@string/perf_overlay_summary">
+            <intent
+                android:targetPackage="cat.kenny.r1.perfoverlay"
+                android:targetClass="cat.kenny.r1.perfoverlay.OverlayActivity" />
+        </Preference>
         <SwitchPreferenceCompat
             android:key="game_dram"
             android:title="@string/game_dram_title"

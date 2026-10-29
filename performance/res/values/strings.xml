@@ -22,6 +22,8 @@
     <string name="app_profile_entry"><xliff:g id="app">%1$s</xliff:g> → <xliff:g id="profile">%2$s</xliff:g></string>
     <string name="game_dram_title">Hold memory speed in games</string>
     <string name="game_dram_summary">No DRAM down-clocking while a game is in front</string>
+    <string name="perf_overlay_title">Performance overlay</string>
+    <string name="perf_overlay_summary">Show FPS, CPU, temperature and battery on top of games</string>
     <string name="tile_switch_title">Quick Settings tile</string>
     <string name="tile_switch_summary">Tap cycles the profiles</string>
     <string name="tile_label">CPU profile</string>
