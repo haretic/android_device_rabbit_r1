@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- haretic: a faceted hare outline, tiled and turned, R1 orange on black -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1280" height="1280" viewBox="0 0 1280 1280">
+  <defs>
+    <!-- One sitting hare facing right, in a 100 x 100 box: its outline and the facets in it -->
+    <g id="hare" fill="none" stroke="#ff4f00" stroke-opacity="0.26" stroke-linejoin="round" stroke-linecap="round">
+      <path fill="#ff4f00" fill-opacity="0.035" stroke-width="0.9"
+            d="M17,71 L21,58 L31,46 L45,40 L57,40 L61,33 L45,9 L50,4 L66,28
+               L62,3 L68,2 L72,29 L77,32 L83,38 L81,42 L74,45 L68,49 L66,57
+               L69,68 L73,74 L63,75 L56,72 L49,74 L53,78 L29,78 L23,76 Z"/>
+      <path stroke-width="0.55" stroke-opacity="0.7"
+            d="M31,46 L41,62 L49,74 M41,62 L57,40 M41,62 L56,72 M57,40 L66,57
+               M57,40 L68,49 M61,33 L68,49 M61,33 L72,29 M72,29 L74,45 M77,32 L74,45
+               M21,58 L41,62 M41,62 L29,78 M56,72 L66,57 M47.5,6.5 L63,30 M65,2.5 L69,28"/>
+      <path fill="#ff4f00" fill-opacity="0.5" stroke="none" d="M73,34 L76,35 L74,37 Z"/>
+    </g>
+    <!-- Rows of hares, every other row half a hare along -->
+    <pattern id="tile" width="400" height="352" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(-14) translate(0 50)">
+      <use xlink:href="#hare" transform="translate(24 0) scale(2.44)"/>
+      <use xlink:href="#hare" transform="translate(224 176) scale(2.44)"/>
+      <use xlink:href="#hare" transform="translate(-176 176) scale(2.44)"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="1280" fill="#000000"/>
+  <rect width="1280" height="1280" fill="url(#tile)"/>
+</svg>
