@@ -15,9 +15,14 @@ public class ProblemReportActivity extends CollapsingToolbarBaseActivity {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
         if (savedInstanceState == null) {
+            final Bundle args = new Bundle();
+            args.putString(SelfTest.EXTRA_TOKEN,
+                    SelfTest.token(getIntent().getStringExtra(SelfTest.EXTRA_TOKEN)));
+            final ProblemReportFragment fragment = new ProblemReportFragment();
+            fragment.setArguments(args);
             getSupportFragmentManager().beginTransaction()
                     .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
-                            new ProblemReportFragment())
+                            fragment)
                     .commit();
         }
     }

@@ -42,4 +42,38 @@
     <string name="last_start_unknown">Not looked at yet, the r1 is still starting.</string>
 
     <string name="privacy">The report lists your apps. Wi-Fi network names, accounts, phone numbers, IMEI and serial numbers are taken out, but the logs can still name Bluetooth devices nearby. Have a look before you post it in public.</string>
+
+    <!-- Developer options > Self test -->
+    <string name="self_test_title">Self test</string>
+    <string name="self_test_intro">This r1 runs its own UI checks and takes over the screen while it works. Your settings are put back afterwards.</string>
+    <string name="self_test_quick">Quick check</string>
+    <string name="self_test_quick_summary">About 5 minutes - the wheel, dialogs, taskbar, rotation</string>
+    <string name="self_test_full">Full test</string>
+    <string name="self_test_full_summary">About 40 minutes - every check the build runs</string>
+    <string name="self_test_confirm">The self test will take over the screen. To stop it, go back to Self test and choose Stop. Your settings will be put back when it ends.</string>
+    <string name="self_test_start">Start</string>
+    <string name="self_test_starting">Starting...</string>
+    <string name="self_test_didnt_start">The self test didn\'t start</string>
+    <string name="self_test_start_error">The self test could not be started.</string>
+    <string name="self_test_progress">Test <xliff:g id="index">%1$d</xliff:g> of <xliff:g id="total">%2$d</xliff:g> - <xliff:g id="test">%3$s</xliff:g></string>
+    <string name="self_test_counts"><xliff:g id="passed">%1$d</xliff:g> passed, <xliff:g id="failed">%2$d</xliff:g> failed</string>
+    <string name="self_test_stop">Stop</string>
+    <string name="self_test_stopping">Stopping after this check - putting your settings back</string>
+    <string name="self_test_stop_error">The self test could not be stopped. Try Stop again.</string>
+    <string name="self_test_results"><xliff:g id="passed">%1$d</xliff:g> passed, <xliff:g id="failed">%2$d</xliff:g> failed, <xliff:g id="skipped">%3$d</xliff:g> skipped</string>
+    <string name="self_test_stopped">Stopped - <xliff:g id="counts">%1$s</xliff:g></string>
+    <string name="self_test_error">Self test error - <xliff:g id="reason">%1$s</xliff:g></string>
+    <string name="self_test_test_verdict"><xliff:g id="test">%1$s</xliff:g> - <xliff:g id="verdict">%2$s</xliff:g></string>
+    <string name="self_test_passed">passed</string>
+    <string name="self_test_passed_retry">passed on retry</string>
+    <string name="self_test_failed">failed</string>
+    <string name="self_test_skipped">skipped</string>
+    <string name="self_test_unfinished">not finished</string>
+    <string name="self_test_loading_shot">Loading screenshot...</string>
+    <string name="self_test_missing_shot">Screenshot unavailable</string>
+    <string name="self_test_close">Close</string>
+    <string name="self_test_add_report">Add to problem report</string>
+    <string name="self_test_again">Run again</string>
+    <string name="self_test_attachment">Self test results</string>
+    <string name="self_test_attachment_summary">The log, status and failed checks\' screenshots go into this report. Screenshots are kept as they are.</string>
 </resources>

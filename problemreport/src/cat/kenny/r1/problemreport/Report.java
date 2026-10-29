@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -38,7 +39,7 @@ import java.util.zip.ZipOutputStream;
  * Makes one report, in ReportService's thread, in 8 steps: 1 the description of this r1
  * (here), 2 to 4 the logs and crash reports (r1-problem-report.sh, see Helper), then
  * Android's crash records, 5 battery and power, 6 devices, 7 apps (Collector) and 8 the
- * .zip: every file goes through the Scrubber on its way in, and the .zip goes to
+ * .zip: text goes through the Scrubber on its way in, screenshots stay as they are, and it goes to
  * Download/haretic-reports through MediaStore. The page shows state().
  */
 final class Report {
@@ -82,6 +83,7 @@ final class Report {
     /** A finished report the page hasn't told about yet */
     private static volatile boolean sNews;
     private static String sNote;
+    private static String sSelfTestToken;
 
     private Report() {
     }
@@ -98,13 +100,14 @@ final class Report {
     }
 
     /** Starts a report with what the user typed; false if one is being made. */
-    static synchronized boolean start(Context context, String note) {
+    static synchronized boolean start(Context context, String note, String selfTestToken) {
         if (sState.state == RUNNING) return false;
         if (Helper.busy()) {
             sState = new State(FAILED, 0, "busy");
             return false;
         }
         sNote = note;
+        sSelfTestToken = SelfTest.token(selfTestToken);
         sState = new State(RUNNING, 1, "system");
         context.startService(new Intent(context, ReportService.class));
         return true;
@@ -239,6 +242,9 @@ final class Report {
         add(names, files, "power.txt", new File(dir, "power.txt"));
         add(names, files, "devices.txt", new File(dir, "devices.txt"));
         add(names, files, "apps.txt", new File(dir, "apps.txt"));
+        for (Map.Entry<String, File> file : SelfTest.files(sSelfTestToken).entrySet()) {
+            add(names, files, "selftest/" + file.getKey(), file.getValue());
+        }
 
         final ContentResolver resolver = context.getContentResolver();
         final ContentValues values = new ContentValues();
@@ -275,15 +281,21 @@ final class Report {
                     continue;
                 }
                 zip.putNextEntry(new ZipEntry(name + "/" + names.get(i)));
-                try (BufferedReader r = new BufferedReader(
-                        new InputStreamReader(in, StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = r.readLine()) != null) {
-                        w.write(scrubber.line(line));
-                        w.write('\n');
+                if (names.get(i).startsWith("selftest/shots/")) {
+                    try (InputStream image = in) {
+                        image.transferTo(zip);
                     }
+                } else {
+                    try (BufferedReader r = new BufferedReader(
+                            new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = r.readLine()) != null) {
+                            w.write(scrubber.line(line));
+                            w.write('\n');
+                        }
+                    }
+                    w.flush();
                 }
-                w.flush();
                 zip.closeEntry();
             }
             zip.finish();

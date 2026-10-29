@@ -13,6 +13,11 @@
             android:dialogMessage="@string/note_dialog"
             android:persistent="true" />
         <Preference
+            android:key="self_test"
+            android:title="@string/self_test_attachment"
+            android:summary="@string/self_test_attachment_summary"
+            android:selectable="false" />
+        <Preference
             android:key="save"
             android:title="@string/save_title"
             android:summary="@string/save_summary" />

@@ -39,6 +39,14 @@
                 android:value="primary_profile_only" />
         </activity>
 
+        <!-- Explicit intents from Settings and shell's am start; keep other apps out. -->
+        <activity
+            android:name=".SelfTestActivity"
+            android:exported="true"
+            android:permission="android.permission.WRITE_SECURE_SETTINGS"
+            android:launchMode="singleTop"
+            android:label="@string/self_test_title" />
+
         <!-- Makes the report: keeps going when the page is left -->
         <service
             android:name=".ReportService"

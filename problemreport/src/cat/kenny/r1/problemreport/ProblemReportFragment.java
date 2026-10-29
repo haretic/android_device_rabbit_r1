@@ -27,6 +27,7 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
     private EditTextPreference mNote;
     private Preference mSave;
     private Preference mLastStart;
+    private String mSelfTestToken;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -34,6 +35,9 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
         mNote = findPreference(Report.KEY_NOTE);
         mSave = findPreference("save");
         mLastStart = findPreference("last_start");
+        mSelfTestToken = SelfTest.token(getArguments() == null ? null
+                : getArguments().getString(SelfTest.EXTRA_TOKEN));
+        findPreference("self_test").setVisible(!mSelfTestToken.isEmpty());
 
         mNote.setOnBindEditTextListener(edit -> {
             edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
@@ -45,7 +49,7 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
             return true;
         });
         mSave.setOnPreferenceClickListener(p -> {
-            Report.start(requireContext(), mNote.getText());
+            Report.start(requireContext(), mNote.getText(), mSelfTestToken);
             poll();
             return true;
         });
