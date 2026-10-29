@@ -50,6 +50,10 @@
         <!-- Pages and dialogs Settings opens in other packages: the wheel goes through them as
              through Settings -->
         <item>com.android.permissioncontroller=app</item>
+        <!-- The framework's own dialogs, as "Open with", and the share sheet: lists and
+             buttons the wheel goes through, no taskbar over them -->
+        <item>android=app</item>
+        <item>com.android.intentresolver=app</item>
         <item>com.android.settings.intelligence=app</item>
         <item>com.android.storagemanager=app</item>
         <item>com.android.packageinstaller=app</item>
