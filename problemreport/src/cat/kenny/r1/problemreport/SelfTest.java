@@ -108,8 +108,8 @@ final class SelfTest {
 
     static final class Test {
         final String name;
-        String verdict = "";
-        boolean retried;
+        boolean failedFirst, failedAgain, retried, skipped;
+        String reason = "";
         final List<String> failures = new ArrayList<>();
         final List<String> shots = new ArrayList<>();
 
@@ -117,8 +117,18 @@ final class SelfTest {
             this.name = name;
         }
 
+        /** Failed, and its retry at the end, if it had one, failed too. */
         boolean failed() {
-            return "FAIL".equals(verdict);
+            return failedFirst && (failedAgain || !retried);
+        }
+
+        /** Failed at first, passed when run again. */
+        boolean passedOnRetry() {
+            return failedFirst && retried && !failedAgain;
+        }
+
+        boolean skippedOnly() {
+            return skipped && !failedFirst;
         }
     }
 
@@ -226,56 +236,61 @@ final class SelfTest {
                 new FileInputStream(file), StandardCharsets.UTF_8));
     }
 
+    /**
+     * The tests in the order they ran, as r1-selftest.sh counts them: "== <test>" starts one
+     * and "== retry <test>" its second run at the end; a FAIL fails it unless its retry has
+     * none, a SKIP skips it, and one without either passed.
+     */
     private static List<Test> readTests(File log) throws IOException {
         final Map<String, Test> tests = new LinkedHashMap<>();
-        final Map<String, Test> shots = new LinkedHashMap<>();
         Test current = null;
+        boolean retrying = false;
         try (BufferedReader r = open(log)) {
             String line;
             while ((line = r.readLine()) != null) {
                 if (line.startsWith("== ")) {
                     final String name = line.substring(3).trim();
-                    if (!name.isEmpty()) current = tests.computeIfAbsent(name, Test::new);
+                    retrying = name.startsWith("retry ");
+                    if (retrying) {
+                        current = tests.get(name.substring(6).trim());
+                        if (current != null) current.retried = true;
+                    } else if (name.equals("cancelled") || name.isEmpty()) {
+                        current = null;
+                    } else {
+                        current = tests.computeIfAbsent(name, Test::new);
+                    }
                     continue;
                 }
-                final boolean retry = line.startsWith("RETRY ");
-                final String verdict = retry ? line.substring(6) : line;
-                if (verdict.startsWith("PASS ") || verdict.startsWith("FAIL ")
-                        || verdict.startsWith("SKIP ")) {
-                    final String tail = verdict.substring(5).trim();
-                    Test named = null;
-                    // Retry verdicts can name an earlier test without another heading.
-                    for (Test known : tests.values()) {
-                        if (tail.equals(known.name) || tail.startsWith(known.name + " ")
-                                || tail.startsWith(known.name + ":")) {
-                            if (named == null || known.name.length() > named.name.length()) {
-                                named = known;
-                            }
-                        }
+                if (current == null) continue;
+                if (retrying) {
+                    if (line.startsWith("RETRY FAIL ")) {
+                        current.failedAgain = true;
+                        current.failures.add(line);
                     }
-                    Test test = named != null ? named : current;
-                    if (test == null && !tail.isEmpty()) {
-                        test = tests.computeIfAbsent(tail.split("\\s+", 2)[0], Test::new);
-                    }
-                    if (test != null) {
-                        if (retry || ("PASS".equals(verdict.substring(0, 4)) && test.failed())) {
-                            test.retried = true;
-                        }
-                        test.verdict = verdict.substring(0, 4);
-                        if (test.failed()) test.failures.add(line);
-                        current = test;
-                    }
+                } else if (line.startsWith("FAIL ")) {
+                    current.failedFirst = true;
+                    current.failures.add(line);
+                } else if (line.startsWith("SKIP ")) {
+                    current.skipped = true;
+                    if (current.reason.isEmpty()) current.reason = line.substring(5).trim();
                 }
                 final Matcher shot = SHOT.matcher(line);
                 while (shot.find()) {
-                    shots.put(shot.group(1), current);
+                    if (!current.shots.contains(shot.group(1))) current.shots.add(shot.group(1));
                 }
             }
         }
-        for (Map.Entry<String, Test> shot : shots.entrySet()) {
-            final Test owner = shotOwner(tests.values(), shot.getKey());
-            final Test test = owner != null ? owner : shot.getValue();
-            if (test != null) test.shots.add(shot.getKey());
+        // The screenshots each test took, by name, for those the log doesn't name
+        final File[] files = log.getParentFile() == null ? null
+                : new File(log.getParentFile(), "shots").listFiles();
+        if (files != null) {
+            for (File file : files) {
+                final Test owner = shotOwner(tests.values(), file.getName());
+                if (owner != null && file.getName().endsWith(".png")
+                        && !owner.shots.contains(file.getName())) {
+                    owner.shots.add(file.getName());
+                }
+            }
         }
         return new ArrayList<>(tests.values());
     }

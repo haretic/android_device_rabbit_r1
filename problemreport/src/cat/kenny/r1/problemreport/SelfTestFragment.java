@@ -20,6 +20,7 @@ import androidx.preference.PreferenceViewHolder;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import com.android.settingslib.widget.TopIntroPreference;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -188,10 +189,15 @@ public class SelfTestFragment extends SettingsBasePreferenceFragment {
         if (status == null) return;
         mProgress.setTitle(getString(R.string.self_test_progress,
                 status.index, status.total, status.text));
+        // The last test is still running
         int passed = 0, failed = 0;
-        for (SelfTest.Test test : snapshot.tests) {
-            if ("PASS".equals(test.verdict)) passed++;
-            if (test.failed()) failed++;
+        for (int i = 0; i < snapshot.tests.size() - 1; i++) {
+            final SelfTest.Test test = snapshot.tests.get(i);
+            if (test.failedFirst) {
+                failed++;
+            } else if (!test.skipped) {
+                passed++;
+            }
         }
         mProgress.setSummary(getString(R.string.self_test_counts, passed, failed));
         mProgress.update(status.index - 1, status.total);
@@ -214,17 +220,29 @@ public class SelfTestFragment extends SettingsBasePreferenceFragment {
         final PreferenceScreen screen = screen();
         mProgress = null;
         row(screen, summary, null, null);
+        // A row for each test that failed, or failed and then passed, with its screenshots;
+        // the others in a row each for skipped and passed, so the actions are a few steps on
+        final List<String> skipped = new ArrayList<>(), passed = new ArrayList<>();
         for (SelfTest.Test test : snapshot.tests) {
-            row(screen, getString(R.string.self_test_test_verdict, test.name,
-                    verdict(requireContext(), test.verdict, test.retried)),
-                    test.failed() ? String.join("\n", test.failures) : null, p -> {
-                        getParentFragmentManager().beginTransaction()
-                                .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
-                                        SelfTestDetailFragment.forTest(mToken, test))
-                                .addToBackStack(null).commit();
-                        return true;
-                    });
+            if (test.failed() || test.passedOnRetry()) {
+                row(screen, getString(R.string.self_test_test_verdict, test.name,
+                        verdict(requireContext(), test)),
+                        String.join("\n", test.failures), p -> {
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
+                                            SelfTestDetailFragment.forTest(requireContext(),
+                                                    mToken, test))
+                                    .addToBackStack(null).commit();
+                            return true;
+                        });
+            } else if (test.skippedOnly()) {
+                skipped.add(test.reason.isEmpty() ? test.name : test.reason);
+            } else {
+                passed.add(test.name);
+            }
         }
+        group(screen, R.string.self_test_skipped_group, skipped);
+        group(screen, R.string.self_test_passed_group, passed);
         row(screen, getString(R.string.self_test_add_report), null, p -> {
             startActivity(new Intent(requireContext(), ProblemReportActivity.class)
                     .putExtra(SelfTest.EXTRA_TOKEN, mToken));
@@ -242,14 +260,21 @@ public class SelfTestFragment extends SettingsBasePreferenceFragment {
         mShownTests = snapshot.tests;
     }
 
-    static String verdict(Context context, String verdict, boolean retried) {
-        switch (verdict) {
-            case "PASS": return context.getString(retried
-                    ? R.string.self_test_passed_retry : R.string.self_test_passed);
-            case "FAIL": return context.getString(R.string.self_test_failed);
-            case "SKIP": return context.getString(R.string.self_test_skipped);
-            default: return context.getString(R.string.self_test_unfinished);
-        }
+    static String verdict(Context context, SelfTest.Test test) {
+        return context.getString(test.failed() ? R.string.self_test_failed
+                : test.passedOnRetry() ? R.string.self_test_passed_retry
+                : test.skippedOnly() ? R.string.self_test_skipped : R.string.self_test_passed);
+    }
+
+    /** One row for tests alike: their names, all of them in a dialog when pressed. */
+    private void group(PreferenceScreen screen, int title, List<String> names) {
+        if (names.isEmpty()) return;
+        final String heading = getString(title, names.size());
+        final String list = String.join(", ", names);
+        row(screen, heading, list, p -> {
+            SelfTestDetailFragment.message(requireContext(), heading, list);
+            return true;
+        }).setSummary(list);
     }
 
     public static class ConfirmDialog extends DialogFragment {

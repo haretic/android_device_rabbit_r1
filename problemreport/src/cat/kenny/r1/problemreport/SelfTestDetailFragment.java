@@ -29,12 +29,11 @@ public class SelfTestDetailFragment extends SettingsBasePreferenceFragment {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService mWorker = Executors.newSingleThreadExecutor();
 
-    static SelfTestDetailFragment forTest(String token, SelfTest.Test test) {
+    static SelfTestDetailFragment forTest(Context context, String token, SelfTest.Test test) {
         final Bundle args = new Bundle();
         args.putString(SelfTest.EXTRA_TOKEN, token);
         args.putString("name", test.name);
-        args.putString("verdict", test.verdict);
-        args.putBoolean("retried", test.retried);
+        args.putString("verdict", SelfTestFragment.verdict(context, test));
         args.putString("failures", String.join("\n", test.failures));
         args.putStringArrayList("shots", new ArrayList<>(test.shots));
         final SelfTestDetailFragment fragment = new SelfTestDetailFragment();
@@ -47,8 +46,7 @@ public class SelfTestDetailFragment extends SettingsBasePreferenceFragment {
         final Context context = requireContext();
         final Bundle args = requireArguments();
         final String name = args.getString("name");
-        final String verdict = SelfTestFragment.verdict(context,
-                args.getString("verdict", ""), args.getBoolean("retried"));
+        final String verdict = args.getString("verdict", "");
         final String failures = args.getString("failures", "");
         final PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
         setPreferenceScreen(screen);
@@ -110,7 +108,8 @@ public class SelfTestDetailFragment extends SettingsBasePreferenceFragment {
 
         ImagePreference(Context context, String name) {
             super(context);
-            setTitle(name);
+            // "smoke-dialog.png" shows as "dialog"
+            setTitle(name.replaceFirst("^smoke-", "").replaceFirst("\\.png$", ""));
             setSummary(R.string.self_test_loading_shot);
             setLayoutResource(R.layout.self_test_image);
             setSelectable(false);

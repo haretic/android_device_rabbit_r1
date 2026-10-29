@@ -68,7 +68,8 @@
     <string name="self_test_passed_retry">passed on retry</string>
     <string name="self_test_failed">failed</string>
     <string name="self_test_skipped">skipped</string>
-    <string name="self_test_unfinished">not finished</string>
+    <string name="self_test_skipped_group">Skipped - <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="self_test_passed_group">Passed - <xliff:g id="count">%1$d</xliff:g></string>
     <string name="self_test_loading_shot">Loading screenshot...</string>
     <string name="self_test_missing_shot">Screenshot unavailable</string>
     <string name="self_test_close">Close</string>
