@@ -5,7 +5,6 @@
     <string name="settings_summary">Share a drive, sound card, keyboard or mouse with a PC</string>
     <string name="service_subtype">Maintain a USB device session, bridge its audio and prepare drive images</string>
     <string name="back">Back</string>
-    <string name="back_arrow" translatable="false">←</string>
     <string name="forward_arrow" translatable="false">›</string>
     <string name="breadcrumb">Settings &gt; Connected devices</string>
     <string name="drive_title">USB drive or CD</string>
@@ -36,7 +35,7 @@
     <string name="no_images">No ISO or IMG images in this folder</string>
     <string name="images_explanation">ISO becomes a CD drive. IMG becomes a USB stick. Choose an image to review and start.</string>
     <string name="cd_description">CD drive - %1$s - %2$s</string>
-    <string name="drive_description">USB - %1$s - %2$s</string>
+    <string name="drive_description">USB drive - %1$s - %2$s</string>
     <string name="read_only">read-only</string>
     <string name="writable">writable</string>
     <string name="gb_format">%.1f GB</string>
@@ -45,7 +44,7 @@
     <string name="use_cd">Use this CD</string>
     <string name="use_drive">Use this USB drive</string>
     <string name="pc_cd">PC sees a CD drive - %1$s</string>
-    <string name="pc_drive">PC sees a USB - %1$s</string>
+    <string name="pc_drive">PC sees a USB drive - %1$s</string>
     <string name="access">Access</string>
     <string name="access_read_only">Read-only</string>
     <string name="access_writable">Writable</string>
@@ -102,7 +101,7 @@
     <string name="cancel_import">Cancel import</string>
     <string name="session_title">USB session</string>
     <string name="stop">Stop</string>
-    <string name="icon_button_label">\uFFFC %1$s</string>
+    <string name="icon_button_label">\uFFFC\u2002%1$s</string>
     <string name="stopping">Stopping USB session…</string>
     <string name="preparing">Preparing USB device…</string>
     <string name="pc_sees">THE PC SEES</string>
@@ -151,8 +150,8 @@
     <string name="recovery_error">USB cleanup is still needed. Use Stop to retry before starting another session.</string>
     <string name="format_error">The image could not be formatted. Check the folder and available space, then try again.</string>
     <string name="io_error">The image operation could not finish. Check the image and folder, then try again.</string>
-    <string name="sound_sub">PC audio through the R1 speaker and mic</string>
-    <string name="input_sub">Touchpad, wheel scrolling and typing</string>
+    <string name="sound_sub">PC sound out - R1 mic in</string>
+    <string name="input_sub">Type text or control the pointer</string>
     <string name="combine_sub">Share a drive and control the PC together</string>
     <string name="drive_budget">2 IN - 2 OUT, including adb</string>
     <string name="combo_budget">4 IN - 2 OUT, including adb</string>
@@ -162,7 +161,7 @@
     <string name="speaker">PC plays on R1 speaker</string>
     <string name="speaker_muted">Speaker muted - click to unmute</string>
     <string name="speaker_live">Speaker on - click to mute</string>
-    <string name="audio_guidance">Choose R1 USB Audio on the PC as its output or input. The mic starts muted. Stop ends both streams.</string>
+    <string name="audio_guidance">Choose R1 USB Audio as the PC output or input. Quick Settings &gt; USB devices also stops it.</string>
     <string name="audio_ready">Audio bridge ready - 48 kHz, 16-bit stereo</string>
     <string name="audio_waiting">Waiting for PC audio…</string>
     <string name="audio_error">Audio is unavailable. Check microphone permission and the PC audio selection, or Stop and retry.</string>
@@ -174,7 +173,7 @@
     <string name="type_text">Type text</string>
     <string name="left_click">Left click</string>
     <string name="right_click">Right click</string>
-    <string name="pointer_guidance">Wheel selects a direction. Side button moves the pointer 16 pixels. Reverse wheel from Up reaches Stop.</string>
+    <string name="pointer_guidance">Wheel selects a direction. Each side-button click moves the pointer 16 pixels. Touch is optional.</string>
     <string name="up">Up</string>
     <string name="right">Right</string>
     <string name="down">Down</string>
@@ -196,4 +195,25 @@
     <string name="level_db">%1$d dBFS</string>
     <string name="text_separator" translatable="false">\u0020-\u0020</string>
     <string name="input_connected">PC sees a keyboard and mouse</string>
+    <string name="input_connected_adb">PC sees a keyboard and mouse - adb kept on</string>
+    <string name="input_footer">QS USB devices tile also stops this session</string>
+    <string name="pointer_footer">Reverse wheel from Up reaches Stop</string>
+    <string name="typing_footer">Send text sends the draft once - no Enter added</string>
+    <string name="sound_footer">PC sees a sound card - adb kept on</string>
+    <string name="sound_footer_no_adb">PC sees a sound card</string>
+    <string name="touchpad_title">Touchpad</string>
+    <string name="touchpad_hint">Move a finger to move the PC pointer</string>
+    <string name="pointer_title">Wheel pointer control</string>
+    <string name="pointer_hint">Wheel chooses a direction below</string>
+    <string name="pointer_done">Done - return to touchpad</string>
+    <string name="scroll_pc">Scroll PC page</string>
+    <string name="scroll_pc_active">Scrolling PC - click to exit</string>
+    <string name="input_actions_hint">Click a left/right action with the side button.\nIn Scroll PC page: wheel scrolls - click to exit.</string>
+    <string name="typing_hint">Focus the target text box on the PC first.\nNothing is sent until you choose Send text.</string>
+    <string name="typing_keys_hint">Wheel moves through keys - side button types.\nUp to 60 English (US) characters.</string>
+    <string name="keyboard_layout">English (US) - match PC layout</string>
+    <string name="playback">PC playback</string>
+    <string name="mic_input">Mic input</string>
+    <string name="separate_session">Unavailable - needs a separate session</string>
+    <string name="input_pairing">Use the R1 to type on this PC</string>
 </resources>

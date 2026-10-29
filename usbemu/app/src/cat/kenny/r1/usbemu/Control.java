@@ -43,16 +43,21 @@ final class Control {
         while (relative.endsWith("/")) relative = relative.substring(0, relative.length() - 1);
         return "/data/media/0" + (relative.isEmpty() ? "" : "/" + relative);
     }
-    static void request(Context c, String action, Images image, boolean ro) {
+    static String request(Context c, String action, Images image, boolean ro) {
         Intent intent = new Intent(c, SessionService.class).setAction(action);
         if (image != null) intent.putExtra("image", image.name).putExtra("stamp", image.stamp);
         intent.putExtra("ro", ro);
-        c.startForegroundService(intent);
+        return submit(c, intent);
     }
-    static void create(Context c, String name, int gb, String fs, boolean use) {
-        c.startForegroundService(new Intent(c, SessionService.class).setAction("create")
+    static String create(Context c, String name, int gb, String fs, boolean use) {
+        return submit(c, new Intent(c, SessionService.class).setAction("create")
                 .putExtra("image", name + ".img").putExtra("size", gb)
                 .putExtra("fs", fs).putExtra("use", use));
+    }
+    static String submit(Context c, Intent intent) {
+        String token = java.util.UUID.randomUUID().toString();
+        c.startForegroundService(intent.putExtra("requestToken", token));
+        return token;
     }
     static boolean input() { return prop("st.session").endsWith("input"); }
     static String label(Context c) {

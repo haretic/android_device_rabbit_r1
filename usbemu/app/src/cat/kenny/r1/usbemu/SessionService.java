@@ -65,6 +65,8 @@ public final class SessionService extends Service {
         // independently of this process. Do not replay an image mutation.
         if (Control.busy(this)) {
             String pending = Control.prefs(this).getString("activeToken", "");
+            String requestToken = Control.prefs(this).getString("jobToken", "");
+            String job = Control.prefs(this).getString("job", "");
             queued++;
             worker.execute(() -> {
                 String error = "";
@@ -73,7 +75,7 @@ public final class SessionService extends Service {
                     else error = "interrupted";
                     recoverImport();
                 } catch (Exception e) { error = "interrupted"; }
-                complete(error);
+                complete(error, requestToken, job);
             });
         } else worker.execute(this::recoverImport);
         handler.postDelayed(monitor, 500);
@@ -83,6 +85,7 @@ public final class SessionService extends Service {
         if (android.os.UserHandle.myUserId() != 0) { stopSelf(); return START_NOT_STICKY; }
         if (intent == null) { notifySession(); return START_STICKY; }
         final String action = intent.getAction();
+        final String requestToken = intent.getStringExtra("requestToken");
         if ("observe".equals(action)) { syncAudio(); return START_STICKY; }
         if ("microphone".equals(action) || "speaker".equals(action)) {
             syncAudio();
@@ -106,14 +109,15 @@ public final class SessionService extends Service {
             if ("cancel".equals(action)) return START_STICKY;
             if (audio != null) { audio.close(); audio = null; audioGeneration = ""; }
             stopping = true;
-            Control.prefs(this).edit().putBoolean("busy", true).putString("job", "stop").apply();
+            Control.prefs(this).edit().putBoolean("busy", true).putString("job", "stop")
+                    .putString("jobToken", requestToken).apply();
             final String token = token();
             SystemProperties.set(Control.PREFIX + "req.stop", token);
             queued++;
             worker.execute(() -> {
                 String error = "";
                 try { await(token, 30000, false); } catch (IOException e) { error = e.getMessage(); }
-                complete(error);
+                complete(error, requestToken, action);
                 handler.post(() -> stopping = false);
             });
             return START_STICKY;
@@ -122,6 +126,7 @@ public final class SessionService extends Service {
         queued++;
         cancel = false;
         Control.prefs(this).edit().putBoolean("busy", true).putString("job", action)
+                .putString("jobToken", requestToken)
                 .putString("error", "").putInt("importPercent", 0)
                 .putString("jobImage", intent.getStringExtra("image"))
                 .putString("jobFs", intent.getStringExtra("fs"))
@@ -151,15 +156,17 @@ public final class SessionService extends Service {
                     default: throw new IOException("request");
                 }
             } catch (Exception e) { error = cancel ? "cancelled" : (e.getMessage() == null ? "io" : e.getMessage()); }
-            complete(error);
+            complete(error, requestToken, action);
         });
         return START_STICKY;
     }
 
-    private void complete(String error) {
+    private void complete(String error, String requestToken, String job) {
         handler.post(() -> {
             queued--;
             Control.prefs(this).edit().putBoolean("busy", queued > 0).putString("error", error)
+                    .putString("completionToken", requestToken).putString("completionJob", job)
+                    .putString("completionError", error)
                     .putLong("completion", Control.prefs(this).getLong("completion", 0) + 1).apply();
             notifySession();
             TileService.requestListeningState(this, new ComponentName(this, UsbTileService.class));
