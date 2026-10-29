@@ -31,7 +31,15 @@ public class SelfTestActivity extends CollapsingToolbarBaseActivity {
 
     private void showRun(Intent intent) {
         String token = SelfTest.token(intent.getStringExtra(SelfTest.EXTRA_TOKEN));
-        if (token.isEmpty()) token = SelfTest.current(this);
+        if (token.isEmpty()) {
+            token = SelfTest.current(this);
+            // The last run's results gone, or a start that never made them, is no run to show:
+            // the page offers a new one instead of saying it didn't start
+            if (!token.isEmpty() && !SelfTest.hasResults(this, token)) {
+                SelfTest.forget(this);
+                token = "";
+            }
+        }
         final Bundle args = new Bundle();
         args.putString(SelfTest.EXTRA_TOKEN, token);
         final SelfTestFragment fragment = new SelfTestFragment();

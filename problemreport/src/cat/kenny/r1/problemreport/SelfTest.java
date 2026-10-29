@@ -81,6 +81,13 @@ final class SelfTest {
         return token.equals(SystemProperties.get(CANCEL, ""));
     }
 
+    /** Whether a run's results are there, or it started too recently to have made them yet. */
+    static boolean hasResults(Context context, String token) {
+        final File dir = directory(token);
+        return dir != null && (dir.isDirectory()
+                || System.currentTimeMillis() - started(context, token) < START_TIMEOUT_MS);
+    }
+
     static void forget(Context context) {
         prefs(context).edit().remove(KEY_TOKEN).remove(KEY_STARTED).apply();
     }
