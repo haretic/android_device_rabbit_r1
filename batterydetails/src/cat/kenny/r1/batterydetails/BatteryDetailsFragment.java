@@ -121,6 +121,17 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         mHandler.postDelayed(mRefresh, REFRESH_MS);
     }
 
+    /**
+     * A signed reading, its minus a real minus sign that stands apart from the hyphen between a
+     * pair, and nought, as an idle battery's, with no sign at all rather than -0,0.
+     */
+    private String signed(int format, float value, int steps) {
+        final float rounded = Math.round(value * steps) / (float) steps;
+        final String text = getString(format, rounded == 0 ? 0f : rounded);
+        return rounded == 0 ? text.replaceFirst("^[+-]", "")
+                : text.replaceFirst("^-", "\u2212");
+    }
+
     private void show(Reading r) {
         mLast = r;
         mHeader.setText(r.percent == Reading.UNKNOWN ? getString(R.string.value_unknown)
@@ -129,12 +140,12 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         final String volts = r.millivolts == Reading.UNKNOWN ? getString(R.string.value_unknown)
                 : getString(R.string.value_volts, r.millivolts / 1000f);
         final String amps = r.microamps == Reading.UNKNOWN ? getString(R.string.value_unknown)
-                : getString(R.string.value_amps, r.microamps / 1e6f);
+                : signed(R.string.value_amps, r.microamps / 1e6f, 100);
         mVoltageCurrent.setValue(getString(R.string.value_pair, volts, amps));
 
         final String watts = r.millivolts == Reading.UNKNOWN || r.microamps == Reading.UNKNOWN
                 ? getString(R.string.value_unknown)
-                : getString(R.string.value_watts, r.millivolts / 1000f * r.microamps / 1e6f);
+                : signed(R.string.value_watts, r.millivolts / 1000f * r.microamps / 1e6f, 10);
         final String celsius = r.tenthsCelsius == Reading.UNKNOWN
                 ? getString(R.string.value_unknown)
                 : getString(R.string.value_celsius, r.tenthsCelsius / 10f);
