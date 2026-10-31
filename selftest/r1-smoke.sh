@@ -704,11 +704,15 @@ t_landpower() {
 t_noring() {
 	# An app the wheel opens the taskbar in shows no focus ring: the wheel can't move it there.
 	# The wheel used on home first, as a wheel user comes to an app
+	local saved; saved=$(lget wheel_app_modes)
 	key 3; sleep 1; wheel down 1 >/dev/null; sleep 0.5
-	# Contacts: no wheel mode of its own, its notification prompt answered so it opens on its page
+	# Contacts set to the taskbar, as an app with no wheel mode of its own is, its notification
+	# prompt answered so it opens on its page
+	lset wheel_app_modes com.android.contacts=taskbar
 	sh "pm grant com.android.contacts android.permission.POST_NOTIFICATIONS 2>/dev/null; am start -W -S -n com.android.contacts/.activities.PeopleActivity >/dev/null"; sleep 2.5; shot noring
 	dev "dumpsys window" | grep -m1 -o 'mInTouchMode=[a-z]*' | grep -q true \
 		&& ok "taskbar-mode app opens without a focus ring" || bad "taskbar-mode app shows a focus ring"
+	lset wheel_app_modes "$saved"
 	# Then on to an app the wheel moves through, untouched: the wheel is still the one in use
 	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
 	dev "dumpsys window" | grep -m1 -o 'mInTouchMode=[a-z]*' | grep -q false \
