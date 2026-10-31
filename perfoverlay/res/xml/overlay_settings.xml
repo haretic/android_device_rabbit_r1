@@ -22,8 +22,7 @@
         android:summary="%s"
         android:title="@string/overlay_position" />
 
-    <Preference
+    <com.android.settingslib.widget.FooterPreference
         android:key="about"
-        android:selectable="false"
-        android:summary="@string/overlay_about" />
+        android:title="@string/overlay_about" />
 </PreferenceScreen>
