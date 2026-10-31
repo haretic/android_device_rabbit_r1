@@ -30,8 +30,9 @@ import java.util.Map;
 
 /**
  * What the wheel does in each app, LineageSettings.Secure.WHEEL_APP_MODES (package=mode,
- * comma separated; taskbar, the default, is left out). The taskbar's Wheel mode button sets
- * the same for the app in front. Touch zones ("touch:X1:Y1:X2:Y2") are placed over the app
+ * comma separated; an app's default, from config_wheelAppModeDefaults or else taskbar, is
+ * left out, as SystemUI's WheelTaskbar has it). The taskbar's Wheel mode button sets the same
+ * for the app in front. Touch zones ("touch:X1:Y1:X2:Y2") are placed over the app
  * itself, in TouchZonesActivity.
  */
 public class AppModesFragment extends SettingsBasePreferenceFragment {
@@ -60,6 +61,7 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
         apps.sort((a, b) -> a.loadLabel(pm).toString()
                 .compareToIgnoreCase(b.loadLabel(pm).toString()));
         final Map<String, String> modes = read(requireContext());
+        final Map<String, String> defaults = defaults(requireContext());
         final List<String> done = new java.util.ArrayList<>();
         for (ResolveInfo app : apps) {
             final String pkg = app.activityInfo.packageName;
@@ -71,7 +73,7 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
             preference.setKey(pkg);
             preference.setTitle(app.loadLabel(pm));
             preference.setIcon(app.loadIcon(pm));
-            final String mode = modes.getOrDefault(pkg, "taskbar");
+            final String mode = modes.getOrDefault(pkg, defaults.getOrDefault(pkg, "taskbar"));
             preference.setSummary(label(mode));
             preference.setOnPreferenceClickListener(p -> {
                 pick(pkg, app.loadLabel(pm), mode);
@@ -101,7 +103,8 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
                     }
                     final Map<String, String> modes = read(requireContext());
                     modes.remove(pkg);
-                    if (which != 0) {
+                    if (!MODES[which].equals(
+                            defaults(requireContext()).getOrDefault(pkg, "taskbar"))) {
                         modes.put(pkg, MODES[which]);
                     }
                     write(requireContext(), modes);
@@ -187,6 +190,19 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
                 if (equals > 0) {
                     modes.put(entry.substring(0, equals), entry.substring(equals + 1));
                 }
+            }
+        }
+        return modes;
+    }
+
+    /** The device's default modes, which apply to an app with none of the user's. */
+    static Map<String, String> defaults(Context context) {
+        final Map<String, String> modes = new LinkedHashMap<>();
+        for (String entry : context.getResources().getStringArray(
+                com.android.internal.R.array.config_wheelAppModeDefaults)) {
+            final int equals = entry.indexOf('=');
+            if (equals > 0) {
+                modes.put(entry.substring(0, equals), entry.substring(equals + 1));
             }
         }
         return modes;
