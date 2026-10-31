@@ -80,6 +80,7 @@ PRODUCT_PACKAGES += \
     R1CompactRecorder \
     R1CompactAudioFX \
     R1CompactMessaging \
+    R1CompactSettingsIntelligence \
     R1CompactDocumentsUI \
     R1CompactContacts \
     R1CompactJelly \

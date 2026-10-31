@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Settings search: a result's icon slot, empty for most results, half as wide round its icon,
+     the titles not set far in from the search bar above them -->
+<resources>
+    <dimen name="dashboard_tile_image_margin">12dp</dimen>
+</resources>

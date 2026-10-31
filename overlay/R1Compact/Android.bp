@@ -95,3 +95,10 @@ runtime_resource_overlay {
     manifest: "manifests/Calculator.xml",
     resource_dirs: ["res"],
 }
+
+runtime_resource_overlay {
+    name: "R1CompactSettingsIntelligence",
+    vendor: true,
+    manifest: "manifests/SettingsIntelligence.xml",
+    resource_dirs: ["res-settingsintelligence"],
+}
