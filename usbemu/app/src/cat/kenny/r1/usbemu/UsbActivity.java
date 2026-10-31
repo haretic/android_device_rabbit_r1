@@ -36,7 +36,6 @@ import androidx.fragment.app.FragmentActivity;
 import cat.kenny.r1.wheel.WheelSelect;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /** Native rendition of the approved 01-06 mockups, using UsbMode's workflows. */
 public final class UsbActivity extends FragmentActivity {
@@ -438,7 +437,8 @@ public final class UsbActivity extends FragmentActivity {
                 s(image.readOnly ? R.string.read_only : R.string.writable));
     }
     private String size(long bytes) {
-        return String.format(Locale.getDefault(), bytes >= Images.GB ? s(R.string.gb_format) : s(R.string.mb_format),
+        // The format with its value: s() formats already, so a format fetched with it had none
+        return s(bytes >= Images.GB ? R.string.gb_format : R.string.mb_format,
                 bytes / (bytes >= Images.GB ? (double) Images.GB : 1048576.0));
     }
     private void reviewPage() {
