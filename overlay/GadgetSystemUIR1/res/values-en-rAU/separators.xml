@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The lock screen's charging line and a mode's details with hyphens between their parts,
+     not middle dots -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="keyguard_plugged_in_wireless"><xliff:g id="percentage" example="20%">%s</xliff:g> - Charging wirelessly</string>
+    <string name="keyguard_plugged_in_dock"><xliff:g id="percentage" example="20%">%s</xliff:g> - Charging</string>
+    <string name="keyguard_plugged_in"><xliff:g id="percentage" example="20%">%s</xliff:g> - Charging</string>
+    <string name="keyguard_plugged_in_charging_fast"><xliff:g id="percentage" example="20%">%s</xliff:g> - Charging rapidly</string>
+    <string name="keyguard_plugged_in_charging_slowly"><xliff:g id="percentage" example="20%">%s</xliff:g> - Charging slowly</string>
+    <string name="keyguard_plugged_in_charging_limited"><xliff:g id="percentage" example="20%">%s</xliff:g> - Charging on hold to protect battery</string>
+    <string name="keyguard_plugged_in_incompatible_charger"><xliff:g id="percentage" example="20%">%s</xliff:g> - Check charging accessory</string>
+    <string name="keyguard_indication_charging_time_wireless"><xliff:g id="percentage" example="20%">%2$s</xliff:g> - Charging wirelessly - Full in <xliff:g id="charging_time_left" example="4 hr, 2 min">%1$s</xliff:g></string>
+    <string name="keyguard_indication_charging_time"><xliff:g id="percentage" example="20%">%2$s</xliff:g> - Charging - Full in <xliff:g id="charging_time_left" example="4 hr, 2 min">%1$s</xliff:g></string>
+    <string name="keyguard_indication_charging_time_fast"><xliff:g id="percentage" example="20%">%2$s</xliff:g> - Charging rapidly - Full in <xliff:g id="charging_time_left" example="4 hr, 2 min">%1$s</xliff:g></string>
+    <string name="keyguard_indication_charging_time_slowly"><xliff:g id="percentage" example="20%">%2$s</xliff:g> - Charging slowly - Full in <xliff:g id="charging_time_left" example="4 hr, 2 min">%1$s</xliff:g></string>
+    <string name="keyguard_indication_charging_time_dock"><xliff:g id="percentage" example="20%">%2$s</xliff:g> - Charging - Full in <xliff:g id="charging_time_left" example="4 hr, 2 min">%1$s</xliff:g></string>
+    <string name="zen_mode_on_with_details">On - <xliff:g id="trigger_description" example="Mon-Fri, 23:00-7:00">%1$s</xliff:g></string>
+</resources>
