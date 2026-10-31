@@ -634,6 +634,11 @@ t_ime() {
 	side_press; sleep 1.5; shot ime-press
 	dev "dumpsys input_method" | grep -q 'mInputShown=true' && ok "side button on the address brings the keyboard" \
 		|| bad "side button on the address left the keyboard down"
+	# A step off the field puts the keyboard away: the wheel goes through the page, not typing.
+	# Two, as the browser's address comes all selected and the first step only drops that
+	wheel down 2 >/dev/null; sleep 1.5; shot ime-step
+	dev "dumpsys input_method" | grep -q 'mInputShown=true' && bad "a step off the address left the keyboard up" \
+		|| ok "a step off the address puts the keyboard away"
 	lset wheel_app_modes "$saved"
 	key 4; key 4; key 3
 	# Nor in the taskbar mode, where the browser opens as if touched
