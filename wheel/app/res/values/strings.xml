@@ -95,8 +95,6 @@
     <string name="timeout_10">After 10 seconds</string>
     <string name="timeout_never">Never</string>
 
-    <string name="double_press_title">Double-press the side button</string>
-    <string name="double_press_summary">Opens the taskbar from any app</string>
     <string name="labels_title">Labels</string>
     <string name="labels_summary">The name of the focused button beside it</string>
     <string name="haptics_title">Ticks</string>
@@ -189,7 +187,6 @@
         <item>1</item>
         <item>2</item>
     </string-array>
-    <string name="cat_feel">Feel</string>
     <string name="distance_title">Scroll distance</string>
     <string-array name="distance_entries">
         <item>Short</item>
@@ -237,10 +234,9 @@
     <string name="turn_summary_on">With the screen upside down or turned right, the wheel still moves towards the top and start of the screen as it did</string>
     <string name="turn_summary_off">The wheel goes the same way whichever way the screen turns</string>
     <string name="feel_footer">Scroll distance and spin acceleration apply where the wheel scrolls the app smoothly. The press guard drops the wheel\'s steps a press of the side button nudges.</string>
-    <string name="side_button_title">Side button</string>
     <string name="side_button_press">Side button press</string>
     <string name="side_button_hold">Side button hold</string>
-    <string name="side_button_note">Always opens the taskbar. A press wakes the screen when off; in a wheel list it picks the focused item. App wheel modes keep Enter or play/pause. The choices above apply while the wheel UI is on.</string>
+    <string name="side_button_note">A double press always opens the taskbar. A press wakes the screen when off; in a wheel list it picks the focused item. App wheel modes keep Enter or play/pause. The choices above apply while the wheel UI is on.</string>
     <string name="side_button_nothing">Nothing</string>
     <string name="side_button_back">Back</string>
     <string name="side_button_home">Home</string>

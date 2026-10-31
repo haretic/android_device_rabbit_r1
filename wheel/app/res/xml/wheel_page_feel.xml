@@ -3,9 +3,8 @@
 <!-- How the wheel turns, a page of Taskbar and wheel; WheelFragment binds every LineageSettings.Secure key in it. -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-        android:key="feel"
-        android:title="@string/cat_feel">
+    <!-- No heading: it would only repeat the page's title -->
+    <PreferenceCategory android:key="feel">
         <ListPreference
             android:key="wheel_scroll_distance"
             android:title="@string/distance_title"
@@ -35,9 +34,10 @@
             android:summaryOn="@string/turn_summary_on"
             android:summaryOff="@string/turn_summary_off"
             android:persistent="false" />
-        <Preference
-            android:key="feel_footer"
-            android:summary="@string/feel_footer"
-            android:selectable="false" />
     </PreferenceCategory>
+
+    <!-- A note, as the side button's, not a card of its own -->
+    <com.android.settingslib.widget.FooterPreference
+        android:key="feel_footer"
+        android:title="@string/feel_footer" />
 </PreferenceScreen>

@@ -3,9 +3,8 @@
 <!-- The side button, a page of Taskbar and wheel; WheelFragment binds every LineageSettings.Secure key in it. -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-        android:key="side_button"
-        android:title="@string/side_button_title">
+    <!-- No heading: it would only repeat the page's title -->
+    <PreferenceCategory android:key="side_button">
         <ListPreference
             android:key="wheel_side_button_press"
             android:title="@string/side_button_press"
@@ -18,10 +17,11 @@
             android:entries="@array/side_button_action_entries"
             android:entryValues="@array/side_button_action_values"
             android:persistent="false" />
-        <Preference
-            android:key="double_press"
-            android:title="@string/double_press_title"
-            android:summary="@string/side_button_note"
-            android:selectable="false" />
     </PreferenceCategory>
+
+    <!-- What the double press and a press do besides: a note, not a greyed-out row that reads
+         as a setting switched off -->
+    <com.android.settingslib.widget.FooterPreference
+        android:key="double_press"
+        android:title="@string/side_button_note" />
 </PreferenceScreen>
