@@ -4,15 +4,22 @@ package cat.kenny.r1.performance;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemProperties;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.format.Formatter;
+import android.text.style.ImageSpan;
 
+import androidx.preference.DialogPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceGroup;
 import androidx.preference.SwitchPreferenceCompat;
 
 import cat.kenny.r1.wheel.WheelSelect;
@@ -62,6 +69,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.kernel_tweaks, rootKey);
         final Context context = requireContext();
+        dotsInTitles(getPreferenceScreen());
 
         mEnabled = findPreference(KernelTweaks.ENABLED);
         mEnabled.setOnPreferenceChangeListener((p, value) -> {
@@ -237,6 +245,37 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
             WheelSelect.attach(dialog);
             return true;
         });
+    }
+
+    /**
+     * Puts each tweak's risk dot before its title, on the title's line: as the row's icon it sat
+     * centred against the whole row, halfway down a long summary, and took a column of its own.
+     */
+    private void dotsInTitles(PreferenceGroup group) {
+        final int gap = Math.round(8 * getResources().getDisplayMetrics().density);
+        for (int i = 0; i < group.getPreferenceCount(); i++) {
+            final Preference preference = group.getPreference(i);
+            preference.setIconSpaceReserved(false);
+            if (preference instanceof PreferenceGroup child) {
+                dotsInTitles(child);
+            }
+            final Drawable dot = preference.getIcon();
+            if (dot == null) {
+                continue;
+            }
+            final CharSequence title = preference.getTitle();
+            if (preference instanceof DialogPreference dialog && dialog.getDialogTitle() == null) {
+                dialog.setDialogTitle(title);
+            }
+            // U+FFFC, which a screen reader leaves out
+            final SpannableString text = new SpannableString("\uFFFC" + title);
+            final Drawable inset = new InsetDrawable(dot, 0, 0, gap, 0);
+            inset.setBounds(0, 0, dot.getIntrinsicWidth() + gap, dot.getIntrinsicHeight());
+            text.setSpan(new ImageSpan(inset, ImageSpan.ALIGN_CENTER), 0, 1,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            preference.setIcon(null);
+            preference.setTitle(text);
+        }
     }
 
     @Override
