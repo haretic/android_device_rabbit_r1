@@ -6,11 +6,12 @@
     <!-- Persistent: screen on/off broadcasts only reach registered receivers. -->
     <application android:name=".RadioSleep" android:persistent="true"
         android:label="@string/app_name" android:allowBackup="false"
-        android:directBootAware="true" android:theme="@android:style/Theme.DeviceDefault.Settings">
+        android:directBootAware="true" android:supportsRtl="true">
         <receiver android:name=".SleepReceiver" android:exported="false"
             android:directBootAware="true" />
         <activity android:name=".RadioSleepActivity" android:exported="true"
-            android:permission="android.permission.DEVICE_POWER">
+            android:permission="android.permission.DEVICE_POWER"
+            android:theme="@style/Theme.SubSettingsBase.Expressive">
             <intent-filter>
                 <action android:name="com.android.settings.action.IA_SETTINGS" />
             </intent-filter>

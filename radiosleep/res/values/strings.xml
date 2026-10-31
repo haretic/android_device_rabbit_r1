@@ -6,5 +6,6 @@
     <string name="never">Never</string>
     <string name="minutes">%d min</string>
     <string name="on_charger">Also while charging</string>
+    <string name="on_charger_summary">Off: the radios stay on while the r1 charges</string>
     <string name="explanation">Once the screen has been off this long, airplane mode switches the radios off. Turning the screen on ends it, and Wi‑Fi and Bluetooth come back as they were. Airplane mode you turned on yourself is left alone.</string>
 </resources>

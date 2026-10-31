@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
+// Settings > Battery > Radios in sleep: airplane mode once the screen has been off a while,
+// a Settings page like the others, the wheel working on it.
 android_app {
     name: "R1RadioSleep",
+    defaults: ["SettingsLibDefaults"],
     system_ext_specific: true,
     certificate: "platform",
-    sdk_version: "system_current",
-    min_sdk_version: "35",
+    platform_apis: true,
     srcs: ["src/**/*.java"],
     resource_dirs: ["res"],
     manifest: "AndroidManifest.xml",
+    static_libs: [
+        "androidx.preference_preference",
+        "SettingsLibPreference",
+        "r1-wheelselect",
+    ],
     optimize: { enabled: false },
 }

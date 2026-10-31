@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Kept in RadioSleep.prefs(), which the screen-off receiver reads before the user unlocks:
+     the rows store nothing themselves (RadioSleepFragment) -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:key="minutes"
+        android:title="@string/after"
+        android:dialogTitle="@string/after"
+        android:persistent="false" />
+
+    <SwitchPreferenceCompat
+        android:key="on_charger"
+        android:title="@string/on_charger"
+        android:summary="@string/on_charger_summary"
+        android:persistent="false" />
+
+    <com.android.settingslib.widget.FooterPreference
+        android:key="explanation"
+        android:title="@string/explanation" />
+</PreferenceScreen>
