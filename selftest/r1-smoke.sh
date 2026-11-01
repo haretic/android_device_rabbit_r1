@@ -823,6 +823,18 @@ t_plaintext() {
 	key 4; key 3
 }
 
+t_dialpad() {
+	# The Dialer's empty number field: a step goes down onto the keypad, not onto the empty
+	# speed dial hidden under it, which left the wheel stuck with nothing in sight
+	sh "am start -W -S -a android.intent.action.DIAL >/dev/null 2>&1"; sleep 3
+	wheel down 1 >/dev/null; sleep 0.8; ui dialpad; shot dialpad
+	case "$(focus_field dialpad 5)" in
+		*:id/one|*:id/two|*:id/three) ok "Dialer: from the number field the wheel goes onto the keypad" ;;
+		*) bad "Dialer: from the number field the wheel went to $(focus_field dialpad 5)" ;;
+	esac
+	key 4; key 4; key 3
+}
+
 t_offcamera() {
 	# From the screen off, the side button's double press opens the camera, as a phone's does
 	key 223; sleep 2
@@ -1104,7 +1116,7 @@ t_gallery() {
 	key 4; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext dialpad offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
