@@ -803,6 +803,26 @@ t_wifidialog() {
 	key 4; key 4; key 3
 }
 
+t_plaintext() {
+	# Text made focusable only to be read, as Notification history's turned off, is no stop:
+	# past the switch the wheel scrolls, the focus kept on the switch
+	# History off for its text, then back as it was
+	local saved n at stuck=; saved=$(dev "settings get secure notification_history_enabled")
+	sh "settings put secure notification_history_enabled 0"
+	sh "am start -W -S -a android.settings.NOTIFICATION_HISTORY >/dev/null 2>&1"; sleep 3
+	# Each step, as at the page's end, where the scroller would take the step itself
+	for n in 1 2 3 4; do
+		wheel down 1 >/dev/null; sleep 0.8; ui plaintext
+		at=$(focus_field plaintext 5)
+		case "$at" in *history_off*|*history_toggled*) stuck="$stuck $n" ;; esac
+	done
+	shot plaintext
+	[ -z "$stuck" ] && ok "Notification history: the wheel steps over its text" \
+		|| bad "Notification history: the wheel stopped on its text (steps$stuck)"
+	sh "settings put secure notification_history_enabled $saved"
+	key 4; key 3
+}
+
 t_offcamera() {
 	# From the screen off, the side button's double press opens the camera, as a phone's does
 	key 223; sleep 2
@@ -1084,7 +1104,7 @@ t_gallery() {
 	key 4; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
