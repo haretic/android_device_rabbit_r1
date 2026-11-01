@@ -780,6 +780,13 @@ t_appdefaults() {
 	wheel down 1 >/dev/null; sleep 0.8
 	dev "dumpsys window" | grep -m1 'mCurrentFocus' | grep -q calculator2 \
 		&& ok "Calculator: the wheel moves the highlight" || bad "Calculator: the wheel left the app"
+	# From AC, where the first step lands, along its row, not down its column: its keys are in a
+	# scroller
+	wheel down 1 >/dev/null; sleep 0.8; ui calcrow
+	case "$(focus_field calcrow 5)" in
+		*/paren) ok "Calculator: from AC the wheel goes along the row" ;;
+		*) bad "Calculator: from AC the wheel went to $(focus_field calcrow 5)" ;;
+	esac
 	key 4; key 3
 }
 
