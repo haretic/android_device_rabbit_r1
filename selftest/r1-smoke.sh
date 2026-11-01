@@ -790,6 +790,19 @@ t_appdefaults() {
 	key 4; key 3
 }
 
+t_wifidialog() {
+	# Wi-Fi's Add network, its fields in an app's own scroller: a step off the network name puts
+	# the keyboard away, as anywhere, and goes on to the button beside it, along the row
+	sh "am start -W -a com.android.settings.WIFI_DIALOG >/dev/null 2>&1"; sleep 3
+	side_press; sleep 1.5
+	wheel down 1 >/dev/null; sleep 1.5; ui wifistep; shot wifistep
+	dev "dumpsys input_method" | grep -q 'mInputShown=true' && bad "Add network: a step off the name left the keyboard up" \
+		|| ok "Add network: a step off the name puts the keyboard away"
+	[ "$(focus_field wifistep 5)" = com.android.settings:id/ssid ] \
+		&& bad "Add network: the step stayed on the name" || ok "Add network: the step goes on from the name"
+	key 4; key 4; key 3
+}
+
 t_offcamera() {
 	# From the screen off, the side button's double press opens the camera, as a phone's does
 	key 223; sleep 2
@@ -1071,7 +1084,7 @@ t_gallery() {
 	key 4; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
