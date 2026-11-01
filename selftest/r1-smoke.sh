@@ -823,6 +823,31 @@ t_plaintext() {
 	key 4; key 3
 }
 
+t_timepicker() {
+	# The alarm's time picker: the side button grabs the hour and the wheel sets it, the hour
+	# kept when the focus moves on, where the wheel only stepped past the touch clock face
+	local i h0 h1
+	sh "am start -W -S -n com.android.deskclock/.HandleApiCalls -a android.intent.action.SHOW_ALARMS >/dev/null 2>&1"; sleep 3
+	for i in 1 2 3 4 5 6; do
+		wheel down 1 >/dev/null; sleep 0.6; ui timepicker
+		case "$(focus_field timepicker 5)" in *:id/fab*) break ;; esac
+	done
+	side_press; sleep 2; ui timepicker
+	h0=$(focus_field timepicker 7)
+	side_press; wheel down 1 >/dev/null; sleep 0.8; side_press; wheel down 1 >/dev/null; sleep 0.8
+	ui timepicker; shot timepicker
+	h1=$(xnodes timepicker | awk -F '\t' '$5 ~ /:id\/hours$/ { print $7; exit }')
+	case "$h0$h1" in
+		*[!0-9]*|'') bad "time picker: no hour to read ('$h0', '$h1')" ;;
+		*) if [ $((10#$h1)) -eq $(((10#$h0 + 1) % 24)) ]; then
+				ok "time picker: the wheel sets the grabbed hour, kept as the focus moves on"
+			else
+				bad "time picker: the hour went $h0 to $h1, not one on"
+			fi ;;
+	esac
+	key 4; key 4; key 3
+}
+
 t_dialpad() {
 	# The Dialer's empty number field: a step goes down onto the keypad, not onto the empty
 	# speed dial hidden under it, which left the wheel stuck with nothing in sight
@@ -1116,7 +1141,7 @@ t_gallery() {
 	key 4; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext dialpad offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
