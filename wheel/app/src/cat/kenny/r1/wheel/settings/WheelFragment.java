@@ -49,6 +49,7 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_LIST_END, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_TIMEOUT, 3),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_LABELS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_POWER_LINGER, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_HAPTICS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_SOUNDS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_TASKBAR_ANIMATIONS, 2),

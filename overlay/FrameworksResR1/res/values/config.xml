@@ -82,6 +82,10 @@
         <item>com.android.messaging=app</item>
         <item>org.lineageos.recorder=app</item>
         <item>org.lineageos.twelve=app</item>
+        <!-- Installed apps that work with the highlight: Droid-ify, the app store, whose
+             toolbar, menus and app rows it goes through, where in taskbar mode every step
+             only brought the taskbar -->
+        <item>com.looker.droidify=app</item>
         <!-- Home: the wheel goes through the list and its tabs; the side button's double press
              still brings the taskbar -->
         <item>com.android.launcher3=app</item>

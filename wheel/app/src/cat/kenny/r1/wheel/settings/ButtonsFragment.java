@@ -27,7 +27,7 @@ import java.util.List;
 public class ButtonsFragment extends SettingsBasePreferenceFragment {
 
     static final String[] DEFAULT = {
-        "home", "drawer", "apps", "notifications", "mode", "power",
+        "back", "home", "drawer", "apps", "notifications", "mode", "power",
     };
 
     @Override
@@ -149,6 +149,7 @@ public class ButtonsFragment extends SettingsBasePreferenceFragment {
 
     private static CharSequence label(Context context, String name) {
         return context.getString(switch (name) {
+            case "back" -> R.string.button_back;
             case "home" -> R.string.button_home;
             case "drawer" -> R.string.button_drawer;
             case "apps" -> R.string.button_apps;

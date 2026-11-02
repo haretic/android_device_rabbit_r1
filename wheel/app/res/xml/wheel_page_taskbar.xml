@@ -51,6 +51,11 @@
             android:summary="@string/labels_summary"
             android:persistent="false" />
         <SwitchPreferenceCompat
+            android:key="wheel_taskbar_power_linger"
+            android:title="@string/power_linger_title"
+            android:summary="@string/power_linger_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
             android:key="wheel_taskbar_haptics"
             android:title="@string/haptics_title"
             android:summary="@string/haptics_summary"

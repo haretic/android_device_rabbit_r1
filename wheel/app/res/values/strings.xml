@@ -23,6 +23,7 @@
     <string name="cat_look">Look</string>
 
     <string name="buttons_title">Buttons and order</string>
+    <string name="button_back">Back</string>
     <string name="button_home">Home</string>
     <string name="button_drawer">All apps</string>
     <string name="button_apps">Pinned and running apps</string>
@@ -97,6 +98,8 @@
 
     <string name="labels_title">Labels</string>
     <string name="labels_summary">The name of the focused button beside it</string>
+    <string name="power_linger_title">Power options on a pause</string>
+    <string name="power_linger_summary">Resting the highlight on Power shows its options in the bar; a press opens the power menu</string>
     <string name="haptics_title">Ticks</string>
     <string name="haptics_summary">A tick for every step of the wheel, in apps too</string>
     <string name="sounds_title">Clicks</string>
