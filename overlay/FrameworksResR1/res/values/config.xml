@@ -82,6 +82,8 @@
         <item>com.android.dialer=app</item>
         <item>com.android.contacts=app</item>
         <item>org.lineageos.glimpse=app</item>
+        <!-- The camera: the wheel zooms, a press takes the photo -->
+        <item>org.lineageos.aperture=zoom</item>
         <item>com.android.documentsui=app</item>
         <item>org.lineageos.etar=app</item>
         <item>com.android.calculator2=app</item>

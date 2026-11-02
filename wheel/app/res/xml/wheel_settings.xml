@@ -29,26 +29,6 @@
     </Preference>
 
     <PreferenceCategory
-        android:key="guidance"
-        android:title="@string/cat_guidance">
-        <SwitchPreferenceCompat
-            android:key="wheel_guide_hints"
-            android:title="@string/hints_title"
-            android:summary="@string/hints_summary"
-            android:persistent="false" />
-        <ListPreference
-            android:key="wheel_guide_legend"
-            android:title="@string/legend_title"
-            android:entries="@array/legend_entries"
-            android:entryValues="@array/legend_values"
-            android:persistent="false" />
-        <Preference
-            android:key="hints_again"
-            android:title="@string/hints_again_title"
-            android:summary="@string/hints_again_summary" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
         android:key="pages"
         android:title="@string/cat_customise">
         <Preference
@@ -83,5 +63,25 @@
             android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
             <extra android:name="page" android:value="parts" />
         </Preference>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="guidance"
+        android:title="@string/cat_guidance">
+        <SwitchPreferenceCompat
+            android:key="wheel_guide_hints"
+            android:title="@string/hints_title"
+            android:summary="@string/hints_summary"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_guide_legend"
+            android:title="@string/legend_title"
+            android:entries="@array/legend_entries"
+            android:entryValues="@array/legend_values"
+            android:persistent="false" />
+        <Preference
+            android:key="hints_again"
+            android:title="@string/hints_again_title"
+            android:summary="@string/hints_again_summary" />
     </PreferenceCategory>
 </PreferenceScreen>

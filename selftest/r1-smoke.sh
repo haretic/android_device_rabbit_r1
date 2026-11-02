@@ -507,6 +507,15 @@ t_tour() {
 	# A second double press shuts it
 	side_double; sleep 2; shot tour-6
 	focus_win | grep -q WheelTaskbar && bad "second double press left the taskbar open" || ok "second double press shuts the taskbar"
+	# The slider: a press grabs it, a turn sets it, a press lets go
+	side_press; sleep 0.8; wheel down 2; sleep 0.5; side_press; sleep 1.8; shot tour-7
+	# Back: the taskbar opened and shut, then Back
+	side_double; sleep 1; side_double; sleep 1; key 4; sleep 1.8; shot tour-8
+	# Power options told of, the help page opened and left
+	side_press; sleep 1.5; side_press; sleep 2.5
+	focus_win | grep -q WheelActivity && ok "the tour opens the help page" || bad "no help page from the tour ($(focus_win))"
+	key 4; sleep 2; shot tour-9
+	focus_win | grep -q TourActivity && ok "back from help, back in the tour" || bad "help left the tour ($(focus_win))"
 	side_press; sleep 1.5
 	focus_win | grep -q TourActivity && bad "tour did not finish ($(focus_win))" || ok "tour finished"
 	sh "am force-stop com.android.launcher3; input keyevent 3"; sleep 2
@@ -652,7 +661,7 @@ t_subpage() {
 	# A page opened inside the window, as Wheel settings' subpages are, starts on the page too:
 	# never on its back arrow
 	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
-	wheel down 2 >/dev/null; sleep 0.5; side_press; sleep 2; ui subpage
+	wheel down 3 >/dev/null; sleep 0.5; side_press; sleep 2; ui subpage
 	local f; f=$(focused_in subpage)
 	case "$f" in
 		ImageButton*|"") bad "subpage opened on '${f:-nothing}'" ;;
@@ -746,7 +755,7 @@ t_choicelist() {
 	# A dialog's list of choices keeps the focus itself and the wheel moves its selection: the
 	# ring shows the row, so a step changes the picture
 	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
-	wheel down 4 >/dev/null; sleep 0.6; side_press; sleep 2
+	wheel down 5 >/dev/null; sleep 0.6; side_press; sleep 2
 	wheel down 2 >/dev/null; sleep 0.5; side_press; sleep 1.5; shot choice0; rawshot choice0
 	wheel down 1 >/dev/null; sleep 0.8; shot choice1; rawshot choice1
 	# Under the status bar, whose clock may tick
@@ -755,7 +764,7 @@ t_choicelist() {
 	key 4; sleep 0.5; key 4; key 4
 	# Opened, such a list starts on what is set: the side button's hold, Back by default
 	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
-	wheel down 2 >/dev/null; sleep 0.6; side_press; sleep 2
+	wheel down 3 >/dev/null; sleep 0.6; side_press; sleep 2
 	wheel down 1 >/dev/null; sleep 0.5; side_press; sleep 1.5; ui choiceset
 	local sel; sel=$(grep -o '<node [^>]*selected="true"[^>]*>' $SHOTS/smoke-choiceset.xml | grep -o 'text="[^"]*"' | head -1)
 	local set; set=$(grep -o '<node [^>]*checked="true"[^>]*>' $SHOTS/smoke-choiceset.xml | grep -o 'text="[^"]*"' | head -1)
@@ -767,7 +776,7 @@ t_choicelist() {
 t_title() {
 	# Back from a page opened in place, the title is the page's again, not the one left
 	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
-	wheel down 3 >/dev/null; sleep 0.6; side_press; sleep 2; shot title0; rawshot title0
+	wheel down 4 >/dev/null; sleep 0.6; side_press; sleep 2; shot title0; rawshot title0
 	side_press; sleep 2; key 4; sleep 1.5; shot title1; rawshot title1
 	! shots_differ title0 title1 80 30 480 80 && ok "back from a page, the title is the page's again" \
 		|| bad "back from a page, the title is the one left"

@@ -211,7 +211,6 @@ public class TourActivity extends Activity {
         mHint.setText(texts[page][2]);
         mNext.setText(page == DONE ? R.string.tour_finish
                 : page == HELP ? R.string.tour_help_open : R.string.tour_next);
-        mNext.setVisibility(page == SLIDER || page == BACK ? View.GONE : View.VISIBLE);
         mRows.setVisibility(page == TURN || page == PRESS ? View.VISIBLE : View.GONE);
         mSlider.setVisibility(page == SLIDER ? View.VISIBLE : View.GONE);
         mSlider.setProgress(5);
