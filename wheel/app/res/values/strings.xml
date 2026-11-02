@@ -258,6 +258,44 @@
         <item>0</item><item>1</item><item>2</item><item>3</item><item>4</item><item>5</item>
     </string-array>
 
+    <!-- Help: short notes, with links to the settings they describe -->
+    <string name="help_title">How the wheel works</string>
+    <string name="help_summary">Controls, taskbar, modes and the lock screen</string>
+    <string name="help_turn_title">Turn - move the highlight</string>
+    <string name="help_turn_summary">The ring shows what you can pick. Change wheel feel and direction here.</string>
+    <string name="help_press_title">Press - pick</string>
+    <string name="help_press_summary">Press the side button to click the highlighted item. Change the side button here.</string>
+    <string name="help_hold_title">Hold - options</string>
+    <string name="help_hold_summary">Hold the side button for the item\'s options, like a long press. Change the side button here.</string>
+    <string name="help_double_press_title">Double press - taskbar</string>
+    <string name="help_double_press_summary">Open the taskbar from any app. Change its edge and timing here.</string>
+    <string name="help_grab_title">Grab - turn - let go</string>
+    <string name="help_grab_summary">Sliders, time and date pickers: press to grab, turn to set, press or pause to let go.</string>
+    <string name="help_back_summary">Taskbar - go back a screen. Show, hide or reorder the bar\'s buttons here.</string>
+    <string name="help_buttons_title">More taskbar buttons</string>
+    <string name="help_buttons_summary">Home - home screen\nAll apps - app list\nPinned and running apps - switch apps\nNotifications - alerts\nChange buttons and order here.</string>
+    <string name="help_mode_summary">Taskbar - choose this app\'s mode: move the highlight, scroll, zoom, volume or media. Change app modes here.</string>
+    <string name="help_power_summary">Taskbar - press for the power menu. Rest the highlight on Power for a second for options in the bar. Change this here.</string>
+    <string name="help_pin_title">Lock screen - dial and 123</string>
+    <string name="help_pin_summary">Turn the combination dial with the wheel to enter your PIN. Tap 123 for touch number keys. Turn before typing to return to the dial. Change the PIN control here.</string>
+    <string name="help_tour_summary">Try the controls again, any time</string>
+
+    <string name="cat_guidance">Guidance</string>
+    <string name="hints_title">Hints</string>
+    <string name="hints_summary">One-time tips when you can try something new</string>
+    <string name="legend_title">Legend</string>
+    <string name="legend_summary">A small strip for turn, press and hold - %1$s</string>
+    <string-array name="legend_entries" translatable="false">
+        <item>@string/legend_off</item><item>@string/legend_mode_change</item><item>@string/legend_always</item>
+    </string-array>
+    <string-array name="legend_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
+    <string name="legend_off">Off</string>
+    <string name="legend_mode_change">Briefly on mode change</string>
+    <string name="legend_always">Always</string>
+    <string name="hints_again_title">Show hints again</string>
+    <string name="hints_again_summary">Let first-time tips appear again when Hints is on</string>
+    <string name="hints_again_done">Hints are ready to show again</string>
+
     <!-- TourActivity: the first-run tour of the wheel and the side button -->
     <string name="tour_title">Wheel tour</string>
     <string name="tour_summary">How the wheel and the side button work</string>
@@ -267,21 +305,36 @@
     <string name="tour_finish">Done</string>
     <string name="tour_well_done">That\'s it</string>
     <string name="tour_welcome_title">Made for the wheel</string>
-    <string name="tour_welcome_body">Everything on this gadget works with the wheel and the side button. Touch works too. Four things to know, about a minute.</string>
+    <string name="tour_welcome_body">Try the wheel and side button, one step at a time. Touch works too.</string>
     <string name="tour_welcome_hint">Press the side button to start</string>
     <string name="tour_turn_title">Turn to move</string>
     <string name="tour_turn_body">The wheel moves the highlight from one item to the next. Lists scroll along.</string>
     <string name="tour_turn_hint">Turn the wheel a few steps</string>
     <string name="tour_press_title">Press to pick</string>
-    <string name="tour_press_body">A press of the side button opens what is highlighted. Where nothing is, it opens the taskbar.</string>
+    <string name="tour_press_body">A press of the side button clicks the highlighted item.</string>
     <string name="tour_press_hint">Pick a row with the side button</string>
-    <string name="tour_hold_title">Hold to go back</string>
-    <string name="tour_hold_body">Hold the side button for a moment to go back a step, out of any app.</string>
+    <string name="tour_hold_title">Hold for options</string>
+    <string name="tour_hold_body">Hold the side button for an item\'s options, like a long press. Try a hold now.</string>
     <string name="tour_hold_hint">Hold the side button</string>
     <string name="tour_hold_again">Keep it held a little longer</string>
     <string name="tour_taskbar_title">Press twice for the taskbar</string>
-    <string name="tour_taskbar_body">A quick double press opens the taskbar from anywhere: home, all apps, your recent apps, notifications and power. Double-press again, or hold, to close it.</string>
-    <string name="tour_taskbar_hint">Double-press to open the taskbar</string>
+    <string name="tour_taskbar_body">Double press the side button to open the taskbar from any app. It has Back, Home, All apps and more. Double press again to close it.</string>
+    <string name="tour_taskbar_hint">Double press to open the taskbar</string>
+    <string name="tour_slider_title">Grab a slider</string>
+    <string name="tour_slider_body">Press to grab this slider, turn to change it, then press to let go. Time and date pickers use the same steps.</string>
+    <string name="tour_slider_hint">Press to grab</string>
+    <string name="tour_slider_turn">Turn to change it</string>
+    <string name="tour_slider_release">Press to let go</string>
+    <string name="tour_back_title">Back in the taskbar</string>
+    <string name="tour_back_body">Double press to open the taskbar. Turn to Back and press it to return here.</string>
+    <string name="tour_back_hint">Double press, then pick Back</string>
+    <string name="tour_power_title">Power options on a pause</string>
+    <string name="tour_power_body">In the taskbar, rest the highlight on Power for a second. Its options appear in the bar. Pressing Power opens the power menu.</string>
+    <string name="tour_power_hint">Press to continue</string>
+    <string name="tour_help_title">Help is always here</string>
+    <string name="tour_help_body">Find How the wheel works beside Wheel tour in Settings - System - Taskbar and wheel. You can run the tour again there too. Open help now, then come back.</string>
+    <string name="tour_help_hint">Press to open help</string>
+    <string name="tour_help_open">Open help</string>
     <string name="tour_done_title">You\'re set</string>
     <string name="tour_done_body">Change what the side button does, or switch the wheel UI off for the stock look, in Settings - System - Taskbar and wheel. The tour is there too.</string>
     <string name="tour_done_hint">Press to finish</string>

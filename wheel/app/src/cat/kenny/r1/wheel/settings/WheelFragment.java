@@ -4,6 +4,7 @@ package cat.kenny.r1.wheel.settings;
 import android.content.ContentResolver;
 import android.os.Bundle;
 import android.os.UserHandle;
+import android.widget.Toast;
 
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -36,6 +37,8 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_DIALOGS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SETTINGS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_HOME, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_GUIDE_HINTS, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_GUIDE_LEGEND, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SCROLL_DISTANCE, 100),
                     Map.entry(LineageSettings.Secure.WHEEL_SPIN, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_PRESS_GUARD, 150),
@@ -88,6 +91,17 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                 return true;
             });
         }
+        final Preference hintsAgain = findPreference("hints_again");
+        if (hintsAgain != null) {
+            hintsAgain.setOnPreferenceClickListener(p -> {
+                if (LineageSettings.Secure.putStringForUser(resolver(),
+                        LineageSettings.Secure.WHEEL_GUIDE_HINTS_SEEN, "", UserHandle.myUserId())) {
+                    Toast.makeText(requireContext(), R.string.hints_again_done,
+                            Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            });
+        }
     }
 
     @Override
@@ -132,6 +146,8 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
         final CharSequence entry = list.getEntry();
         if (KEY_RUNNING.equals(list.getKey()) && !"0".equals(list.getValue())) {
             list.setSummary(getString(R.string.running_summary, entry));
+        } else if (LineageSettings.Secure.WHEEL_GUIDE_LEGEND.equals(list.getKey())) {
+            list.setSummary(getString(R.string.legend_summary, entry));
         } else {
             list.setSummary(entry);
         }

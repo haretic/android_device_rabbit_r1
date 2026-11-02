@@ -22,33 +22,41 @@ import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.window.OnBackInvokedDispatcher;
 
 /**
- * The wheel UI's first-run tour: one control at a time (turn, press, hold, double press), each
- * page waiting for the user to do it on the gadget itself. Home opens it once
- * ({@link #KEY_DONE}); Settings > System > Taskbar and wheel replays it.
+ * The wheel UI's first-run tour: one control at a time, with practice on the gadget itself.
+ * Home opens it once ({@link #KEY_DONE}); Settings > System > Taskbar and wheel replays it.
  */
 public class TourActivity extends Activity {
 
     /** Settings.Secure: 1 once the tour was shown, so home opens it only the first time. */
     public static final String KEY_DONE = "r1_wheel_tour_done";
 
-    private static final int WELCOME = 0, TURN = 1, PRESS = 2, HOLD = 3, TASKBAR = 4, DONE = 5;
-    private static final int PAGES = 6;
+    private static final int WELCOME = 0, TURN = 1, PRESS = 2, HOLD = 3, TASKBAR = 4,
+            SLIDER = 5, BACK = 6, POWER = 7, HELP = 8, DONE = 9;
+    private static final int PAGES = DONE + 1;
     private static final int TURNS_NEEDED = 4;
+    private static final int REQUEST_HELP = 1;
 
     private int mPage;
     private int mTurns;
     private int mRow;
     private boolean mTaskbarSeen;
     private boolean mLongPress;
+    private boolean mSliderGrabbed;
+    private boolean mSliderChanged;
+    private boolean mCompleted;
 
     private Gadget mGadget;
     private TextView mStep, mTitle, mBody, mHint, mNext;
     private LinearLayout mRows;
+    private SeekBar mSlider;
     private final TextView[] mRowViews = new TextView[3];
     private int mAccent, mOnAccent, mSurface, mText, mTextDim;
+    private final Runnable mAdvance = this::next;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +67,8 @@ public class TourActivity extends Activity {
         final WindowManager.LayoutParams lp = getWindow().getAttributes();
         lp.inputFeatures |= WindowManager.LayoutParams.INPUT_FEATURE_POWER_KEY_SELECTS;
         getWindow().setAttributes(lp);
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::onBackPressed);
 
         mAccent = getColor(android.R.color.system_accent1_200);
         mOnAccent = getColor(android.R.color.system_accent1_900);
@@ -134,17 +144,40 @@ public class TourActivity extends Activity {
         }
         root.addView(mRows, new LinearLayout.LayoutParams(-1, -2));
 
-        final FrameLayout bottom = new FrameLayout(this);
+        mSlider = new SeekBar(this);
+        mSlider.setMax(10);
+        mSlider.setFocusable(false);
+        mSlider.setContentDescription(getString(R.string.tour_slider_title));
+        mSlider.setPadding(dp(16), dp(6), dp(16), dp(6));
+        final GradientDrawable sliderBg = new GradientDrawable();
+        sliderBg.setCornerRadius(dp(12));
+        sliderBg.setColor(mSurface);
+        sliderBg.setStroke(dp(3), mAccent);
+        mSlider.setBackground(sliderBg);
+        final LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-1, dp(48));
+        slp.topMargin = dp(14);
+        root.addView(mSlider, slp);
+
+        final LinearLayout bottom = new LinearLayout(this);
+        bottom.setGravity(Gravity.CENTER_VERTICAL);
         mHint = text(14, mAccent, true);
         mHint.setGravity(Gravity.CENTER_VERTICAL);
-        bottom.addView(mHint, new FrameLayout.LayoutParams(-2, -2, Gravity.START | Gravity.CENTER_VERTICAL));
-        // For touch: the pages go on without the gadget's controls too
+        bottom.addView(mHint, new LinearLayout.LayoutParams(0, -2, 1));
+        // For touch: the original pages go on without the gadget's controls too
         mNext = text(15, mOnAccent, true);
         mNext.setPadding(dp(18), dp(8), dp(18), dp(8));
         mNext.setBackground(pill(mAccent));
         mNext.setFocusable(false);
-        mNext.setOnClickListener(v -> next());
-        bottom.addView(mNext, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
+        mNext.setOnClickListener(v -> {
+            if (mPage == HELP) {
+                onPress();
+            } else {
+                next();
+            }
+        });
+        final LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(-2, -2);
+        nlp.setMarginStart(dp(8));
+        bottom.addView(mNext, nlp);
         final LinearLayout.LayoutParams flp = new LinearLayout.LayoutParams(-1, -2);
         flp.topMargin = dp(16);
         root.addView(bottom, flp);
@@ -152,28 +185,41 @@ public class TourActivity extends Activity {
     }
 
     private void show(int page) {
+        mHint.removeCallbacks(mAdvance);
         mPage = page;
         mStep.setText(getString(R.string.tour_step, page + 1, PAGES));
         mTurns = 0;
         mLongPress = false;
         mTaskbarSeen = false;
+        mSliderGrabbed = false;
+        mSliderChanged = false;
+        mCompleted = false;
         final int[][] texts = {
                 {R.string.tour_welcome_title, R.string.tour_welcome_body, R.string.tour_welcome_hint},
                 {R.string.tour_turn_title, R.string.tour_turn_body, R.string.tour_turn_hint},
                 {R.string.tour_press_title, R.string.tour_press_body, R.string.tour_press_hint},
                 {R.string.tour_hold_title, R.string.tour_hold_body, R.string.tour_hold_hint},
                 {R.string.tour_taskbar_title, R.string.tour_taskbar_body, R.string.tour_taskbar_hint},
+                {R.string.tour_slider_title, R.string.tour_slider_body, R.string.tour_slider_hint},
+                {R.string.tour_back_title, R.string.tour_back_body, R.string.tour_back_hint},
+                {R.string.tour_power_title, R.string.tour_power_body, R.string.tour_power_hint},
+                {R.string.tour_help_title, R.string.tour_help_body, R.string.tour_help_hint},
                 {R.string.tour_done_title, R.string.tour_done_body, R.string.tour_done_hint},
         };
         mTitle.setText(texts[page][0]);
         mBody.setText(texts[page][1]);
         mHint.setText(texts[page][2]);
-        mNext.setText(page == DONE ? R.string.tour_finish : R.string.tour_next);
+        mNext.setText(page == DONE ? R.string.tour_finish
+                : page == HELP ? R.string.tour_help_open : R.string.tour_next);
+        mNext.setVisibility(page == SLIDER || page == BACK ? View.GONE : View.VISIBLE);
         mRows.setVisibility(page == TURN || page == PRESS ? View.VISIBLE : View.GONE);
+        mSlider.setVisibility(page == SLIDER ? View.VISIBLE : View.GONE);
+        mSlider.setProgress(5);
         updateRows(-1);
-        mGadget.show(page == TURN ? Gadget.WHEEL : page == WELCOME || page == DONE
+        mGadget.show(page == TURN ? Gadget.WHEEL
+                : page == WELCOME || page == POWER || page == DONE
                 ? Gadget.NONE : page == HOLD ? Gadget.HOLD
-                : page == TASKBAR ? Gadget.DOUBLE : Gadget.PRESS);
+                : page == TASKBAR || page == BACK ? Gadget.DOUBLE : Gadget.PRESS);
         mTitle.setAlpha(0f);
         mTitle.setTranslationY(dp(8));
         mTitle.animate().alpha(1f).translationY(0).setDuration(220)
@@ -202,6 +248,15 @@ public class TourActivity extends Activity {
         }
         getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.CONFIRM);
         show(mPage + 1);
+    }
+
+    private void completePage() {
+        if (mCompleted) {
+            return;
+        }
+        mCompleted = true;
+        mHint.setText(R.string.tour_well_done);
+        mHint.postDelayed(mAdvance, 700);
     }
 
     @Override
@@ -241,6 +296,12 @@ public class TourActivity extends Activity {
                 }
                 return true;
             case KeyEvent.KEYCODE_BACK:
+                if (mPage == BACK) {
+                    if (!down && !event.isCanceled()) {
+                        onBackPressed();
+                    }
+                    return true;
+                }
                 // A hold, where it is set to go back; elsewhere back leaves the tour
                 if (!down && mPage == HOLD) {
                     onHold();
@@ -252,6 +313,22 @@ public class TourActivity extends Activity {
     }
 
     private void onTurn(int step) {
+        if (mCompleted) {
+            return;
+        }
+        if (mPage == SLIDER) {
+            mGadget.nudge(step);
+            if (mSliderGrabbed) {
+                final int before = mSlider.getProgress();
+                mSlider.setProgress(Math.max(0, Math.min(mSlider.getMax(), before + step)));
+                if (before != mSlider.getProgress()) {
+                    mSliderChanged = true;
+                    mHint.setText(R.string.tour_slider_release);
+                    mSlider.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                }
+            }
+            return;
+        }
         if (mPage != TURN && mPage != PRESS) {
             mGadget.nudge(step);
             return;
@@ -261,30 +338,44 @@ public class TourActivity extends Activity {
         updateRows(-1);
         mRowViews[mRow].performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
         if (mPage == TURN && ++mTurns == TURNS_NEEDED) {
-            mHint.setText(R.string.tour_well_done);
-            mHint.postDelayed(() -> {
-                if (mPage == TURN) {
-                    show(PRESS);
-                }
-            }, 700);
+            completePage();
         }
     }
 
     private void onPress() {
+        if (mCompleted) {
+            return;
+        }
         switch (mPage) {
             case PRESS:
                 updateRows(mRow);
-                mHint.setText(R.string.tour_well_done);
-                mHint.postDelayed(() -> {
-                    if (mPage == PRESS) {
-                        show(HOLD);
-                    }
-                }, 700);
+                completePage();
                 break;
             case HOLD:
                 mHint.setText(R.string.tour_hold_again);
                 break;
             case TURN:
+            case BACK:
+                break;
+            case SLIDER:
+                if (!mSliderGrabbed) {
+                    mSliderGrabbed = true;
+                    mSliderChanged = false;
+                    mHint.setText(R.string.tour_slider_turn);
+                    mGadget.show(Gadget.WHEEL);
+                } else {
+                    mSliderGrabbed = false;
+                    mGadget.show(Gadget.PRESS);
+                    if (mSliderChanged) {
+                        completePage();
+                    } else {
+                        mHint.setText(R.string.tour_slider_hint);
+                    }
+                }
+                break;
+            case HELP:
+                startActivityForResult(new Intent(this, WheelActivity.class)
+                        .putExtra("page", "help"), REQUEST_HELP);
                 break;
             default:
                 next();
@@ -293,12 +384,7 @@ public class TourActivity extends Activity {
 
     private void onHold() {
         if (mPage == HOLD) {
-            mHint.setText(R.string.tour_well_done);
-            mHint.postDelayed(() -> {
-                if (mPage == HOLD) {
-                    show(TASKBAR);
-                }
-            }, 700);
+            completePage();
         } else if (mPage > WELCOME) {
             show(mPage - 1);
         }
@@ -307,19 +393,39 @@ public class TourActivity extends Activity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        // The taskbar takes the focus while it is open: back here, it was tried
-        if (mPage == TASKBAR) {
+        // The Back exercise also needs a Back event; closing the bar alone does not pass it.
+        if (mPage == TASKBAR || mPage == BACK) {
             if (!hasFocus) {
                 mTaskbarSeen = true;
-            } else if (mTaskbarSeen) {
-                mHint.setText(R.string.tour_well_done);
-                mHint.postDelayed(() -> {
-                    if (mPage == TASKBAR) {
-                        show(DONE);
-                    }
-                }, 700);
+            } else if (mPage == TASKBAR && mTaskbarSeen) {
+                completePage();
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mPage == BACK) {
+            if (mTaskbarSeen) {
+                completePage();
+            }
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_HELP && mPage == HELP) {
+            completePage();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        mHint.removeCallbacks(mAdvance);
+        super.onDestroy();
     }
 
     @Override

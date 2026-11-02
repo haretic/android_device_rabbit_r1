@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Help in Taskbar and wheel. Only links are wheel stops; notes stay plain text. -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="help_turn"
+        android:title="@string/help_turn_title"
+        android:summary="@string/help_turn_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="feel" />
+    </Preference>
+    <Preference
+        android:key="help_press"
+        android:title="@string/help_press_title"
+        android:summary="@string/help_press_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="side_button" />
+    </Preference>
+    <Preference
+        android:key="help_hold"
+        android:title="@string/help_hold_title"
+        android:summary="@string/help_hold_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="side_button" />
+    </Preference>
+    <Preference
+        android:key="help_double_press"
+        android:title="@string/help_double_press_title"
+        android:summary="@string/help_double_press_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="taskbar" />
+    </Preference>
+    <Preference
+        android:key="help_grab"
+        android:title="@string/help_grab_title"
+        android:summary="@string/help_grab_summary"
+        android:selectable="false" />
+
+    <Preference
+        android:key="help_back"
+        android:title="@string/button_back"
+        android:summary="@string/help_back_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.ButtonsFragment" />
+    <Preference
+        android:key="help_buttons"
+        android:title="@string/help_buttons_title"
+        android:summary="@string/help_buttons_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.ButtonsFragment" />
+    <Preference
+        android:key="help_mode"
+        android:title="@string/button_mode"
+        android:summary="@string/help_mode_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.AppModesFragment" />
+    <Preference
+        android:key="help_power"
+        android:title="@string/button_power"
+        android:summary="@string/help_power_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="taskbar" />
+    </Preference>
+    <Preference
+        android:key="help_pin"
+        android:title="@string/help_pin_title"
+        android:summary="@string/help_pin_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="parts" />
+    </Preference>
+    <Preference
+        android:key="tour"
+        android:title="@string/tour_title"
+        android:summary="@string/help_tour_summary">
+        <intent
+            android:targetPackage="cat.kenny.r1.wheel.settings"
+            android:targetClass="cat.kenny.r1.wheel.settings.TourActivity" />
+    </Preference>
+</PreferenceScreen>

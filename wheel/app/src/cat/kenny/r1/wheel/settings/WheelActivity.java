@@ -18,17 +18,26 @@ import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
 public class WheelActivity extends CollapsingToolbarBaseActivity
         implements PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
 
+    private boolean mHelp;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
+        mHelp = "help".equals(getIntent().getStringExtra("page"));
         // Told while a pop still counts the page going: the title once it has gone
         getSupportFragmentManager().addOnBackStackChangedListener(
                 () -> getWindow().getDecorView().post(this::updateTitle));
         if (savedInstanceState == null) {
+            final WheelFragment page = new WheelFragment();
+            // The tour opens help directly, so Back returns to the exercise.
+            if (mHelp) {
+                final Bundle args = new Bundle();
+                args.putString("page", "help");
+                page.setArguments(args);
+            }
             getSupportFragmentManager().beginTransaction()
-                    .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,
-                            new WheelFragment())
+                    .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame, page)
                     .commit();
         }
     }
@@ -57,7 +66,7 @@ public class WheelActivity extends CollapsingToolbarBaseActivity
     private void updateTitle() {
         final int pages = getSupportFragmentManager().getBackStackEntryCount();
         if (pages == 0) {
-            setTitle(R.string.wheel_title);
+            setTitle(mHelp ? R.string.help_title : R.string.wheel_title);
         } else {
             setTitle(getSupportFragmentManager().getBackStackEntryAt(pages - 1).getName());
         }

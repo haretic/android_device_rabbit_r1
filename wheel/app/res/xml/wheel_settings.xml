@@ -11,7 +11,14 @@
         android:title="@string/wheel_ui"
         android:persistent="false" />
 
-    <!-- How it works, the tour home opens the first time -->
+    <!-- How it works, and the tour home opens the first time -->
+    <Preference
+        android:key="page_help"
+        android:title="@string/help_title"
+        android:summary="@string/help_summary"
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="help" />
+    </Preference>
     <Preference
         android:key="tour"
         android:title="@string/tour_title"
@@ -20,6 +27,26 @@
             android:targetPackage="cat.kenny.r1.wheel.settings"
             android:targetClass="cat.kenny.r1.wheel.settings.TourActivity" />
     </Preference>
+
+    <PreferenceCategory
+        android:key="guidance"
+        android:title="@string/cat_guidance">
+        <SwitchPreferenceCompat
+            android:key="wheel_guide_hints"
+            android:title="@string/hints_title"
+            android:summary="@string/hints_summary"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_guide_legend"
+            android:title="@string/legend_title"
+            android:entries="@array/legend_entries"
+            android:entryValues="@array/legend_values"
+            android:persistent="false" />
+        <Preference
+            android:key="hints_again"
+            android:title="@string/hints_again_title"
+            android:summary="@string/hints_again_summary" />
+    </PreferenceCategory>
 
     <PreferenceCategory
         android:key="pages"
