@@ -826,25 +826,30 @@ t_plaintext() {
 t_timepicker() {
 	# The alarm's time picker: the side button grabs the hour and the wheel sets it, the hour
 	# kept when the focus moves on, where the wheel only stepped past the touch clock face
-	local i h0 h1
+	local i h0 h1 at
 	sh "am start -W -S -n com.android.deskclock/.HandleApiCalls -a android.intent.action.SHOW_ALARMS >/dev/null 2>&1"; sleep 3
-	for i in 1 2 3 4 5 6; do
-		wheel down 1 >/dev/null; sleep 0.6; ui timepicker
-		case "$(focus_field timepicker 5)" in *:id/fab*) break ;; esac
+	for i in 1 2 3 4 5 6 7 8; do
+		wheel down 1 >/dev/null; sleep 0.6; ui timepicker; at=$(focus_field timepicker 5)
+		case "$at" in *:id/fab*) break ;; esac
 	done
+	case "$at" in
+		*:id/fab*) ;;
+		*) bad "time picker: the wheel never reached the add button, last on '$at'"; key 3; return ;;
+	esac
 	side_press; sleep 2; ui timepicker
-	h0=$(focus_field timepicker 7)
+	h0=$(focus_field timepicker 7); at=$(focus_field timepicker 5)
 	side_press; wheel down 1 >/dev/null; sleep 0.8; side_press; wheel down 1 >/dev/null; sleep 0.8
 	ui timepicker; shot timepicker
 	h1=$(xnodes timepicker | awk -F '\t' '$5 ~ /:id\/hours$/ { print $7; exit }')
-	case "$h0$h1" in
-		*[!0-9]*|'') bad "time picker: no hour to read ('$h0', '$h1')" ;;
-		*) if [ $((10#$h1)) -eq $(((10#$h0 + 1) % 24)) ]; then
-				ok "time picker: the wheel sets the grabbed hour, kept as the focus moves on"
-			else
-				bad "time picker: the hour went $h0 to $h1, not one on"
-			fi ;;
-	esac
+	case "$h0" in ''|*[!0-9]*) h0=x ;; esac
+	case "$h1" in ''|*[!0-9]*) h1=x ;; esac
+	if [ "$h0" = x ] || [ "$h1" = x ]; then
+		bad "time picker: no hour to read, focus on '$at' ('$h0', '$h1')"
+	elif [ $((10#$h1)) -eq $(((10#$h0 + 1) % 24)) ]; then
+		ok "time picker: the wheel sets the grabbed hour, kept as the focus moves on"
+	else
+		bad "time picker: the hour went $h0 to $h1, not one on"
+	fi
 	key 4; key 4; key 3
 }
 
