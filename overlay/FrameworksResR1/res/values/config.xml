@@ -68,6 +68,13 @@
         <item>com.android.cellbroadcastreceiver.module=app</item>
         <item>com.android.wifi.dialog=app</item>
         <item>com.android.bluetooth=app</item>
+        <!-- Pickers and prompts other apps open: the ringtone picker's list and OK, the photo
+             picker, VPN, print and device pairing prompts -->
+        <item>com.android.soundpicker=app</item>
+        <item>com.android.providers.media.module=app</item>
+        <item>com.android.vpndialogs=app</item>
+        <item>com.android.printspooler=app</item>
+        <item>com.android.companiondevicemanager=app</item>
         <item>org.lineageos.updater=app</item>
         <item>org.lineageos.audiofx=app</item>
         <!-- Stock apps that work with the highlight: the wheel moves it through them, the
