@@ -379,6 +379,22 @@ class Broker(unittest.TestCase):
         self.stop()
         self.assertEqual(list((self.root/'functions').iterdir()),[])
 
+    def test_touchpad_lends_the_mouse_alone_and_stop(self):
+        result,error=self.request('touchpad')
+        self.assertTrue(result.endswith(':done'),error)
+        self.assertEqual(self.prop('st.session'),'touchpad')
+        self.assertEqual(self.prop('functions'),'1:hid.usbemu1')
+        self.assertFalse((self.root/'functions/hid.usbemu0').exists())
+        mouse=self.root/'functions/hid.usbemu1'
+        for key,value in [('report_length','4'),('subclass','0'),('protocol','0'),('no_out_endpoint','1')]:
+            self.assertEqual((mouse/key).read_text().strip(),value)
+        self.assertEqual((mouse/'report_desc').read_bytes(),bytes.fromhex(
+            '05010902a1010901a1000509190129031500250195037501810295017505810105010930093109381581257f750895038106c0c0'))
+        result,error=self.request('input')
+        self.assertTrue(result.endswith(':error'));self.assertEqual(error,'active')
+        self.stop()
+        self.assertEqual(list((self.root/'functions').iterdir()),[])
+
     def test_composite_cd_swap_preserves_input_and_generation(self):
         one=self.image();two=self.image('second.iso')
         result,error=self.request('start_input',one)

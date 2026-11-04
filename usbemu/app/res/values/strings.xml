@@ -13,6 +13,12 @@
     <string name="keyboard">Keyboard and mouse</string>
     <string name="flipper">Flipper</string>
     <string name="coming_soon">Coming soon</string>
+    <string name="touchpad_mode">Touchpad</string>
+    <string name="touchpad_sub">The whole screen moves the pointer</string>
+    <string name="touchpad_exit">Hold both top circles for 3 seconds to exit</string>
+    <string name="touchpad_lost">Touchpad disconnected - hold both top circles for 3 seconds to stop</string>
+    <string name="touchpad_cue_turn">Scroll</string>
+    <string name="touchpad_cue_press">Click</string>
     <string name="flipper_combo">Flipper + other devices</string>
     <string name="combo_unavailable">Unavailable - Flipper needs its own session</string>
     <string name="pc_connected">Connected to a PC</string>

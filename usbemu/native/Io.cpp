@@ -101,23 +101,24 @@ struct Input {
         if (mouse >= 0) write(mouse, zero, 4);
         closeFd(keyboard); closeFd(mouse); size = 0; neutral = true;
     }
-    bool pump(Channel& channel) {
-        if (keyboard < 0) keyboard = hid("hid.usbemu0");
+    // The touchpad session lends the mouse alone; a keyboard report there is refused
+    bool pump(Channel& channel, bool keys) {
+        if (keys && keyboard < 0) keyboard = hid("hid.usbemu0");
         if (mouse < 0) mouse = hid("hid.usbemu1");
-        if (keyboard < 0 || mouse < 0) return false;
+        if ((keys && keyboard < 0) || mouse < 0) return false;
         // Retry a neutral report until accepted after reconnect. No held key can
         // leak from a disconnected sender, even if the endpoint was busy.
         if (neutral) {
             const uint8_t zero[8]{};
-            if (write(keyboard, zero, 8) != 8 || write(mouse, zero, 4) != 4) return true;
+            if ((keys && write(keyboard, zero, 8) != 8) || write(mouse, zero, 4) != 4) return true;
             neutral = false;
         }
-        uint8_t leds[8]; read(keyboard, leds, sizeof(leds));
+        uint8_t leds[8]; if (keys) read(keyboard, leds, sizeof(leds));
         if (!channel.ready) return true;
         if (!size) {
             ssize_t n = recv(channel.client, pending.data(), pending.size(), MSG_DONTWAIT | MSG_TRUNC);
             if (n < 0 && again()) return true;
-            if (!((n == 9 && pending[0] == 1 && pending[2] == 0) ||
+            if (!((keys && n == 9 && pending[0] == 1 && pending[2] == 0) ||
                   (n == 5 && pending[0] == 2 && (pending[1] & ~7) == 0))) return false;
             if (pending[0] == 1) {
                 for (size_t i = 3; i < 9; ++i) if (pending[i] > 0x73) return false;
@@ -236,10 +237,11 @@ int main() {
                 || generation == "0" || functions.rfind(generation + ":", 0) != 0) generation.clear();
         if (generation != previous) { input.reset(); audio.reset(); hid.reset(); pcm.reset(); previous = generation; }
         bool keys = !generation.empty() && functions.find("hid.usbemu0") != std::string::npos;
+        bool pointer = !generation.empty() && functions.find("hid.usbemu1") != std::string::npos;
         bool sound = !generation.empty() && functions.find("uac2.usbemu0") != std::string::npos;
-        if (keys) {
+        if (pointer) {
             input.accept(generation);
-            if (!hid.pump(input)) { input.reset(); hid.reset(); }
+            if (!hid.pump(input, keys)) { input.reset(); hid.reset(); }
         } else { input.reset(); hid.reset(); }
         if (sound) {
             audio.accept(generation);

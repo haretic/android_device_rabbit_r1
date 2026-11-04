@@ -199,6 +199,7 @@ endpoint_budget() {
     case $mode in
         drive|cd) ep_in=$((ep_in+1)); ep_out=$((ep_out+1)) ;;
         input) ep_in=$((ep_in+2)) ;;
+        touchpad) ep_in=$((ep_in+1)) ;;
         drive_input|cd_input) ep_in=$((ep_in+3)); ep_out=$((ep_out+1)) ;;
         sound) ep_in=$((ep_in+3)); ep_out=$((ep_out+1)) ;;
         *) fail request; return 1 ;;
@@ -209,12 +210,18 @@ check_endpoints() {
     [ "$ep_in" -le 7 ] && [ "$ep_out" -le 7 ] || { fail endpoints; return 1; }
 }
 setup_hid() {
-    keyboard=$FUNCTIONS/hid.usbemu0; mouse=$FUNCTIONS/hid.usbemu1
-    mkdir "$keyboard" && mkdir "$mouse" || return 1
+    keyboard=$FUNCTIONS/hid.usbemu0
+    mkdir "$keyboard" || return 1
     printf '1\n' >"$keyboard/subclass" && printf '1\n' >"$keyboard/protocol" &&
         printf '8\n' >"$keyboard/report_length" && printf '1\n' >"$keyboard/no_out_endpoint" || return 1
     # andr36oid Controller.cpp hidDescriptor(true), HID 1.11 Appendix E.6.
     printf '\005\001\011\006\241\001\005\007\031\340\051\347\025\000\045\001\165\001\225\010\201\002\225\001\165\010\201\001\225\005\165\001\005\010\031\001\051\005\221\002\225\001\165\003\221\001\225\006\165\010\025\000\045\163\005\007\031\000\051\163\201\000\300' >"$keyboard/report_desc" || return 1
+    setup_mouse
+}
+# The touchpad alone lends just this one, the host's pointer
+setup_mouse() {
+    mouse=$FUNCTIONS/hid.usbemu1
+    mkdir "$mouse" || return 1
     # Report mouse with relative X/Y/wheel; protocol 0 avoids boot hosts treating
     # this four-byte report as a three-byte boot mouse.
     printf '0\n' >"$mouse/subclass" && printf '0\n' >"$mouse/protocol" &&
@@ -249,7 +256,7 @@ start_drive() {
     [ ! -f "$STATE/session" ] || { fail active; return 1; }
     mode=drive
     case $op in
-        sound|input) mode=$op; folder=$MEDIA; name=$op.img; ro=1; bytes=0; cdrom=0 ;;
+        sound|input|touchpad) mode=$op; folder=$MEDIA; name=$op.img; ro=1; bytes=0; cdrom=0 ;;
         *) validate_folder && open_image || return 1
            [ "$cdrom" = 0 ] || mode="cd"
            [ "$op" != start_input ] || mode=${mode}_input ;;
@@ -266,6 +273,7 @@ start_drive() {
         setup_hid || return 1
         function_list=${function_list:+$function_list,}hid.usbemu0,hid.usbemu1 ;;
         sound) setup_sound || return 1; function_list=uac2.usbemu0 ;;
+        touchpad) setup_mouse || return 1; function_list=hid.usbemu1 ;;
     esac
     generation=$(cat "$STATE/generation" 2>/dev/null) || generation=0
     case $generation in ''|*[!0-9]*|??????????*) generation=0 ;; esac
@@ -458,7 +466,7 @@ main() {
             if [ -d "$STATE/journal" ] && ! recover; then result error; exit 1; fi
             result working; progress validate 0
             if read_request; then
-                case $op in scan) scan_images ;; start|start_input|sound|input) start_drive ;; swap) swap_disc ;; create) create_image ;; *) fail request ;; esac
+                case $op in scan) scan_images ;; start|start_input|sound|input|touchpad) start_drive ;; swap) swap_disc ;; create) create_image ;; *) fail request ;; esac
                 rc=$?
             else rc=1; fi
             if [ "$rc" = 0 ]; then result "done"

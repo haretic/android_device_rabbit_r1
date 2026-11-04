@@ -134,7 +134,7 @@ public final class SessionService extends Service {
         worker.execute(() -> {
             String error = "";
             try {
-                if (!action.equals("sound") && !action.equals("input") && !Control.hasFolder(this)) throw new IOException("folder");
+                if (!action.equals("sound") && !action.equals("input") && !action.equals("touchpad") && !Control.hasFolder(this)) throw new IOException("folder");
                 switch (action) {
                     case "import": importImage(intent.getData()); call("scan", null, true, 0, "", false); break;
                     case "create":
@@ -147,7 +147,7 @@ public final class SessionService extends Service {
                             callImage("start", image, false);
                         }
                         break;
-                    case "sound": case "input": call(action, null, true, 0, "", false); break;
+                    case "sound": case "input": case "touchpad": call(action, null, true, 0, "", false); break;
                     case "start": case "start_input": case "swap":
                         Images image = new Images(intent.getStringExtra("image"), intent.getStringExtra("stamp"),
                                 intent.getBooleanExtra("ro", true));

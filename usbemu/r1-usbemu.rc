@@ -6,6 +6,12 @@ on post-fs-data
     mkdir /data/system/r1-usbemu/status 0750 root system
     restorecon_recursive /data/misc/r1-usbemu /data/system/r1-usbemu
 
+# The emulator makes its functions under the gadget's functions/ itself, which early-boot
+# gave the gadget HAL (system): the helper, root in the system group without
+# dac_override, makes and removes them there through the group
+on boot
+    chmod 0775 /config/usb_gadget/g1/functions
+
 # Wait for CE media and for the gadget HAL to exist. It may start after boot.
 on property:sys.boot_completed=1
     start r1-usbemu-boot

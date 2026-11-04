@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 package cat.kenny.r1.usbemu;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,10 +24,15 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
+import android.view.animation.LinearInterpolator;
+import android.widget.WheelCue;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -68,6 +76,12 @@ public final class UsbActivity extends FragmentActivity {
     private Typeface regular, medium;
     private View initialFocus, scrollModeButton;
     private boolean scrollMode;
+    // The touchpad screen, left by holding both its exit circles for EXIT_HOLD_MS
+    private static final int EXIT_HOLD_MS = 3000;
+    private TouchpadView pad;
+    private ExitZone exitLeft, exitRight;
+    private ValueAnimator exitHold;
+    private boolean padError;
     private final BroadcastReceiver usb = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
             connected = i.getBooleanExtra("connected", false);
@@ -131,8 +145,9 @@ public final class UsbActivity extends FragmentActivity {
     private void closeInput() { inputEpoch++; if (hid != null) hid.close(); hid = null; inputGeneration = ""; inputUsed = false; }
     private void syncInput() {
         String generation = Control.prop("st.generation");
-        if (!Control.input() || !(page.equals("session") || page.equals("pointer") || page.equals("typing"))
-                || generation.equals("0") || generation.isEmpty()) { closeInput(); return; }
+        boolean pointing = Control.input() && (page.equals("session") || page.equals("pointer") || page.equals("typing"))
+                || Control.touchpad() && page.equals("session");
+        if (!pointing || generation.equals("0") || generation.isEmpty()) { closeInput(); return; }
         if (hid == null || !generation.equals(inputGeneration)) {
             closeInput(); inputGeneration = generation;
             final int epoch = inputEpoch;
@@ -188,6 +203,8 @@ public final class UsbActivity extends FragmentActivity {
                 || (page.equals("pointer") || page.equals("typing")) && !Control.input())) page = "hub";
         String job = Control.prefs(this).getString("job", "");
         String screen = Control.busy(this) && !job.equals("scan") ? "progress:" + job : page;
+        if (screen.equals("session") && Control.touchpad()) { touchpadScreen(); return; }
+        fullScreen(false);
         View focused = getCurrentFocus();
         Object focusKey = retainFocus && screen.equals(renderedScreen) && focused != null ? focused.getTag() : null;
         int scrollY = retainFocus && screen.equals(renderedScreen) && scroll != null ? scroll.getScrollY() : 0;
@@ -315,11 +332,16 @@ public final class UsbActivity extends FragmentActivity {
             hubChoice(top, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xff5ad2f5, true);
             hubChoice(top, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xffffafe8, true);
             hubChoice(bottom, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffa1c7ff, true);
-            hubChoice(bottom, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
+            hubChoice(bottom, R.string.touchpad_mode, R.string.touchpad_sub, R.drawable.ic_touch, 0xffb4e7a5, true);
+            LinearLayout third = row(); add(choices, third, -2, 7);
+            hubChoice(third, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
+            third.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
+            ((LinearLayout.LayoutParams) third.getChildAt(1).getLayoutParams()).leftMargin = px(7);
         } else {
             hubChoice(choices, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xff5ad2f5, true);
             hubChoice(choices, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xffffafe8, true);
             hubChoice(choices, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffa1c7ff, true);
+            hubChoice(choices, R.string.touchpad_mode, R.string.touchpad_sub, R.drawable.ic_touch, 0xffb4e7a5, true);
             hubChoice(choices, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
         }
         int combinedHeight = landscape ? 54 : 58;
@@ -340,9 +362,10 @@ public final class UsbActivity extends FragmentActivity {
         View item = card(s(title), s(sub), icon, color, enabled,
                 () -> {
                     if (Control.running()) { navigate("session"); return; }
-                    if (title == R.string.sound || title == R.string.keyboard) request(title == R.string.sound ? "sound" : "input", null, true);
+                    if (title == R.string.sound || title == R.string.keyboard || title == R.string.touchpad_mode)
+                        request(title == R.string.sound ? "sound" : title == R.string.keyboard ? "input" : "touchpad", null, true);
                     else { combineInput = false; navigate("images"); scan(); }
-                }, landscape ? 90 : 77);
+                }, landscape ? 64 : 66);
         if (!enabled) disabled(item);
         if (landscape) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1);
@@ -877,6 +900,7 @@ public final class UsbActivity extends FragmentActivity {
         }
     }
     private void goBack() {
+        if (pad != null) { touchpadCue(); return; }
         if (Control.busy(this)) { navigate("hub"); return; }
         switch (page) {
             case "hub": finish(); break;
@@ -889,6 +913,7 @@ public final class UsbActivity extends FragmentActivity {
     }
     @Override public void onBackPressed() { goBack(); }
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        if (pad != null) return touchpadKey(event) || super.dispatchKeyEvent(event);
         if (scrollMode && scrollModeButton != null && scrollModeButton.hasFocus() && page.equals("session") && Control.input()) {
             int key = event.getKeyCode();
             if (key == KeyEvent.KEYCODE_DPAD_UP || key == KeyEvent.KEYCODE_DPAD_DOWN) {
@@ -917,6 +942,108 @@ public final class UsbActivity extends FragmentActivity {
             return true;
         }
         return super.dispatchKeyEvent(event);
+    }
+    /**
+     * The touchpad screen: the whole screen is the PC's touchpad (TouchpadView), the wheel
+     * scrolls the PC and a side-button press clicks. Both exit circles, in the top corners, held
+     * together for EXIT_HOLD_MS leave, stopping the touchpad. A hold, a back gesture or Back do
+     * nothing here, so the pad isn't left by accident.
+     */
+    private void touchpadScreen() {
+        targets.clear(); initialFocus = null; touchpad = null; scrollModeButton = null;
+        boolean first = !"touchpad".equals(renderedScreen);
+        // A status change keeps the pad as it is, a finger on it included
+        if (!first && pad != null && padError == !uiError.isEmpty()) return;
+        padError = !uiError.isEmpty();
+        renderedScreen = "touchpad";
+        root = new FrameLayout(this); root.setBackgroundColor(Color.BLACK);
+        pad = new TouchpadView(this, (buttons, x, y, wheel) -> {
+            if (hid != null) { inputUsed = true; hid.mouse(buttons, x, y, wheel); }
+        });
+        root.addView(pad, new FrameLayout.LayoutParams(-1, -1));
+        // Far apart, so a single hand resting on the screen doesn't hold both
+        exitLeft = new ExitZone(this, this::exitHeld); exitRight = new ExitZone(this, this::exitHeld);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(px(64), px(64), Gravity.TOP | Gravity.START);
+        lp.topMargin = lp.leftMargin = px(14); root.addView(exitLeft, lp);
+        FrameLayout.LayoutParams rp = new FrameLayout.LayoutParams(px(64), px(64), Gravity.TOP | Gravity.END);
+        rp.topMargin = rp.rightMargin = px(14); root.addView(exitRight, rp);
+        TextView hint = single(s(R.string.touchpad_exit), 14, MUTED); hint.setGravity(Gravity.CENTER);
+        hint.setAlpha(0.6f);
+        FrameLayout.LayoutParams hp = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
+        hp.bottomMargin = px(18); root.addView(hint, hp);
+        if (!uiError.isEmpty()) {
+            TextView error = single(s(R.string.touchpad_lost), 15, 0xffffb4ab); error.setGravity(Gravity.CENTER);
+            root.addView(error, new FrameLayout.LayoutParams(-1, -2, Gravity.CENTER));
+        }
+        setContentView(root);
+        fullScreen(true);
+        if (first) root.post(this::touchpadCue);
+    }
+    private void touchpadCue() {
+        if (pad == null) return;
+        WheelCue.show(pad, new int[] {WheelCue.TURN, WheelCue.PRESS},
+                new CharSequence[] {s(R.string.touchpad_cue_turn), s(R.string.touchpad_cue_press)}, 5000);
+    }
+    // Both circles held fill their rings over EXIT_HOLD_MS, then leave; letting either go empties them
+    private void exitHeld() {
+        boolean both = exitLeft != null && exitLeft.held() && exitRight.held();
+        if (both && exitHold == null) {
+            exitHold = ValueAnimator.ofFloat(0, 1).setDuration(EXIT_HOLD_MS);
+            exitHold.setInterpolator(new LinearInterpolator());
+            exitHold.addUpdateListener(a -> {
+                float p = (float) a.getAnimatedValue();
+                exitLeft.progress(p); exitRight.progress(p);
+            });
+            exitHold.addListener(new AnimatorListenerAdapter() {
+                private boolean cancelled;
+                @Override public void onAnimationCancel(Animator a) { cancelled = true; }
+                @Override public void onAnimationEnd(Animator a) {
+                    exitHold = null;
+                    if (cancelled) return;
+                    exitLeft.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+                    leaveTouchpad();
+                }
+            });
+            exitHold.start();
+        } else if (!both && exitHold != null) {
+            exitHold.cancel();
+            exitLeft.progress(0); exitRight.progress(0);
+        }
+    }
+    private boolean touchpadKey(KeyEvent event) {
+        int key = event.getKeyCode();
+        boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
+        switch (key) {
+            case KeyEvent.KEYCODE_DPAD_UP: case KeyEvent.KEYCODE_DPAD_DOWN:
+                if (down && hid != null) { inputUsed = true; hid.mouse(0, 0, 0, key == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1); }
+                return true;
+            case KeyEvent.KEYCODE_ENTER: case KeyEvent.KEYCODE_DPAD_CENTER:
+                if (down && event.getRepeatCount() == 0 && hid != null) { inputUsed = true; hid.click(1); }
+                return true;
+            case KeyEvent.KEYCODE_BACK:
+                if (!down) touchpadCue();
+                return true;
+            default:
+                return false;
+        }
+    }
+    private void leaveTouchpad() {
+        if (exitHold != null) exitHold.cancel();
+        if (pad != null) pad.cancel();
+        WheelCue.hide();
+        request("stop", null, true);
+    }
+    private void fullScreen(boolean on) {
+        if (!on) pad = null;
+        WindowInsetsController bars = getWindow().getInsetsController();
+        if (on) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            bars.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            bars.hide(WindowInsets.Type.systemBars());
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            bars.show(WindowInsets.Type.systemBars());
+        }
     }
     private void wrapTargets() {
         for (int i = 0; i < targets.size(); i++) {

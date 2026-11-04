@@ -55,6 +55,12 @@ type_transition r1_usbemu configfs:dir r1_usbemu_configfs "uac2.usbemu0";
 type_transition r1_usbemu configfs:dir r1_usbemu_configfs "hid.usbemu0";
 type_transition r1_usbemu configfs:dir r1_usbemu_configfs "hid.usbemu1";
 allow r1_usbemu r1_usbemu_configfs:dir create_dir_perms;
-allow r1_usbemu r1_usbemu_configfs:file rw_file_perms;
+# Its functions made under functions/ take their own type there
+allow r1_usbemu_configfs configfs:filesystem associate;
+# Its shell writes the attributes with > redirects, opening them O_CREAT (checked as create)
+allow r1_usbemu r1_usbemu_configfs:file { create rw_file_perms };
+# Writing an image's path to lun.0/file makes f_mass_storage open it as the helper; its
+# file-storage thread then reads and writes the image through that file descriptor
+allow kernel r1_usbemu:fd use;
 neverallow r1_usbemu dev_type:blk_file *;
 neverallow system_app r1_usbemu_status_prop:property_service set;
