@@ -97,6 +97,20 @@ rotation_back() {
 	done
 	echo "the screen's turn didn't stay as it was ($1, $2)"
 }
+# The screen locked to rotation $1. Auto-rotate off makes the window manager write the
+# rotation it is at into user_rotation, which can land after a user_rotation written just
+# behind it; its own lock sets both at once. The display follows once an app that lets it
+# turn is in front: the launcher, auto-rotate off, keeps the rotation it has (NOSENSOR).
+turn() {
+	local i
+	sh "cmd window user-rotation lock $1"
+	for i in 1 2 3 4 5 6; do
+		[ "$(dev "settings get system user_rotation")" = "$1" ] && \
+			[ "$(dev "settings get system accelerometer_rotation")" = 0 ] && return 0
+		sleep 0.5
+	done
+	echo "the screen didn't lock to rotation $1"
+}
 # A field of the focused node (2 focused ... 8 content-desc, see xnodes)
 focus_field() { xfocus $1 | head -1 | cut -f$(($2 + 1)); }
 key() { sh "input keyevent $*"; }
@@ -266,9 +280,9 @@ t_power_volume() {
 	# The side button's hold never opens the menu; IWindowManager.showGlobalActions (code 119) does
 	local saved before after
 	saved=$(lget wheel_app_modes)
-	lset wheel_app_modes org.lineageos.aperture=volume
+	lset wheel_app_modes net.sourceforge.opencamera=volume
 	key 224
-	sh "monkey -p org.lineageos.aperture -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1"; sleep 2
+	sh "monkey -p net.sourceforge.opencamera -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1"; sleep 2
 	before=$(dev "cmd media_session volume --stream 3 --get | grep -o \"volume is [0-9]*\"")
 	sh "service call window 119 >/dev/null"; sleep 2; shot power
 	wheel down 2; sleep 1; shot power-wheel
@@ -403,7 +417,13 @@ t_zones() {
 t_reach() {
 	# Battery details opens on rows that take no focus: the wheel scrolls on to the settings below
 	key 224
-	sh "am start -W -n cat.kenny.r1.batterydetails/.BatteryDetailsActivity >/dev/null"; sleep 2
+	sh "am start -W -n cat.kenny.r1.batterydetails/.BatteryDetailsActivity >/dev/null"
+	# Its window up, not the last test's page still going
+	for i in 1 2 3 4 5 6 7 8; do
+		focus_win | grep -q batterydetails && break
+		sleep 1
+	done
+	sleep 1
 	wheel down 10; sleep 1; shot reach; ui reach
 	local cls; cls=$(focus_field reach 4)
 	echo "focused: ${cls:-nothing} $(focus_field reach 5)"
@@ -412,6 +432,30 @@ t_reach() {
 		*) ok "wheel reaches rows below the screen" ;;
 	esac
 	key 4; key 3
+}
+
+t_wheeltune() {
+	# Kernel Tweaks' wheel rows reach the wheel driver, and its defaults come back after
+	local d; d=$(dev "ls -d /sys/bus/i2c/drivers/och1970/*-000d 2>/dev/null | head -1")
+	if [ -z "$d" ] || [ "$(dev "[ -f $d/step_deg ] && echo y")" != y ]; then
+		echo "SKIP wheeltune: this kernel has no wheel tuning"; return
+	fi
+	local on fast step got
+	on=$(dev getprop persist.sys.r1.kt.enabled)
+	fast=$(dev getprop persist.sys.r1.kt.wheel_poll_fast)
+	step=$(dev getprop persist.sys.r1.kt.wheel_step)
+	sh "setprop persist.sys.r1.kt.enabled 1; setprop persist.sys.r1.kt.wheel_poll_fast 16; setprop persist.sys.r1.kt.wheel_step 30; setprop sys.r1.kt.apply t$(date +%s%N)"
+	sleep 3
+	got="$(dev cat $d/poll_fast_ms) $(dev cat $d/step_deg) $(dev getprop sys.r1.kt.result)"
+	[ "$got" = "16 30 ok" ] && ok "wheel tweaks reach the driver ($got)" \
+		|| bad "wheel tweaks didn't reach the driver (poll, step, result: $got)"
+	sh "setprop persist.sys.r1.kt.wheel_poll_fast \"$fast\"; setprop persist.sys.r1.kt.wheel_step \"$step\"; setprop persist.sys.r1.kt.enabled \"$on\"; setprop sys.r1.kt.apply t$(date +%s%N)"
+	sleep 3
+	got="$(dev cat $d/poll_fast_ms) $(dev cat $d/step_deg)"
+	case "$fast$step$on" in
+	""|1) [ "$got" = "10 20" ] && ok "wheel back at its defaults" \
+		|| bad "wheel not back at its defaults ($got)" ;;
+	esac
 }
 
 t_allapps() {
@@ -469,7 +513,7 @@ t_compose() {
 
 t_appinfo() {
 	# App info, a Compose page that scrolls under its bar: the wheel gets past the back button
-	sh "input keyevent 224; wm dismiss-keyguard; am start -W -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:org.lineageos.aperture >/dev/null"; sleep 2
+	sh "input keyevent 224; wm dismiss-keyguard; am start -W -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:net.sourceforge.opencamera >/dev/null"; sleep 2
 	wheel down 3; sleep 1; ui appinfo; shot appinfo
 	local b; b=$(focus_field appinfo 6)
 	echo "focused: ${b:-nothing}"
@@ -533,7 +577,7 @@ t_rotation() {
 	done
 	local auto user; auto=$(dev "settings get system accelerometer_rotation"); user=$(dev "settings get system user_rotation")
 	for r in 0 1; do
-		sh "settings put system accelerometer_rotation 0; settings put system user_rotation $r"; sleep 2
+		turn $r; sleep 1
 		key 224; sh "wm dismiss-keyguard"
 		sh "am start -W -S -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS >/dev/null"; sleep 2
 		# The first step is onto the page, past the back arrow; every step on goes down the list,
@@ -557,7 +601,8 @@ t_rotation() {
 centre_of() { grep -o "content-desc=\"$2\"[^>]*bounds=\"[^\"]*\"" $SHOTS/smoke-$1.xml | head -1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p' | awk '{ print int(($1 + $3) / 2), int(($2 + $4) / 2) }'; }
 t_edge() {
 	# The taskbar hugs the edge the wheel is on as the screen turns: the top a quarter turn
-	# left, the bottom a quarter turn right, its buttons along it in a row
+	# left, the bottom a quarter turn right, its buttons along it in a row: Power, then its
+	# settings at the end
 	local auto user edge r home set hx hy sx sy
 	auto=$(dev "settings get system accelerometer_rotation"); user=$(dev "settings get system user_rotation")
 	edge=$(lget wheel_taskbar_edge)
@@ -566,11 +611,11 @@ t_edge() {
 	local timeout; timeout=$(lget wheel_taskbar_timeout)
 	lset wheel_taskbar_timeout 0
 	for r in 1 3; do
-		sh "settings put system accelerometer_rotation 0; settings put system user_rotation $r"; sleep 2
+		turn $r; sleep 1
 		key 224; sh "wm dismiss-keyguard"
 		sh "am start -W -S -a android.settings.SETTINGS >/dev/null"; sleep 2
 		side_double; sleep 1.5; ui edge$r; shot edge$r
-		home=$(centre_of edge$r Home); set=$(centre_of edge$r "Taskbar settings")
+		home=$(centre_of edge$r Power); set=$(centre_of edge$r "Taskbar settings")
 		read hx hy <<<"$home"; read sx sy <<<"$set"
 		if [ -z "$home" ] || [ -z "$set" ]; then
 			bad "rotation $r: no taskbar buttons ($(focus_win))"
@@ -579,7 +624,7 @@ t_edge() {
 		elif [ $r = 3 ] && [ $hy -gt 320 ] && [ $sy -gt 320 ] && [ $sx -gt $hx ]; then
 			ok "rotation 3: the taskbar along the bottom, beside the wheel"
 		else
-			bad "rotation $r: taskbar Home at $home, its settings at $set"
+			bad "rotation $r: taskbar Power at $home, its settings at $set"
 		fi
 		key 4; sleep 1
 	done
@@ -593,7 +638,7 @@ t_turned() {
 	# towards the screen's start, up as the device stands, goes on down the list
 	local auto user top=0 stuck=0 i f
 	auto=$(dev "settings get system accelerometer_rotation"); user=$(dev "settings get system user_rotation")
-	sh "settings put system accelerometer_rotation 0; settings put system user_rotation 3"; sleep 2
+	turn 3; sleep 1
 	key 224; sh "wm dismiss-keyguard"
 	sh "am start -W -S -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS >/dev/null"; sleep 2
 	for i in $(seq 10); do
@@ -655,6 +700,68 @@ t_ime() {
 	dev "dumpsys input_method" | grep -q 'mInputShown=true' && bad "taskbar-mode browser opened with the keyboard up" \
 		|| ok "taskbar-mode browser opens without the keyboard"
 	key 4; key 3
+}
+
+t_kbheight() {
+	# The keyboard leaves the app over half the portrait screen: its top below y=330 of 640
+	# (it was 245, with a band under it for a Back the side button's hold already is)
+	local saved top; saved=$(lget wheel_app_modes)
+	lset wheel_app_modes org.lineageos.jelly=app
+	key 3; sleep 1; wheel down 1 >/dev/null; sleep 0.5
+	sh "am start -W -S -n org.lineageos.jelly/.MainActivity >/dev/null 2>&1"; sleep 3
+	side_press; sleep 2; shot kbheight
+	top=$(dev "dumpsys window" | awk '/type=ime frame=/ { sub(/.*frame=\[[0-9]+,/, ""); sub(/\].*/, ""); print; exit }')
+	if [ -n "$top" ] && [ "$top" -ge 330 ] && [ "$top" -lt 640 ]; then
+		ok "the keyboard leaves the app the screen above y=$top"
+	else
+		bad "the keyboard's top is at y=${top:-nowhere}, not below 330"
+	fi
+	lset wheel_app_modes "$saved"
+	key 4; key 4; key 3
+}
+
+t_powerhold() {
+	# The taskbar: a hold on Power opens its options at once; each list starts with Back, which
+	# shuts it; a swipe out towards the bar's edge shuts a list, then the bar
+	local i d timeout
+	key 224; sh "wm dismiss-keyguard"; turn 0
+	# Open through the view dumps, which take longer than the bar's 3 s
+	timeout=$(lget wheel_taskbar_timeout)
+	lset wheel_taskbar_timeout 0
+	key 3; sleep 1; side_double; sleep 1.2
+	for i in $(seq 1 12); do
+		ui powerhold; d=$(focus_field powerhold 8)
+		[ "$d" = Power ] && break
+		wheel down 1; sleep 0.5
+	done
+	if [ "$d" != Power ]; then
+		bad "no wheel stop on the taskbar's Power (${d:-nothing})"
+		lset wheel_taskbar_timeout "$timeout"; key 4; key 3; rotation_back 0 1; return
+	fi
+	side_hold; sleep 1.2; ui powerhold-menu; shot powerhold-menu
+	grep -q 'text="Power off"' $SHOTS/smoke-powerhold-menu.xml && ok "a hold on Power opens its options" \
+		|| bad "a hold on Power opened no options"
+	grep -q 'text="Back"' $SHOTS/smoke-powerhold-menu.xml && ok "Power's options start with Back" \
+		|| bad "Power's options have no Back"
+	wheel up 1; sleep 0.5; side_press; sleep 1; ui powerhold-back
+	if ! grep -q 'text="Power off"' $SHOTS/smoke-powerhold-back.xml && focus_win | grep -q WheelTaskbar; then
+		ok "Back shuts the list, the bar stays"
+	else
+		bad "Back left the list open or shut the bar ($(focus_win))"
+	fi
+	# A swipe out on the list shuts it, then one on the bar shuts the bar
+	side_hold; sleep 1.2
+	sh "input swipe 200 320 330 320 150"; sleep 1; ui powerhold-swipe
+	if ! grep -q 'text="Power off"' $SHOTS/smoke-powerhold-swipe.xml && focus_win | grep -q WheelTaskbar; then
+		ok "a swipe out shuts the list, the bar stays"
+	else
+		shot powerhold-swipe; bad "a swipe out left the list open or shut the bar ($(focus_win))"
+	fi
+	sh "input swipe 420 320 479 320 150"; sleep 1.5
+	focus_win | grep -q WheelTaskbar && { shot powerhold-swipebar; bad "a swipe out on the bar left it open"; } \
+		|| ok "a swipe out on the bar shuts it"
+	lset wheel_taskbar_timeout "$timeout"
+	key 3; rotation_back 0 1
 }
 
 t_subpage() {
@@ -878,7 +985,7 @@ t_offcamera() {
 	# From the screen off, the side button's double press opens the camera, as a phone's does
 	key 223; sleep 2
 	side_double; sleep 3; shot offcamera
-	dev "dumpsys window" | grep -m1 'mCurrentFocus' | grep -q aperture \
+	dev "dumpsys window" | grep -m1 'mCurrentFocus' | grep -q opencamera \
 		&& ok "double press from the screen off opens the camera" \
 		|| bad "double press from the screen off left the camera shut"
 	key 4; sleep 1; key 224; sh "wm dismiss-keyguard"; key 3
@@ -924,6 +1031,12 @@ t_emptyfirst() {
 	local app f
 	for app in com.android.messaging/.ui.conversationlist.ConversationListActivity \
 			com.android.dialer/.main.impl.MainActivity; do
+		# A call in the history is a first stop of its own
+		case $app in com.android.dialer/*)
+			if dev "content query --uri content://call_log/calls --projection _id" | grep -q '^Row'; then
+				echo "SKIP ${app%%/*}: the call history isn't empty"; continue
+			fi ;;
+		esac
 		key 3; sleep 1; wheel down 1 >/dev/null; sleep 0.4
 		sh "am start -W -S -n $app >/dev/null 2>&1"; sleep 4
 		ui emptyfirst; f=$(focused_in emptyfirst)
@@ -1155,7 +1268,76 @@ t_gallery() {
 	key 4; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst}
+t_listadjust() {
+	# Settings > Display: a press on Peak refresh rate (a list; Screen timeout is a page of its
+	# own) grabs it, a step turns to the next choice in place, a press sets it, no list opened,
+	# and the same back; a press without turning opens the list
+	local before after back i
+	key 224
+	sh "am start -W -a android.settings.DISPLAY_SETTINGS >/dev/null"; sleep 2
+	for i in $(seq 1 24); do
+		key 20; sleep 0.4; ui listadjust
+		xfocus listadjust | grep -v '^out' | cut -f8 | grep -qx 'Peak refresh rate' && break
+	done
+	if ! xfocus listadjust | grep -v '^out' | cut -f8 | grep -qx 'Peak refresh rate'; then
+		shot listadjust-none; bad "no wheel stop on Peak refresh rate"; key 4; key 3; return
+	fi
+	before=$(xfocus listadjust | grep '^in' | cut -f8 | grep -v -e '^$' -e '^Peak refresh rate$' | head -1)
+	key 23; sleep 0.6; key 20; sleep 0.6; shot listadjust-turned; key 23; sleep 1
+	ui listadjust-set
+	after=$(xfocus listadjust-set | grep '^in' | cut -f8 | grep -v -e '^$' -e '^Peak refresh rate$' | head -1)
+	if focus_win | grep -q 'com.android.settings' && [ -n "$after" ] && [ "$before" != "$after" ]; then
+		ok "a list's press and step set Peak refresh rate in place ($before -> $after)"
+	else
+		bad "a list's press and step left Peak refresh rate at ${after:-nothing} ($(focus_win))"
+	fi
+	key 23; sleep 0.6; key 19; sleep 0.6; key 23; sleep 1; ui listadjust-back
+	back=$(xfocus listadjust-back | grep '^in' | cut -f8 | grep -v -e '^$' -e '^Peak refresh rate$' | head -1)
+	[ "$back" = "$before" ] && ok "a list's press and step back set it back ($back)" \
+		|| bad "a list's press and step back left it at ${back:-nothing}, not $before"
+	key 23; sleep 0.4; key 23; sleep 1; ui listadjust-opened
+	if grep -q 'select_dialog_listview\|CheckedTextView' $SHOTS/smoke-listadjust-opened.xml; then
+		ok "a list's press without turning opens its choices"
+	else
+		shot listadjust-opened; bad "a list's press without turning opened nothing"
+	fi
+	key 4; key 4; key 3
+}
+
+t_boxstep() {
+	# Dialer: the step down from the search bar goes onto its voice button, not past it
+	local id
+	key 224
+	sh "am start -W -n com.android.dialer/.main.impl.MainActivity >/dev/null"; sleep 2
+	wheel up 12; sleep 0.6; ui boxstep-bar
+	id=$(focus_field boxstep-bar 5)
+	if [ "${id##*/}" != search_view_container ]; then
+		shot boxstep-bar; bad "Dialer's wheel didn't reach the search bar (${id:-none})"; key 3; return
+	fi
+	wheel down 1; sleep 0.6; ui boxstep-voice
+	id=$(focus_field boxstep-voice 5)
+	[ "${id##*/}" = voice_search_button ] && ok "Dialer's search bar steps on to its voice button" \
+		|| { shot boxstep-voice; bad "Dialer's step from the search bar went to ${id:-nothing}"; }
+	key 3
+}
+
+t_scrollsight() {
+	# Notification history: steps that scroll the page past its switch leave no focus out of sight
+	local b top bottom
+	key 224
+	sh "am start -W -a android.settings.NOTIFICATION_HISTORY >/dev/null"; sleep 1.5
+	wheel down 5; sleep 0.6; ui scrollsight
+	b=$(focus_field scrollsight 6)
+	top=$(echo "$b" | cut -d' ' -f2); bottom=$(echo "$b" | cut -d' ' -f4)
+	if [ -z "$b" ] || [ $((bottom - top)) -ge 40 ]; then
+		ok "the history page's scroll left the focus in sight (${b:-on the page})"
+	else
+		shot scrollsight; bad "the history page's scroll left the focus out of sight ($b)"
+	fi
+	key 4; key 3
+}
+
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight wheeltune}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")

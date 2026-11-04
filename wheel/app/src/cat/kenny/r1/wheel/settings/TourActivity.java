@@ -38,6 +38,8 @@ public class TourActivity extends Activity {
     private static final int WELCOME = 0, TURN = 1, PRESS = 2, HOLD = 3, TASKBAR = 4,
             SLIDER = 5, BACK = 6, POWER = 7, HELP = 8, DONE = 9;
     private static final int PAGES = DONE + 1;
+    /** The gadget's full height. */
+    private static final int GADGET_DP = 150;
     private static final int TURNS_NEEDED = 4;
     private static final int REQUEST_HELP = 1;
 
@@ -51,6 +53,8 @@ public class TourActivity extends Activity {
     private boolean mCompleted;
 
     private Gadget mGadget;
+    private LinearLayout.LayoutParams mGadgetParams;
+    private LinearLayout.LayoutParams mSpacerParams;
     private TextView mStep, mTitle, mBody, mHint, mNext;
     private LinearLayout mRows;
     private SeekBar mSlider;
@@ -89,7 +93,25 @@ public class TourActivity extends Activity {
     }
 
     private View build() {
-        final LinearLayout root = new LinearLayout(this);
+        final LinearLayout root = new LinearLayout(this) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                // The gadget takes the room the page's text leaves, smaller on a page with the
+                // exercise rows; past its full size the rest goes above the buttons, so it stays
+                // in one place from page to page with the text right under it
+                mGadgetParams.height = 0;
+                mGadgetParams.weight = 1;
+                mSpacerParams.weight = 0;
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                if (mGadget.getMeasuredHeight() > GADGET_DP * getResources()
+                        .getDisplayMetrics().density) {
+                    mGadgetParams.height = dp(GADGET_DP);
+                    mGadgetParams.weight = 0;
+                    mSpacerParams.weight = 1;
+                    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                }
+            }
+        };
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.BLACK);
         // Clear of the status and navigation bars, the margins on top of them
@@ -112,12 +134,10 @@ public class TourActivity extends Activity {
         top.addView(skip, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
         root.addView(top, new LinearLayout.LayoutParams(-1, -2));
 
-        // The gadget takes the room the page's text leaves, up to its full size, centred in it:
-        // smaller on a page with the exercise rows, no hole under a short page's text
-        mGadget = new Gadget(this, dp(150));
-        final LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(-1, 0, 1);
-        glp.topMargin = dp(8);
-        root.addView(mGadget, glp);
+        mGadget = new Gadget(this, dp(GADGET_DP));
+        mGadgetParams = new LinearLayout.LayoutParams(-1, 0, 1);
+        mGadgetParams.topMargin = dp(8);
+        root.addView(mGadget, mGadgetParams);
 
         mTitle = text(22, mText, true);
         final LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-1, -2);
@@ -157,6 +177,9 @@ public class TourActivity extends Activity {
         final LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-1, dp(48));
         slp.topMargin = dp(14);
         root.addView(mSlider, slp);
+
+        mSpacerParams = new LinearLayout.LayoutParams(-1, 0, 0);
+        root.addView(new View(this), mSpacerParams);
 
         final LinearLayout bottom = new LinearLayout(this);
         bottom.setGravity(Gravity.CENTER_VERTICAL);
@@ -469,7 +492,8 @@ public class TourActivity extends Activity {
 
         private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF mRect = new RectF();
-        private final int mAccent, mBody, mScreen, mEdge, mMaxHeight;
+        private final int mAccent, mBody, mPanel, mScreen, mEdge, mWheel, mButton, mCameraFrame,
+                mCameraDrum, mMaxHeight;
         private int mMode;
         private float mGroove, mPulse;
         private ValueAnimator mAnim;
@@ -479,8 +503,14 @@ public class TourActivity extends Activity {
             mMaxHeight = maxHeight;
             mAccent = context.getColor(android.R.color.system_accent1_200);
             mBody = 0xFFE8572A;
-            mScreen = 0xFF101010;
-            mEdge = 0xFFB8441F;
+            mPanel = 0xFF0B0B0B;
+            mScreen = 0xFF1E2224;
+            mEdge = 0xFFC9471F;
+            mWheel = 0xFFF06636;
+            // Metal
+            mButton = 0xFFB8BCC4;
+            mCameraFrame = 0xFFC0341C;
+            mCameraDrum = 0xFFE24A26;
             setFocusable(false);
         }
 
@@ -515,46 +545,67 @@ public class TourActivity extends Activity {
             }
         }
 
+        /** A rounded part of the body {@code size} across, its edges as fractions of it. */
+        private void part(Canvas canvas, float left, float top, float size, float x0, float y0,
+                float x1, float y1, float radius, int color) {
+            mPaint.setColor(color);
+            mRect.set(left + x0 * size, top + y0 * size, left + x1 * size, top + y1 * size);
+            canvas.drawRoundRect(mRect, radius * size, radius * size, mPaint);
+        }
+
         @Override
         protected void onDraw(Canvas canvas) {
             final float d = getResources().getDisplayMetrics().density;
-            // Its button's cue reaches 32dp right of the body
-            final float h = Math.min(Math.min(getHeight(), mMaxHeight),
-                    (getWidth() - 64 * d) / 1.08f), w = h * 1.08f;
+            // Square, as the R1 is; its button's cue reaches 32dp right of the body
+            final float h = Math.min(Math.min(getHeight(), mMaxHeight), getWidth() - 64 * d);
             if (h < 48 * d) {
                 return;
             }
-            final float left = (getWidth() - w) / 2f, top = (getHeight() - h) / 2f;
-            // The body
+            final float left = (getWidth() - h) / 2f, top = (getHeight() - h) / 2f;
             mPaint.setStyle(Paint.Style.FILL);
-            mPaint.setColor(mBody);
-            mRect.set(left, top, left + w, top + h);
-            canvas.drawRoundRect(mRect, h * 0.12f, h * 0.12f, mPaint);
-            // The screen
-            mPaint.setColor(mScreen);
-            mRect.set(left + h * 0.08f, top + h * 0.1f, left + w * 0.66f, top + h * 0.9f);
-            canvas.drawRoundRect(mRect, h * 0.05f, h * 0.05f, mPaint);
-            // The wheel, its grooves moving as it turns
-            final float wx = left + w * 0.76f, wy = top + h * 0.2f;
-            final float ww = w * 0.13f, wh = h * 0.6f;
-            mPaint.setColor(mMode == WHEEL ? mAccent : mEdge);
-            mRect.set(wx, wy, wx + ww, wy + wh);
-            canvas.drawRoundRect(mRect, ww / 2f, ww / 2f, mPaint);
-            mPaint.setColor(mMode == WHEEL ? 0x66000000 : 0x40000000);
-            mPaint.setStrokeWidth(2 * d);
-            final float gap = wh / 7f;
+            // The body, then on it, as fractions of its size measured off a photo: the black
+            // panel round the screen on the left, the camera's block at the top right and the
+            // wheel under it, its bottom level with the body's middle
+            part(canvas, left, top, h, 0f, 0f, 1f, 1f, 0.085f, mBody);
+            part(canvas, left, top, h, 0.02f, 0.027f, 0.71f, 0.966f, 0.075f, mPanel);
+            part(canvas, left, top, h, 0.085f, 0.11f, 0.645f, 0.855f, 0.02f, mScreen);
+            // The camera's block: a thick red frame round its window, the camera's orange drum
+            // behind it in shadow at the top, its lens just below the middle
+            part(canvas, left, top, h, 0.754f, 0.042f, 0.951f, 0.237f, 0.045f, mCameraFrame);
+            part(canvas, left, top, h, 0.789f, 0.077f, 0.916f, 0.202f, 0.03f, mCameraDrum);
+            part(canvas, left, top, h, 0.789f, 0.077f, 0.916f, 0.122f, 0.03f, 0xFF5A1A10);
+            part(canvas, left, top, h, 0.789f, 0.105f, 0.916f, 0.122f, 0f, mCameraDrum);
+            mPaint.setColor(0xFF3A3D42);
+            canvas.drawCircle(left + h * 0.8525f, top + h * 0.152f, h * 0.026f, mPaint);
+            mPaint.setColor(0xFF15181C);
+            canvas.drawCircle(left + h * 0.8525f, top + h * 0.152f, h * 0.016f, mPaint);
+            mPaint.setColor(0x55FFFFFF);
+            canvas.drawCircle(left + h * 0.847f, top + h * 0.147f, h * 0.005f, mPaint);
+            // The wheel in its recess, a cylinder lit along its middle, its grooves moving as
+            // it turns
+            part(canvas, left, top, h, 0.75f, 0.31f, 0.948f, 0.52f, 0.045f, mEdge);
+            final boolean turning = mMode == WHEEL;
+            part(canvas, left, top, h, 0.765f, 0.325f, 0.933f, 0.505f, 0.04f,
+                    turning ? mAccent : mWheel);
+            part(canvas, left, top, h, 0.765f, 0.385f, 0.933f, 0.445f, 0f,
+                    turning ? 0x30FFFFFF : 0x24FFFFFF);
+            final float wx = left + h * 0.765f, ww = h * 0.168f;
+            final float wy = top + h * 0.325f, wh = h * 0.18f;
+            mPaint.setColor(turning ? 0x40000000 : 0x26000000);
+            mPaint.setStrokeWidth(Math.max(1f, d));
+            final float gap = wh / 5f;
             final float shift = ((mGroove % 1f) + 1f) % 1f * gap;
             canvas.save();
-            canvas.clipRect(wx, wy + ww / 3f, wx + ww, wy + wh - ww / 3f);
+            canvas.clipRect(wx, wy + gap / 2f, wx + ww, wy + wh - gap / 2f);
             for (float y = wy - gap + shift; y < wy + wh; y += gap) {
-                canvas.drawLine(wx + ww * 0.2f, y, wx + ww * 0.8f, y, mPaint);
+                canvas.drawLine(wx + ww * 0.12f, y, wx + ww * 0.88f, y, mPaint);
             }
             canvas.restore();
-            // The side button, on the right edge near the top
+            // The side button, on the right edge level with the wheel's middle
             final boolean lit = mMode == PRESS || mMode == DOUBLE || mMode == HOLD;
-            final float bx = left + w, by = top + h * 0.12f, bh = h * 0.16f;
-            mPaint.setColor(lit ? mAccent : mEdge);
-            mRect.set(bx - 2 * d, by, bx + 5 * d, by + bh);
+            final float bh = h * 0.085f, bx = left + h, by = wy + wh / 2f - bh / 2f;
+            mPaint.setColor(lit ? mAccent : mButton);
+            mRect.set(bx - 2 * d, by, bx + 4 * d, by + bh);
             canvas.drawRoundRect(mRect, 3 * d, 3 * d, mPaint);
             if (!lit) {
                 return;

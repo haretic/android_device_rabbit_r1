@@ -82,6 +82,23 @@
             android:title="@string/kt_camera_park"
             android:persistent="false" />
     </PreferenceCategory>
+    <PreferenceCategory android:key="wheel" android:title="@string/kt_cat_wheel">
+        <ListPreference
+            android:key="wheel_poll_fast"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_wheel_fast"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_poll"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_wheel_idle"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_step"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_wheel_step"
+            android:persistent="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:key="storage" android:title="@string/kt_cat_storage">
         <ListPreference
             android:key="io_sched"

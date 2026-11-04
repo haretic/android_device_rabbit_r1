@@ -38,5 +38,10 @@
             android:title="@string/part_settings_title"
             android:summary="@string/part_settings_summary"
             android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_styles"
+            android:title="@string/part_styles_title"
+            android:summary="@string/part_styles_summary"
+            android:persistent="false" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -44,6 +44,13 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private static final String[] TRIPS = {"75", "80", "85", "90"};
     private static final String DEFAULT_TRIP = "85";
     private static final int[] ZRAM_MIB = {0, 512, 1024, 1536, 2048, 3072};
+    /** The wheel driver's poll intervals in ms, and its step sizes in degrees */
+    private static final int[] WHEEL_FAST_MS = {10, 16, 33};
+    private static final String DEFAULT_WHEEL_FAST = "10";
+    private static final int[] WHEEL_IDLE_MS = {33, 50, 100};
+    private static final String DEFAULT_WHEEL_IDLE = "33";
+    private static final int[] WHEEL_STEP_DEG = {30, 24, 20, 15};
+    private static final String DEFAULT_WHEEL_STEP = "20";
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mUpdate = this::update;
@@ -63,6 +70,9 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private ListPreference mMic;
     private ListPreference mMotor;
     private ListPreference mCameraPark;
+    private ListPreference mWheelFast;
+    private ListPreference mWheelIdle;
+    private ListPreference mWheelStep;
     private SwitchPreferenceCompat mShowDocs;
 
     @Override
@@ -212,6 +222,20 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mMotor.setEntryValues(new CharSequence[] {"250", "360", "600"});
         bind(mMotor, "360");
 
+        mWheelFast = wheelRates(KernelTweaks.WHEEL_POLL_FAST, WHEEL_FAST_MS, DEFAULT_WHEEL_FAST);
+        mWheelIdle = wheelRates(KernelTweaks.WHEEL_POLL, WHEEL_IDLE_MS, DEFAULT_WHEEL_IDLE);
+        mWheelStep = findPreference(KernelTweaks.WHEEL_STEP);
+        final CharSequence[] stepSizes = new CharSequence[WHEEL_STEP_DEG.length];
+        final CharSequence[] stepValues = new CharSequence[WHEEL_STEP_DEG.length];
+        for (int i = 0; i < WHEEL_STEP_DEG.length; i++) {
+            stepSizes[i] = getString(R.string.kt_wheel_step_value, WHEEL_STEP_DEG[i],
+                    360 / WHEEL_STEP_DEG[i]);
+            stepValues[i] = Integer.toString(WHEEL_STEP_DEG[i]);
+        }
+        mWheelStep.setEntries(stepSizes);
+        mWheelStep.setEntryValues(stepValues);
+        bind(mWheelStep, DEFAULT_WHEEL_STEP);
+
         // The camera HAL's own setting, outside the tweaks' switch
         mCameraPark = findPreference("camera_park");
         mCameraPark.setEntries(new CharSequence[] {getString(R.string.kt_camera_park_hidden),
@@ -307,6 +331,22 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mHandler.postDelayed(mUpdate, RESULT_DELAY_MS);
     }
 
+    /** A wheel poll interval's list, in readings a second, the most first. */
+    private ListPreference wheelRates(String key, int[] intervalsMs, String defaultValue) {
+        final ListPreference preference = findPreference(key);
+        final CharSequence[] rates = new CharSequence[intervalsMs.length];
+        final CharSequence[] values = new CharSequence[intervalsMs.length];
+        for (int i = 0; i < intervalsMs.length; i++) {
+            // In tens: 16 ms reads as 60, not 62
+            rates[i] = getString(R.string.kt_wheel_hz, 1000 / intervalsMs[i] / 10 * 10);
+            values[i] = Integer.toString(intervalsMs[i]);
+        }
+        preference.setEntries(rates);
+        preference.setEntryValues(values);
+        bind(preference, defaultValue);
+        return preference;
+    }
+
     private String zramLabel(int mib) {
         return mib == 0 ? getString(R.string.kt_zram_off)
                 : getString(R.string.kt_zram_value,
@@ -349,6 +389,9 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         show(mSpeaker, "0", R.string.kt_speaker_what);
         show(mMic, "24", R.string.kt_mic_what);
         show(mMotor, "360", R.string.kt_motor_what);
+        show(mWheelFast, DEFAULT_WHEEL_FAST, R.string.kt_wheel_fast_what);
+        show(mWheelIdle, DEFAULT_WHEEL_IDLE, R.string.kt_wheel_idle_what);
+        show(mWheelStep, DEFAULT_WHEEL_STEP, R.string.kt_wheel_step_what);
         final String cameraPark = SystemProperties.get(KernelTweaks.CAMERA_PARK, "");
         mCameraPark.setValue(TextUtils.isEmpty(cameraPark) ? "90" : cameraPark);
         String cameraParkSummary = TextUtils.isEmpty(cameraPark)

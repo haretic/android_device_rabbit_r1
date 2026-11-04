@@ -96,6 +96,21 @@
     <string name="kt_camera_park_back">Facing away</string>
     <string name="kt_camera_park_what">Where the camera turns to while no app uses it.\n\nHidden keeps the sensor covered. Resting toward a side opens the camera that way at once.</string>
     <string name="kt_cat_graphics">Graphics</string>
+    <string name="kt_cat_wheel">Wheel</string>
+    <string name="kt_wheel_hz"><xliff:g id="hz">%d</xliff:g> times a second</string>
+    <string name="kt_wheel_fast">Wheel reading while turning</string>
+    <string name="kt_wheel_fast_what">How often the wheel is read while it turns, and for a second after.
+
+More keeps up with a fast spin and answers a step a little sooner, for a little more battery while it turns.</string>
+    <string name="kt_wheel_idle">Wheel reading while still</string>
+    <string name="kt_wheel_idle_what">How often the wheel is read while it rests, with the screen on.
+
+More answers the first step of a turn sooner; less saves a little battery.</string>
+    <string name="kt_wheel_step">Wheel step size</string>
+    <string name="kt_wheel_step_value"><xliff:g id="degrees">%1$d</xliff:g>° - <xliff:g id="steps">%2$d</xliff:g> steps a turn</string>
+    <string name="kt_wheel_step_what">How far the wheel turns for each step through a list or page.
+
+Smaller steps move further for the same turn and give finer control of sliders; a lighter touch can then make a step.</string>
     <string name="kt_cat_storage">Storage</string>
     <string name="kt_gpu">GPU top speed</string>
     <string name="kt_gpu_value"><xliff:g id="mhz">%d</xliff:g> MHz</string>

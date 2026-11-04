@@ -19,6 +19,9 @@
 #   persist.sys.r1.kt.speaker   -6..4, the speaker line out's gain in dB (0 by default)
 #   persist.sys.r1.kt.mic       0..24 in steps of 6, the mic's gain in dB (24 by default)
 #   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
+#   persist.sys.r1.kt.wheel_poll_fast 10 | 16 | 33, ms between the wheel's readings as it turns
+#   persist.sys.r1.kt.wheel_poll 33 | 50 | 100, ms between its readings while it rests
+#   persist.sys.r1.kt.wheel_step 15 | 20 | 24 | 30, the degrees of turn a wheel step takes
 # and then sys.r1.kt.apply to anything new. Unset means the default. Writes
 # sys.r1.kt.result (ok, or the tweaks that could not be set) for the page.
 #
@@ -45,6 +48,8 @@ GPU=/sys/class/devfreq/13000000.gpu
 EMMC=/sys/block/mmcblk0/queue
 SWAPPINESS=/proc/sys/vm/swappiness
 MOTOR=/sys/devices/platform/stepper-motor/step_us
+# The wheel's Hall sensor, on whichever I2C bus it probed
+WHEEL=$(ls -d /sys/bus/i2c/drivers/och1970/*-000d 2>/dev/null | head -1)
 # The CPU passive trip in the device tree
 DEFAULT_TRIP=85000
 
@@ -154,6 +159,12 @@ set_motor() {
 	[ "$(cat $MOTOR)" = "$1" ] || echo "$1" > $MOTOR 2>/dev/null || fail motor_step
 }
 
+# A wheel driver setting: $1 the attribute, $2 the value, $3 the tweak, $4 its default
+set_wheel() {
+	[ -f "$WHEEL/$1" ] || { [ "$2" = "$4" ] || fail $3; return; }
+	[ "$(cat $WHEEL/$1)" = "$2" ] || echo "$2" > $WHEEL/$1 2>/dev/null || fail $3
+}
+
 # What the device starts with, before the first change of this start, to go back to and for
 # the page to show as the default
 note_defaults() {
@@ -174,7 +185,8 @@ apply() {
 	# exactly, in MiB for the page
 	if [ -z "$(getprop sys.r1.kt.default_zram_bytes)" ]; then
 		setprop sys.r1.kt.default_zram_bytes $(cat $ZRAM/disksize)
-		setprop sys.r1.kt.default_zram $(( $(cat $ZRAM/disksize) / 1048576 ))
+		# mksh arithmetic is 32-bit: sizes from 2 GiB up overflow it, awk's doubles hold them
+		setprop sys.r1.kt.default_zram $(awk '{printf "%.0f", $1 / 1048576}' $ZRAM/disksize)
 	fi
 
 	if enabled; then
@@ -186,14 +198,18 @@ apply() {
 		gpu=$(prop gpu_max) governor=$(prop governor) swappiness=$(prop swappiness)
 		io_sched=$(prop io_sched) read_ahead=$(prop read_ahead)
 		speaker=$(prop speaker) mic=$(prop mic) motor_step=$(prop motor_step)
+		wheel_fast=$(prop wheel_poll_fast) wheel_idle=$(prop wheel_poll) wheel_step=$(prop wheel_step)
 	else
 		mem_sleep="" cores="" trip="" zram="" oc_big="" oc_little=""
 		gpu="" governor="" swappiness="" io_sched="" read_ahead=""
-		speaker="" mic="" motor_step=""
+		speaker="" mic="" motor_step="" wheel_fast="" wheel_idle="" wheel_step=""
 	fi
 	case "$speaker" in -[1-6]|[0-4]) ;; *) speaker=0 ;; esac
 	case "$mic" in 0|6|12|18|24) ;; *) mic=24 ;; esac
 	case "$motor_step" in 250|360|600) ;; *) motor_step=360 ;; esac
+	case "$wheel_fast" in 10|16|33) ;; *) wheel_fast=10 ;; esac
+	case "$wheel_idle" in 33|50|100) ;; *) wheel_idle=33 ;; esac
+	case "$wheel_step" in 15|20|24|30) ;; *) wheel_step=20 ;; esac
 	case "$gpu" in *[!0-9]*) gpu="" ;; esac
 	case "$governor" in schedutil|performance|powersave) ;;
 	*) governor=$(getprop sys.r1.kt.default_governor) ;; esac
@@ -209,7 +225,7 @@ apply() {
 	case "$trip" in 75|80|85|90) trip=$(( trip * 1000 )) ;; *) trip=$DEFAULT_TRIP ;; esac
 	case "$zram" in
 	''|*[!0-9]*) zram=$(getprop sys.r1.kt.default_zram_bytes) ;;
-	*) zram=$(( zram * 1048576 )) ;;
+	*) zram=$(awk -v m="$zram" 'BEGIN {printf "%.0f", m * 1048576}') ;;
 	esac
 
 	set_mem_sleep "$mem_sleep"
@@ -223,6 +239,9 @@ apply() {
 	set_io "$io_sched" "$read_ahead"
 	set_audio "$speaker" "$mic"
 	set_motor "$motor_step"
+	set_wheel poll_fast_ms "$wheel_fast" wheel_poll_fast 10
+	set_wheel poll_ms "$wheel_idle" wheel_poll 33
+	set_wheel step_deg "$wheel_step" wheel_step 20
 	setprop sys.r1.kt.result "${failed:-ok}"
 }
 

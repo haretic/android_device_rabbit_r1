@@ -1,0 +1,2 @@
+# The wheel driver's tuning (genfs_contexts), for the Kernel Tweaks
+type sysfs_r1_wheel, sysfs_type, fs_type;

@@ -23,6 +23,8 @@
 //	brightness  KEY_BRIGHTNESSUP / KEY_BRIGHTNESSDOWN.
 //	media       KEY_PREVIOUSSONG / KEY_NEXTSONG.
 //	zoom        Ctrl+= / Ctrl+-.
+//	camera      KEY_ZOOMIN / KEY_ZOOMOUT, which camera apps zoom with (the press, SystemUI's,
+//	            is the camera key).
 //	touch:X1:Y1:X2:Y2
 //	            touch zones: a step up taps the screen at (X1, Y1) through r1-wheel-touch,
 //	            a step down at (X2, Y2), in thousandths of the screen's width and height,
@@ -115,6 +117,8 @@ const (
 	keyBrightnessDown = 224
 	keyBrightnessUp   = 225
 	keySelect         = 353
+	keyZoomIn         = 418
+	keyZoomOut        = 419
 	keyMax            = 0x2ff
 	absMax            = 0x3f
 
@@ -230,6 +234,7 @@ const (
 	modeBrightness
 	modeMedia
 	modeZoom
+	modeCamera
 	modeTouch
 	modePinch
 )
@@ -238,6 +243,7 @@ var modeNames = map[string]mode{
 	"taskbar": modeTaskbar, "app": modeApp, "scroll": modeScroll, "tab": modeTab,
 	"arrows": modeArrows, "page": modePage, "volume": modeVolume,
 	"brightness": modeBrightness, "media": modeMedia, "zoom": modeZoom, "pinch": modePinch,
+	"camera": modeCamera,
 }
 
 // chord is a key with the modifiers held around it.
@@ -258,6 +264,7 @@ var modeKeys = map[mode][2]chord{
 	modeMedia:      {{key: keyPreviousSong}, {key: keyNextSong}},
 	modeZoom: {{mods: []uint16{keyLeftCtrl}, key: keyEqual},
 		{mods: []uint16{keyLeftCtrl}, key: keyMinus}},
+	modeCamera: {{key: keyZoomIn}, {key: keyZoomOut}},
 }
 
 // Every key r1-wheel can send. Select it never sends: with it r1-wheel has the D-pad's five keys,
@@ -267,6 +274,7 @@ var outKeys = []uintptr{
 	keyMinus, keyEqual, keyTab, keyLeftCtrl, keyLeftShift, keyUp, keyPageUp, keyLeft,
 	keyRight, keyDown, keyPageDown, keyVolumeDown, keyVolumeUp, keyNextSong,
 	keyPreviousSong, keyScrollUp, keyScrollDown, keyBrightnessDown, keyBrightnessUp, keySelect,
+	keyZoomIn, keyZoomOut,
 }
 
 type daemon struct {

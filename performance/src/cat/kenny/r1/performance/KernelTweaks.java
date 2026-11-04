@@ -34,11 +34,15 @@ final class KernelTweaks {
     static final String SPEAKER = "speaker";
     static final String MIC = "mic";
     static final String MOTOR_STEP = "motor_step";
+    static final String WHEEL_POLL_FAST = "wheel_poll_fast";
+    static final String WHEEL_POLL = "wheel_poll";
+    static final String WHEEL_STEP = "wheel_step";
     /** Not a Kernel Tweak: the camera HAL reads it, whether the tweaks are on or not. */
     static final String CAMERA_PARK = "persist.sys.r1.camera.park";
     /** The tweaks, as counted by changedCount(). */
     static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, Overclock.ON, TRIP, GOVERNOR, GPU_MAX,
-            ZRAM, SWAPPINESS, IO_SCHED, READ_AHEAD, SPEAKER, MIC, MOTOR_STEP};
+            ZRAM, SWAPPINESS, IO_SCHED, READ_AHEAD, SPEAKER, MIC, MOTOR_STEP, WHEEL_POLL_FAST,
+            WHEEL_POLL, WHEEL_STEP};
 
     private KernelTweaks() {
     }

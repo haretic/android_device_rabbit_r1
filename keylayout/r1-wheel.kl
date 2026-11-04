@@ -1,7 +1,7 @@
 # r1-wheel, the scroll wheel as r1-wheeld (wheel/daemon) sends it on, the keys of its modes:
 # taskbar (NAVIGATE_*: the policy gives them to SystemUI's wheel taskbar while an app is in
 # front, r1-wheel.kcm makes them D-pad steps in system windows), app, tab, arrows, page,
-# volume, brightness, media and zoom. Scroll goes through r1-wheel-touch.
+# volume, brightness, media, zoom and camera. Scroll goes through r1-wheel-touch.
 
 key 12    MINUS
 key 13    EQUALS
@@ -22,5 +22,7 @@ key 177   NAVIGATE_PREVIOUS
 key 178   NAVIGATE_NEXT
 key 224   BRIGHTNESS_DOWN
 key 225   BRIGHTNESS_UP
+key 418   ZOOM_IN
+key 419   ZOOM_OUT
 # Never sent; makes r1-wheel a D-pad (it needs all five D-pad keys)
 key 353   DPAD_CENTER
