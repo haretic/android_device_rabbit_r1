@@ -31,7 +31,7 @@ SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/system_ext
 SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/system_ext_public
 include $(DEVICE_PATH)/connectivity/BoardConfigConnectivity.mk
 include $(DEVICE_PATH)/camera/BoardConfigCamera.mk
-ifeq ($(TARGET_PRODUCT),lineage_r1_soc)
+ifeq ($(TARGET_PRODUCT),haretic_r1)
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/health/sepolicy
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/bootperf/sepolicy
 endif

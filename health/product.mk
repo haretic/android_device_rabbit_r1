@@ -4,7 +4,7 @@ include device/rabbit/r1/prebuilt/health-prebuilt.mk
 ifneq ($(R1_INSTALLED_HEALTH_PRODUCT),$(TARGET_PRODUCT))
 $(error Reinstall r1 device inputs for the selected Android product)
 endif
-ifeq ($(TARGET_PRODUCT),lineage_r1_soc)
+ifeq ($(TARGET_PRODUCT),haretic_r1)
 ifneq ($(R1_PREBUILT_SOC_CONFIG),y)
 $(error Experimental Health requires CONFIG_BATTERY_MT6357_R1_SOC=y in the verified prebuilt)
 endif
