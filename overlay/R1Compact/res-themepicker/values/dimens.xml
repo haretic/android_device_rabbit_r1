@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wallpaper and style: scrolled to its options, the header shrinks the lock and home previews
+     to fit them all, down to thumbnails with cut labels on the R1; keep them readable -->
+<resources>
+    <dimen name="customization_picker_min_preview_collapsed_height">140dp</dimen>
+</resources>

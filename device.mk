@@ -28,6 +28,12 @@ TARGET_GRAPHICS := pvr
 TARGET_GRAPHICS_EGL := none
 TARGET_GRAPHICS_VULKAN := none
 TARGET_GRAPHICS_ALLOCATOR_HAL := none
+# The stock driver's Vulkan 1.1 (DDK 1.13), declared to the apps that look for it; the UI
+# and SurfaceFlinger stay on GLES (ro.hwui.use_vulkan unset)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.vulkan.version-1_1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.level-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.level.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.compute-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.compute.xml
 else
 TARGET_GRAPHICS := swiftshader
 endif
@@ -40,6 +46,10 @@ TARGET_SUPPORTS_SUSPEND := true
 # libperfmgr: touch/launch boosts from power/powerhint.json.
 TARGET_POWER_HAL := perfmgr-lineage
 TARGET_BOOT_HAL := r1
+# AOSP's USB HAL, which reads the USB-C port's roles from the Type-C class (Lineage's basic
+# one reports a device-only port) and switches them for Settings' "USB controlled by"
+TARGET_USB_HAL := aosp-typec
+PRODUCT_PACKAGES += android.hardware.usb-service.example
 # The stock gralloc is HIDL allocator/mapper 4.0, which FCM level 7 still accepts.
 ifeq ($(R1_GPU),pvr)
 TARGET_FOLLOWS_LATEST_VINTF_TARGET_LEVEL := false
@@ -71,7 +81,10 @@ PRODUCT_PACKAGES += \
     android.hardware.boot-service.r1 \
     android.hardware.boot-service.r1_recovery \
     FrameworksResR1 \
+    AuroraStore \
     Cromite \
+    DroidIfy \
+    OpenCamera \
     R1CompactDeskClock \
     R1CompactGlimpse \
     R1CompactTwelve \
@@ -80,14 +93,16 @@ PRODUCT_PACKAGES += \
     R1CompactRecorder \
     R1CompactAudioFX \
     R1CompactMessaging \
+    R1CompactThemePicker \
     R1CompactSettingsIntelligence \
+    R1CompactLatinIME \
     R1CompactDocumentsUI \
     R1CompactContacts \
     R1CompactJelly \
     R1CompactUpdater \
-    R1CompactAperture \
     R1CompactCalculator \
     SettingsR1 \
+    LinePartsR1 \
     SettingsProviderR1 \
     LineageSdkR1 \
     LineageSettingsProviderR1 \
@@ -149,6 +164,12 @@ PRODUCT_SYSTEM_PROPERTIES += sys.use_memfd=true
 # One slow core until secondary CPUs are brought up: AMS.systemReady alone
 # outlasts the 60 s framework watchdog on first boot.
 PRODUCT_VENDOR_PROPERTIES += ro.hw_timeout_multiplier=5
+
+# The haretic wireframe-hare wallpaper as the default, by file: as a framework overlay it lost
+# to LineageOS's own default_wallpaper in the same density bucket.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/wallpaper/haretic.png:$(TARGET_COPY_OUT_PRODUCT)/media/wallpaper/haretic.png
+PRODUCT_PRODUCT_PROPERTIES += ro.config.wallpaper=/product/media/wallpaper/haretic.png
 
 # Handheld features; without them system_server skips the appwidget service and Launcher3 crash-loops.
 PRODUCT_COPY_FILES += \

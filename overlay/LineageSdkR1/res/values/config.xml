@@ -6,7 +6,7 @@
 
     <!-- Pinned to the power menu until the user picks their own -->
     <string-array name="config_powerMenuDefaultPinnedApps" translatable="false">
-        <item>org.lineageos.aperture</item>
+        <item>net.sourceforge.opencamera</item>
         <item>com.android.documentsui</item>
         <item>net.waterfox.android.release</item>
         <item>com.android.settings</item>

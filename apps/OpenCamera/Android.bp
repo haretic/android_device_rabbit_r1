@@ -1,0 +1,13 @@
+// The APK is hydrated by r1-tools scripts/ensure-r1-apk.py from android/opencamera-pin.json, not committed.
+// Open Camera from F-Droid, signed by F-Droid, so F-Droid clients can update it.
+android_app_import {
+    name: "OpenCamera",
+    apk: "OpenCamera.apk",
+    presigned: true,
+    // Signed with signature v2 and v3; zipaligned, no native libraries
+    preprocessed: true,
+    product_specific: true,
+    // The camera: Aperture's layout doesn't fit the R1's small screen
+    overrides: ["Aperture"],
+    dex_preopt: { enabled: false },
+}

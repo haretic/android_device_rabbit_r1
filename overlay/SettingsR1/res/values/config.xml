@@ -5,4 +5,23 @@
     <!-- Low/medium/high vibration intensity sliders; the framework overlay maps
          them onto the motor's 2.0, 2.8 and 3.0 V steps. -->
     <integer name="config_vibration_supported_intensity_levels">3</integer>
+    <!-- No dock to start the screen saver: "While charging" is its only trigger -->
+    <string-array name="when_to_start_screensaver_entries_no_battery" translatable="false">
+        <item>While charging</item>
+    </string-array>
+    <string-array name="when_to_start_screensaver_values_no_battery" translatable="false">
+        <item>while_charging_only</item>
+    </string-array>
+    <string-array name="when_to_start_screensaver_entries" translatable="false">
+        <item>While charging</item>
+    </string-array>
+    <string-array name="when_to_start_screensaver_values" translatable="false">
+        <item>while_charging_only</item>
+    </string-array>
+    <!-- Low light mode starts from a light sensor, which the R1 doesn't have -->
+    <string-array name="low_light_display_behavior_supported_values" translatable="false" />
+    <!-- VR helper services serve VR mode, which the R1 can't run -->
+    <bool name="config_show_enabled_vr_listeners">false</bool>
+    <!-- The wheel emits single volume events, not held keys or chords. -->
+    <bool name="config_hasPhysicalVolumeKeys">false</bool>
 </resources>

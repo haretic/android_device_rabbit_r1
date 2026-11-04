@@ -1,0 +1,11 @@
+// The APK is hydrated by r1-tools scripts/ensure-r1-apk.py from android/aurorastore-pin.json, not committed.
+// Aurora Store, Google Play's apps without a Google account, from F-Droid and signed by F-Droid, so Droid-ify can update it.
+android_app_import {
+    name: "AuroraStore",
+    apk: "AuroraStore.apk",
+    presigned: true,
+    // Signed with signature v2 and v3; zipaligned, with uncompressed native libraries as shipped
+    preprocessed: true,
+    product_specific: true,
+    dex_preopt: { enabled: false },
+}

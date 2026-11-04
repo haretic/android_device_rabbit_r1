@@ -3,4 +3,6 @@
 <permissions>
     <!-- No flash or torch LED, regardless of features inherited from the vendor image. -->
     <unavailable-feature name="android.hardware.camera.flash" />
+    <!-- No magnetometer: the sensor list has only the ICM-42607 accelerometer and gyro -->
+    <unavailable-feature name="android.hardware.sensor.compass" />
 </permissions>

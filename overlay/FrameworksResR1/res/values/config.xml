@@ -35,6 +35,9 @@
     <!-- r1-wheeld (wheel/daemon) owns the wheel: its input device and its init socket -->
     <string name="config_wheelDaemonInputDevice" translatable="false">r1-wheel</string>
     <string name="config_wheelDaemonSocket" translatable="false">r1-wheel</string>
+    <!-- The wheel is right of the screen, about a fifth of it tall, its bottom on the screen's
+         middle: its middle is 40% down -->
+    <item name="config_wheelCentre" format="fraction" type="fraction">40%</item>
     <!-- Cromite handles web links by default -->
     <string name="config_defaultBrowser" translatable="false">org.cromite.cromite</string>
     <!-- Apps made for the wheel scroll with it until the user picks otherwise -->
@@ -49,6 +52,8 @@
         <item>com.android.settings=app</item>
         <item>org.cromite.cromite=app</item>
         <item>org.lineageos.lineageparts=app</item>
+        <!-- R1HA's entity lists and dashboards scroll with the wheel -->
+        <item>com.github.itskenny0.r1ha=scroll</item>
         <!-- Pages and dialogs Settings opens in other packages: the wheel goes through them as
              through Settings -->
         <item>com.android.permissioncontroller=app</item>
@@ -76,14 +81,20 @@
         <item>com.android.printspooler=app</item>
         <item>com.android.companiondevicemanager=app</item>
         <item>org.lineageos.updater=app</item>
+        <!-- The dialer's quick responses, and the wallpaper and live wallpaper pickers -->
+        <item>com.android.server.telecomui=app</item>
+        <item>com.android.server.telecom=app</item>
+        <item>com.android.wallpaper=app</item>
+        <item>com.android.wallpaper.livepicker=app</item>
         <item>org.lineageos.audiofx=app</item>
         <!-- Stock apps that work with the highlight: the wheel moves it through them, the
              side button's double press still brings the taskbar -->
         <item>com.android.dialer=app</item>
         <item>com.android.contacts=app</item>
         <item>org.lineageos.glimpse=app</item>
-        <!-- The camera: the wheel zooms, a press takes the photo -->
-        <item>org.lineageos.aperture=zoom</item>
+        <!-- The cameras: the wheel zooms, a press takes the photo -->
+        <item>org.lineageos.aperture=camera</item>
+        <item>net.sourceforge.opencamera=camera</item>
         <item>com.android.documentsui=app</item>
         <item>org.lineageos.etar=app</item>
         <item>com.android.calculator2=app</item>
@@ -117,5 +128,15 @@
         <item>lockdown</item>
         <item>emergency</item>
         <item>bugreport</item>
+    </string-array>
+    <!-- No dock: the screen saver starts while charging, its only trigger -->
+    <bool name="config_dreamsActivatedOnDockByDefault">false</bool>
+    <bool name="config_dreamsActivatedOnSleepByDefault">true</bool>
+    <!-- The power + volume-up chord can't be pressed: the R1 has no volume keys -->
+    <bool name="config_volumeHushGestureEnabled">false</bool>
+    <!-- The R1's colours on a new install: haretic, with the R1's orange (Pantone Mandarin Orange)
+         itself on the dark theme's accents, not taken from the wallpaper -->
+    <string-array name="theming_defaults" translatable="false">
+        <item>*|HARETIC|#EC6A37</item>
     </string-array>
 </resources>

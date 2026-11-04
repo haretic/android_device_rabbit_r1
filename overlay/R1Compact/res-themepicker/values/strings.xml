@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app whose icon shows the chosen icon shape: stock's camera2 isn't on the R1, and Open
+     Camera's icon isn't adaptive, so the preview was an empty black shape; Settings' is -->
+<resources>
+    <string name="camera_package" translatable="false">com.android.settings</string>
+</resources>

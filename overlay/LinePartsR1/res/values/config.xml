@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The wheel emits single volume events, not held keys or chords. -->
+    <bool name="config_hasPhysicalVolumeKeys">false</bool>
+</resources>

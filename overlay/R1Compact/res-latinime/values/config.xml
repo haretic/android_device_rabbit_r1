@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The keyboard on the R1's 480x640 screen: rows on a 64 px pitch (as tall as wide keys need, a
+     third more than their width) with thin gaps, so the keys keep their faces while the keyboard
+     leaves the app 100 px more. LatinIME's minimum, 61.8% of the width, would hold it above its
+     own maximum here -->
+<resources>
+    <dimen name="config_default_keyboard_height">227dp</dimen>
+    <fraction name="config_min_keyboard_height">30%p</fraction>
+    <fraction name="config_keyboard_top_padding_holo">1.5%p</fraction>
+    <fraction name="config_keyboard_bottom_padding_holo">1.5%p</fraction>
+    <fraction name="config_key_vertical_gap_you">2.3%p</fraction>
+    <fraction name="config_key_vertical_gap_holo">2.3%p</fraction>
+    <dimen name="config_suggestions_strip_height">31dp</dimen>
+    <dimen name="config_more_suggestions_row_height">36dp</dimen>
+</resources>

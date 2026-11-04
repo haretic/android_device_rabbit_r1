@@ -13,6 +13,10 @@ genfscon sysfs /devices/platform/soc/11001000.auxadc u:object_r:vendor_sysfs_iio
 genfscon sysfs /firmware/devicetree/base/soc/auxadc@11001000 u:object_r:vendor_sysfs_iio:s0
 genfscon sysfs /devices/platform/soc/1000d000.pwrap/1000d000.pwrap:pmic/mt6359-auxadc u:object_r:vendor_sysfs_iio:s0
 genfscon sysfs /devices/platform/soc/11016000.i2c/i2c-5/5-0034/mt6370-adc. u:object_r:vendor_sysfs_iio:s0
+# The USB-C port: its Type-C class and PD objects for the USB HAL, not the controller itself
+genfscon sysfs /devices/platform/soc/11016000.i2c/i2c-5/5-0034/mt6370-tcpc.7.auto/typec u:object_r:sysfs_typec:s0
+genfscon sysfs /devices/platform/soc/11016000.i2c/i2c-5/5-0034/mt6370-tcpc.7.auto/usb_power_delivery u:object_r:sysfs_usb_pd:s0
+genfscon sysfs /devices/platform/soc/11016000.i2c/i2c-5/5-0034/mt6370-tcpc.7.auto/power_supply u:object_r:sysfs_batteryinfo:s0
 genfscon sysfs /firmware/devicetree/base/soc/pwrap@1000d000/pmic/adc u:object_r:vendor_sysfs_iio:s0
 genfscon sysfs /firmware/devicetree/base/soc/i2c@11016000/pmic@34/adc u:object_r:vendor_sysfs_iio:s0
 
@@ -26,6 +30,8 @@ genfscon sysfs /devices/platform/soc/1000d000.pwrap/1000d000.pwrap:pmic/mt6357-g
 # device names carry PLATFORM_DEVID_AUTO numbers, which genfscon cannot match.
 genfscon sysfs /devices/platform/soc/11200000.usb/musb-hdrc.0/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/11200000.usb/power_supply/11200000.usb-gadget/wakeup u:object_r:sysfs_wakeup:s0
+genfscon sysfs /devices/platform/soc/11016000.i2c/i2c-5/5-0034/mt6370-tcpc.7.auto/wakeup u:object_r:sysfs_wakeup:s0
+genfscon sysfs /devices/platform/soc/11016000.i2c/i2c-5/5-0034/mt6370-tcpc.7.auto/power_supply/tcpm-source-psy-mt6370-tcpc.7.auto/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/18002000.consys/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/18000000.wifi/wakeup u:object_r:sysfs_wakeup:s0
 # Charge level limit, written by the Lineage health HAL.
@@ -49,3 +55,6 @@ genfscon sysfs /devices/platform/soc/10012000.dvfsrc/10012000.dvfsrc:dram/devfre
 genfscon sysfs /devices/platform/soc/13000000.gpu/devfreq/13000000.gpu/cur_freq u:object_r:sysfs_devfreq_cur:s0
 genfscon sysfs /devices/platform/soc/13000000.gpu/devfreq/13000000.gpu/min_freq u:object_r:sysfs_r1_gpu_qos:s0
 genfscon sysfs /devices/platform/soc/13000000.gpu/devfreq/13000000.gpu/max_freq u:object_r:sysfs_r1_gpu_qos:s0
+genfscon sysfs /devices/platform/soc/1100d000.i2c/i2c-6/6-000d/poll_ms u:object_r:sysfs_r1_wheel:s0
+genfscon sysfs /devices/platform/soc/1100d000.i2c/i2c-6/6-000d/poll_fast_ms u:object_r:sysfs_r1_wheel:s0
+genfscon sysfs /devices/platform/soc/1100d000.i2c/i2c-6/6-000d/step_deg u:object_r:sysfs_r1_wheel:s0

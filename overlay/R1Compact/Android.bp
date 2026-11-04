@@ -102,3 +102,17 @@ runtime_resource_overlay {
     manifest: "manifests/SettingsIntelligence.xml",
     resource_dirs: ["res-settingsintelligence"],
 }
+
+runtime_resource_overlay {
+    name: "R1CompactLatinIME",
+    vendor: true,
+    manifest: "manifests/LatinIME.xml",
+    resource_dirs: ["res-latinime"],
+}
+
+runtime_resource_overlay {
+    name: "R1CompactThemePicker",
+    vendor: true,
+    manifest: "manifests/ThemePicker.xml",
+    resource_dirs: ["res-themepicker"],
+}
