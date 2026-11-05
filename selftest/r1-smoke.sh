@@ -126,6 +126,12 @@ host_only() {
 	return 1
 }
 bad() { echo "${retry:+RETRY }FAIL $*"; [ -n "${retry:-}" ] || failed="$failed $cur"; }
+# The browser tests drive Jelly's WebView; builds with Cromite in its place have no Jelly
+has_jelly() {
+	dev "pm path org.lineageos.jelly" | grep -q package: && return 0
+	echo "SKIP $cur: no Jelly, Cromite is the browser"
+	return 1
+}
 failed=; retry=; cur=
 dev() { sh "$*" | tr -d '\r'; }
 
@@ -675,6 +681,7 @@ t_openwith() {
 	key 4; sh "rm -f /sdcard/Download/r1-smoke-open.apk"; key 3
 }
 t_ime() {
+	has_jelly || return 0
 	# Under the wheel a page with a text field opens with the field focused, not the keyboard up:
 	# it comes as the field is pressed
 	# In app mode, where the wheel moves through the browser and the side button presses
@@ -703,6 +710,7 @@ t_ime() {
 }
 
 t_kbheight() {
+	has_jelly || return 0
 	# The keyboard leaves the app over half the portrait screen: its top below y=330 of 640
 	# (it was 245, with a band under it for a Back the side button's hold already is)
 	local saved top; saved=$(lget wheel_app_modes)
@@ -1063,6 +1071,7 @@ t_composefirst() {
 }
 
 t_toolbar() {
+	has_jelly || return 0
 	# A toolbar that keeps a keyboard's arrows in it, as the browser's: past its row the wheel
 	# goes on into the page. In app mode, where the wheel moves through the browser
 	local saved; saved=$(lget wheel_app_modes)

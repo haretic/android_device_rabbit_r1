@@ -69,13 +69,6 @@ runtime_resource_overlay {
 }
 
 runtime_resource_overlay {
-    name: "R1CompactJelly",
-    vendor: true,
-    manifest: "manifests/Jelly.xml",
-    resource_dirs: ["res"],
-}
-
-runtime_resource_overlay {
     name: "R1CompactUpdater",
     vendor: true,
     manifest: "manifests/Updater.xml",

@@ -29,13 +29,6 @@ runtime_resource_overlay {
 }
 
 runtime_resource_overlay {
-    name: "R1IconsJelly",
-    vendor: true,
-    manifest: "manifests/Jelly.xml",
-    resource_dirs: ["jelly/res"],
-}
-
-runtime_resource_overlay {
     name: "R1IconsSettings",
     vendor: true,
     manifest: "manifests/Settings.xml",

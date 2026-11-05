@@ -7,4 +7,6 @@ android_app_import {
     preprocessed: true,
     product_specific: true,
     dex_preopt: { enabled: false },
+    // The browser in place of LineageOS's Jelly, which no build with it has
+    overrides: ["Jelly"],
 }

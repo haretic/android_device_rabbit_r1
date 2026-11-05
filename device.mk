@@ -99,14 +99,12 @@ PRODUCT_PACKAGES += \
     R1CompactLatinIME \
     R1CompactDocumentsUI \
     R1CompactContacts \
-    R1CompactJelly \
     R1CompactUpdater \
     R1CompactCalculator \
     R1IconsContacts \
     R1IconsDialer \
     R1IconsDocumentsUI \
     R1IconsGlimpse \
-    R1IconsJelly \
     R1IconsOpenCamera \
     R1IconsSettings \
     SettingsR1 \
