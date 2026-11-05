@@ -1,0 +1,10 @@
+// The APK is hydrated by r1-tools scripts/ensure-r1-apk.py from android/tetrislite-pin.json, not committed.
+// haretic's easter egg: TetrisLite from haretic's fork of andr36oid's (github.com/haretic/TetrisLite),
+// played with the wheel; no launcher entry, Settings' haretic version opens it. Built unsigned, signed here.
+android_app_import {
+    name: "TetrisLite",
+    apk: "TetrisLite.apk",
+    presigned: false,
+    product_specific: true,
+    dex_preopt: { enabled: false },
+}

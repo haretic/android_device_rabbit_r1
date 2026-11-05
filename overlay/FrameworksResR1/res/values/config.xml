@@ -49,6 +49,9 @@
         <item>cat.kenny.r1.problemreport=app</item>
         <item>cat.kenny.r1.radiosleep=app</item>
         <item>cat.kenny.r1.usbemu=app</item>
+        <!-- The easter egg's falling blocks: the wheel's steps are keys the game takes, up
+             rotating and down dropping, or moving the piece sideways -->
+        <item>com.yet.tetris.release=app</item>
         <item>com.android.settings=app</item>
         <item>org.cromite.cromite=app</item>
         <item>org.lineageos.lineageparts=app</item>

@@ -82,6 +82,7 @@ PRODUCT_PACKAGES += \
     android.hardware.boot-service.r1_recovery \
     FrameworksResR1 \
     AuroraStore \
+    TetrisLite \
     Cromite \
     DroidIfy \
     OpenCamera \
