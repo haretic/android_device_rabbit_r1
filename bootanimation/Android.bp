@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// Lineage's animation with the outro ending on the finished logo instead of
-// fading it to black (rabbit-r1/scripts/trim-bootanimation.py).
+// haret1c: rabbit's r1 opening into haret1c, glitching until boot completes, closing back to
+// r1. Made by r1-tools android/bootanimation/haret1c.py from rabbit's own animation (GPL-3.0)
+// and Michroma (OFL-1.1); its first frame is the LK splash.
 filegroup {
     name: "bootanimation-r1",
     srcs: ["bootanimation.zip"],

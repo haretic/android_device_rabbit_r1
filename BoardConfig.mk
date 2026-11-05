@@ -124,5 +124,5 @@ BOARD_VENDOR_KERNEL_MODULES := $(filter-out %/r1-md-probe.ko,$(BOARD_VENDOR_KERN
 # Properties whose values contain spaces, which PRODUCT_*_PROPERTIES would split.
 TARGET_VENDOR_PROP += $(DEVICE_PATH)/vendor.prop
 
-# Lineage's animation, ending on the logo (bootanimation/Android.bp).
+# haret1c's boot animation (bootanimation/Android.bp).
 TARGET_BOOTANIMATION_MODULE := :bootanimation-r1
