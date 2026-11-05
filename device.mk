@@ -184,6 +184,10 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml \
     $(LOCAL_PATH)/permissions/r1-hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/r1-hardware.xml
 
+# The bundled app stores' notifications granted from the start; setup lets them install apps
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/permissions/default-permissions-r1-stores.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/default-permissions-r1-stores.xml
+
 # ICM-42607 accelerometer and gyroscope through the mainline IIO sensors HAL.
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.r1.sensors.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.r1.sensors.rc \

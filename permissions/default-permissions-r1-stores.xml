@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The bundled app stores tell of downloads and updates from the start, without asking -->
+<exceptions>
+    <exception package="com.aurora.store">
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+    <exception package="com.looker.droidify">
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+</exceptions>
