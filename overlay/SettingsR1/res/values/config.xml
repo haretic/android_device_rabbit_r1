@@ -24,4 +24,13 @@
     <bool name="config_show_enabled_vr_listeners">false</bool>
     <!-- The wheel emits single volume events, not held keys or chords. -->
     <bool name="config_hasPhysicalVolumeKeys">false</bool>
+    <!-- The apps haretic bundles that the R1 doesn't need: App info uninstalls them -->
+    <string-array name="config_userRemovableSystemPackages" translatable="false">
+        <item>com.aurora.store</item>
+        <item>org.cromite.cromite</item>
+        <item>com.looker.droidify</item>
+        <item>net.sourceforge.opencamera</item>
+        <item>com.github.itskenny0.r1ha</item>
+        <item>com.yet.tetris.release</item>
+    </string-array>
 </resources>

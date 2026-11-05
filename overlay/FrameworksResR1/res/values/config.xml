@@ -55,6 +55,10 @@
         <item>com.android.settings=app</item>
         <item>org.cromite.cromite=app</item>
         <item>org.lineageos.lineageparts=app</item>
+        <!-- The setup wizards: no taskbar before setup is done, the wheel goes through the
+             pages and the press is Enter -->
+        <item>org.lineageos.setupwizard=app</item>
+        <item>com.google.android.setupwizard=app</item>
         <!-- R1HA, made for the R1, takes the wheel's steps as keys itself, as on rabbit's OS -->
         <item>com.github.itskenny0.r1ha=app</item>
         <!-- Pages and dialogs Settings opens in other packages: the wheel goes through them as
@@ -137,9 +141,4 @@
     <bool name="config_dreamsActivatedOnSleepByDefault">true</bool>
     <!-- The power + volume-up chord can't be pressed: the R1 has no volume keys -->
     <bool name="config_volumeHushGestureEnabled">false</bool>
-    <!-- The R1's colours on a new install: haretic, with the R1's orange (Pantone Mandarin Orange)
-         itself on the dark theme's accents, not taken from the wallpaper -->
-    <string-array name="theming_defaults" translatable="false">
-        <item>*|HARETIC|#EC6A37</item>
-    </string-array>
 </resources>

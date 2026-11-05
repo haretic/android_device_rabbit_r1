@@ -7,4 +7,6 @@
     <!-- No gesture pill: on the 2.8 inch screen it crossed the last row of every list; the
          swipes work without it, and the lists get its room -->
     <bool name="def_navigation_bar_hint">false</bool>
+    <!-- Dark mode in pure black from the first start; the setup wizard no longer asks -->
+    <bool name="def_berry_black_theme">true</bool>
 </resources>

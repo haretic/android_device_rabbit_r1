@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- haretic_r1 only, in the product overlay ahead of LineageOS's: a vendor overlay loses to
+     LineageOS's product one, which sets its teal -->
+<resources>
+    <!-- The R1's colours on a new install: haretic, with the R1's orange (Pantone Mandarin Orange)
+         itself on the dark theme's accents, not taken from the wallpaper -->
+    <string-array name="theming_defaults" translatable="false">
+        <item>*|HARETIC|#EC6A37</item>
+    </string-array>
+</resources>

@@ -7,4 +7,7 @@ PRODUCT_BRAND := haretic
 PRODUCT_MANUFACTURER := haretic
 PRODUCT_MODEL := rabbit r1
 include device/rabbit/r1/version.mk
+
+# haretic's own defaults, ahead of LineageOS's product overlay
+PRODUCT_PACKAGE_OVERLAYS += device/rabbit/r1/overlay-haretic
 PRODUCT_SYSTEM_PROPERTIES += ro.haretic.version=$(HARETIC_VERSION)
