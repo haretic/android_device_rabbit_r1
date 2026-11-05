@@ -102,6 +102,13 @@ PRODUCT_PACKAGES += \
     R1CompactJelly \
     R1CompactUpdater \
     R1CompactCalculator \
+    R1IconsContacts \
+    R1IconsDialer \
+    R1IconsDocumentsUI \
+    R1IconsGlimpse \
+    R1IconsJelly \
+    R1IconsOpenCamera \
+    R1IconsSettings \
     SettingsR1 \
     LinePartsR1 \
     SettingsProviderR1 \

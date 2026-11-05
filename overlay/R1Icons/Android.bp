@@ -1,0 +1,50 @@
+// Launcher icons in rabbit orange instead of LineageOS blue
+
+runtime_resource_overlay {
+    name: "R1IconsContacts",
+    vendor: true,
+    manifest: "manifests/Contacts.xml",
+    resource_dirs: ["contacts/res"],
+}
+
+runtime_resource_overlay {
+    name: "R1IconsDocumentsUI",
+    vendor: true,
+    manifest: "manifests/DocumentsUI.xml",
+    resource_dirs: ["documentsui/res"],
+}
+
+runtime_resource_overlay {
+    name: "R1IconsDialer",
+    vendor: true,
+    manifest: "manifests/Dialer.xml",
+    resource_dirs: ["dialer/res"],
+}
+
+runtime_resource_overlay {
+    name: "R1IconsGlimpse",
+    vendor: true,
+    manifest: "manifests/Glimpse.xml",
+    resource_dirs: ["glimpse/res"],
+}
+
+runtime_resource_overlay {
+    name: "R1IconsJelly",
+    vendor: true,
+    manifest: "manifests/Jelly.xml",
+    resource_dirs: ["jelly/res"],
+}
+
+runtime_resource_overlay {
+    name: "R1IconsSettings",
+    vendor: true,
+    manifest: "manifests/Settings.xml",
+    resource_dirs: ["settings/res"],
+}
+
+runtime_resource_overlay {
+    name: "R1IconsOpenCamera",
+    vendor: true,
+    manifest: "manifests/OpenCamera.xml",
+    resource_dirs: ["opencamera/res"],
+}
