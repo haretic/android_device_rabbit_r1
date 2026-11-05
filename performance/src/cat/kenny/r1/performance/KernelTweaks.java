@@ -25,6 +25,7 @@ final class KernelTweaks {
     static final String PARK = "park_screen_off";
     static final String CORES = "cores";
     static final String TRIP = "trip";
+    static final String BOARD_TRIP = "board_trip";
     static final String ZRAM = "zram";
     static final String GOVERNOR = "governor";
     static final String GPU_MAX = "gpu_max";
@@ -40,7 +41,8 @@ final class KernelTweaks {
     /** Not a Kernel Tweak: the camera HAL reads it, whether the tweaks are on or not. */
     static final String CAMERA_PARK = "persist.sys.r1.camera.park";
     /** The tweaks, as counted by changedCount(). */
-    static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, Overclock.ON, TRIP, GOVERNOR, GPU_MAX,
+    static final String[] TWEAKS = {MEM_SLEEP, PARK, CORES, Overclock.ON, TRIP, BOARD_TRIP,
+            GOVERNOR, GPU_MAX,
             ZRAM, SWAPPINESS, IO_SCHED, READ_AHEAD, SPEAKER, MIC, MOTOR_STEP, WHEEL_POLL_FAST,
             WHEEL_POLL, WHEEL_STEP};
 

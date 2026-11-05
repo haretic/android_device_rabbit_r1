@@ -6,6 +6,9 @@
 #   persist.sys.r1.kt.mem_sleep deep | s2idle
 #   persist.sys.r1.kt.cores     1..8, the cores left online (the highest numbers go first)
 #   persist.sys.r1.kt.trip      75 | 80 | 85 | 90, the CPU throttle temperature in degrees C
+#   persist.sys.r1.kt.board_trip 48 | 52 | 55 | 58, the board's (and so the battery's): the
+#                               cores slow from it, harder from 6 degrees over it. The extreme
+#                               saver (its EXTREME_SAVER hint) takes 42, tweaks on or off
 #   persist.sys.r1.kt.zram      compressed swap in MiB, 0 for none
 #   persist.sys.r1.kt.oc        1 to overclock: boost on for the clusters below, whose top
 #                               speed the power HAL then holds (OC_* hints, the Controller)
@@ -34,7 +37,8 @@
 #
 #   r1-ktweaks.sh start    at post-fs-data: counts the start
 #   r1-ktweaks.sh apply    once Android is up and after every change
-#   r1-ktweaks.sh gpu      the GPU cap again, after the power HAL changed the GPU's top speed
+#   r1-ktweaks.sh gpu      the GPU cap again, after the power HAL changed the GPU's top speed,
+#                          and the board trip for the extreme saver's coming and going
 #   r1-ktweaks.sh audio    the gains again, after the audio HAL set the card up anew
 #   r1-ktweaks.sh settle   two minutes later: the start was good
 #   r1-ktweaks.sh octest   the overclock stress test
@@ -52,6 +56,10 @@ MOTOR=/sys/devices/platform/stepper-motor/step_us
 WHEEL=$(ls -d /sys/bus/i2c/drivers/och1970/*-000d 2>/dev/null | head -1)
 # The CPU passive trip in the device tree
 DEFAULT_TRIP=85000
+# The board sensor's (ap-ntc) first trip in the device tree, the second 6 degrees above; the
+# extreme saver's, cooler than any to pick
+DEFAULT_BOARD_TRIP=52000
+SAVER_BOARD_TRIP=42000
 
 prop() { getprop "persist.sys.r1.kt.$1"; }
 
@@ -83,6 +91,31 @@ set_trip() {
 			echo "$1" > $z/trip_point_0_temp 2>/dev/null || fail trip ;;
 		esac
 	done
+}
+
+# The board sensor's two trips: from the first the cores slow, from the second (6 degrees on)
+# harder. Raised hot first and lowered warm first, so the first never goes over the second.
+set_board_trip() {
+	for z in /sys/class/thermal/thermal_zone*; do
+		[ "$(cat $z/type)" = ap-ntc-thermal ] || continue
+		if [ "$1" -gt "$(cat $z/trip_point_0_temp)" ]; then
+			echo $(( $1 + 6000 )) > $z/trip_point_1_temp 2>/dev/null &&
+				echo "$1" > $z/trip_point_0_temp 2>/dev/null || fail board_trip
+		else
+			echo "$1" > $z/trip_point_0_temp 2>/dev/null &&
+				echo $(( $1 + 6000 )) > $z/trip_point_1_temp 2>/dev/null || fail board_trip
+		fi
+	done
+}
+
+# The board trip picked, or the extreme saver's while it is on
+board_trip() {
+	case ",$(getprop sys.powerhal.held_hints)," in
+	*,EXTREME_SAVER,*) echo $SAVER_BOARD_TRIP; return ;;
+	esac
+	t=""
+	enabled && t=$(prop board_trip)
+	case "$t" in 48|52|55|58) echo $(( t * 1000 )) ;; *) echo $DEFAULT_BOARD_TRIP ;; esac
 }
 
 set_zram() {
@@ -231,6 +264,7 @@ apply() {
 	set_mem_sleep "$mem_sleep"
 	set_cores "$cores"
 	set_trip "$trip"
+	set_board_trip "$(board_trip)"
 	set_zram "$zram"
 	set_oc "$oc_big" "$oc_little"
 	set_gpu "$gpu"
@@ -253,7 +287,7 @@ oc_step() {
 }
 
 # octest: every step, both clusters at once, at the speed for 60 s with all eight cores
-# hashing the same file (framework.jar, from the page cache) and comparing. The board sensor's throttling (ap-ntc, from 45 °C)
+# hashing the same file (framework.jar, from the page cache) and comparing. The board sensor's throttling (ap-ntc, from 52 °C)
 # pauses for it; the chip's own trips stay, and over 90 °C the test stops. A step counts only
 # if it held its speed most of the time.
 octest_state() { setprop sys.r1.kt.octest_state "$1"; echo "r1-ktweaks octest: $1" > /dev/kmsg; }
@@ -355,6 +389,7 @@ gpu)
 	# After the power HAL's own write
 	sleep 1
 	if enabled; then set_gpu "$(prop gpu_max)"; fi
+	set_board_trip "$(board_trip)"
 	;;
 settle)
 	sleep 120

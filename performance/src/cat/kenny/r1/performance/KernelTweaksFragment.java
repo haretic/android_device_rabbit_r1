@@ -43,6 +43,9 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
 
     private static final String[] TRIPS = {"75", "80", "85", "90"};
     private static final String DEFAULT_TRIP = "85";
+    /** The board sensor's first trip (the script and the device tree have the same) */
+    private static final String[] BOARD_TRIPS = {"48", "52", "55", "58"};
+    private static final String DEFAULT_BOARD_TRIP = "52";
     private static final int[] ZRAM_MIB = {0, 512, 1024, 1536, 2048, 3072};
     /** The wheel driver's poll intervals in ms, and its step sizes in degrees */
     private static final int[] WHEEL_FAST_MS = {10, 16, 33};
@@ -60,6 +63,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private ListPreference mCores;
     private Preference mOverclock;
     private ListPreference mTrip;
+    private ListPreference mBoardTrip;
     private ListPreference mZram;
     private ListPreference mGovernor;
     private ListPreference mGpu;
@@ -123,6 +127,15 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mTrip.setEntries(trips);
         mTrip.setEntryValues(TRIPS);
         bind(mTrip, DEFAULT_TRIP);
+
+        mBoardTrip = findPreference(KernelTweaks.BOARD_TRIP);
+        final CharSequence[] boardTrips = new CharSequence[BOARD_TRIPS.length];
+        for (int i = 0; i < BOARD_TRIPS.length; i++) {
+            boardTrips[i] = getString(R.string.kt_trip_value, Integer.parseInt(BOARD_TRIPS[i]));
+        }
+        mBoardTrip.setEntries(boardTrips);
+        mBoardTrip.setEntryValues(BOARD_TRIPS);
+        bind(mBoardTrip, DEFAULT_BOARD_TRIP);
 
         mZram = findPreference(KernelTweaks.ZRAM);
         final List<CharSequence> sizes = new ArrayList<>();
@@ -380,6 +393,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         show(mCores, "8", R.string.kt_cores_what);
         mOverclock.setSummary(OverclockFragment.summary(requireContext()));
         show(mTrip, DEFAULT_TRIP, R.string.kt_trip_what);
+        show(mBoardTrip, DEFAULT_BOARD_TRIP, R.string.kt_board_trip_what);
         show(mZram, KernelTweaks.defaultZram(), R.string.kt_zram_what);
         show(mGovernor, startValue(KernelTweaks.GOVERNOR, "schedutil"), R.string.kt_governor_what);
         show(mGpu, gpuDefault(), R.string.kt_gpu_what);

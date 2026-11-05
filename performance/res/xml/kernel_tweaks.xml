@@ -36,6 +36,11 @@
             android:title="@string/kt_trip"
             android:persistent="false" />
         <ListPreference
+            android:key="board_trip"
+            android:icon="@drawable/kt_dot_risky"
+            android:title="@string/kt_board_trip"
+            android:persistent="false" />
+        <ListPreference
             android:key="governor"
             android:icon="@drawable/kt_dot_safe"
             android:title="@string/kt_governor"
