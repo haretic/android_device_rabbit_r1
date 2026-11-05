@@ -8,3 +8,5 @@ service r1-wheeld /system_ext/bin/r1-wheeld
     group input uhid
     socket r1-wheel stream 0666 system system
     task_profiles HighPerformance
+    # Its log lines, as a finger of ours let go of, in dmesg
+    stdio_to_kmsg

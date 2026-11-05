@@ -160,6 +160,12 @@ const (
 	spinRate     = 10
 	spinRateStep = 8
 	maxDetents   = 4
+	// The most scroll a spin queues, in screen heights, and of zoom, in pinch steps: past
+	// it, steps add nothing until the glide has used some up
+	maxGlide = 4
+	maxPinch = 12 * pinchShare
+	// A finger of ours down this long without moving is let go: none stands so long
+	stuckAfter = 1500 * time.Millisecond
 )
 
 // ioctl request numbers, asm-generic layout: dir(2) size(14) type(8) nr(8)
@@ -315,6 +321,8 @@ type daemon struct {
 	span       float64
 	spanSlop   float64
 	pinchMoved time.Time
+	// A real finger on the touchscreen: ours stay off it until it lets go
+	userTouch bool
 }
 
 // tuning is the user's, from SystemUI's "tune" lines.
@@ -424,7 +432,11 @@ func (d *daemon) fingers(down bool) {
 
 // pinchStep adds a step's zoom to the pinch, starting it if it isn't running. Locked.
 func (d *daemon) pinchStep(direction int) {
+	if d.userTouch {
+		return
+	}
 	d.pinch += float64(d.detents(direction)) * pinchShare * d.tuning.distance
+	d.pinch = max(-maxPinch, min(maxPinch, d.pinch))
 	if !d.pinching {
 		d.pinching = true
 		go d.pinchOut()
@@ -482,11 +494,20 @@ func (d *daemon) pinchOut() {
 		}
 		next := d.span * math.Exp(part)
 		if next < closest || next > widest {
-			if time.Since(d.pinchMoved) >= stillBeforeLift {
-				d.fingers(false)
+			edge := widest
+			if next < closest {
+				edge = closest
 			}
-			d.mu.Unlock()
-			continue
+			if math.Abs(edge-d.span) < 1 {
+				if time.Since(d.pinchMoved) >= stillBeforeLift {
+					d.fingers(false)
+				}
+				d.mu.Unlock()
+				continue
+			}
+			// Only as far as the room goes, as a scroll's glide
+			part = math.Log(edge / d.span)
+			next = edge
 		}
 		d.pinch -= part
 		if math.Abs(d.pinch) < 0.001 {
@@ -535,6 +556,9 @@ func (d *daemon) setZones(zones [2][2]int32) {
 // down for the step before is let go first.
 func (d *daemon) tap(zone int) {
 	d.liftTap()
+	if d.userTouch {
+		return
+	}
 	x := int32(int64(d.zones[zone][0]) * int64(d.width-1) / 1000)
 	y := int32(int64(d.zones[zone][1]) * int64(d.height-1) / 1000)
 	d.finger(true, x, y)
@@ -604,7 +628,11 @@ func (d *daemon) detents(direction int) int {
 
 // scrollStep adds a step's drag to the glide, starting it if it isn't running. Locked.
 func (d *daemon) scrollStep(direction int) {
+	if d.userTouch {
+		return
+	}
 	d.glide += float64(d.detents(direction)) * detentShare * d.tuning.distance * float64(d.height)
+	d.glide = max(-maxGlide*float64(d.height), min(maxGlide*float64(d.height), d.glide))
 	if !d.gliding {
 		d.gliding = true
 		go d.glideOut()
@@ -623,6 +651,7 @@ func (d *daemon) finger(down bool, x, y int32) {
 		if !d.down {
 			write(d.touch, evKey, btnTouch, 1)
 		}
+		d.moved = time.Now()
 	} else {
 		write(d.touch, evAbs, absMtSlot, 0)
 		write(d.touch, evAbs, absMtTrackingID, -1)
@@ -670,14 +699,24 @@ func (d *daemon) glideOut() {
 			part = d.glide
 		}
 		next := d.fingerY + part
-		if next < float64(d.height)*gripTop || next > float64(d.height)*gripBottom {
-			// Out of room: let go once standing still (Android takes a finger 40 ms
-			// still as stopped, so the app doesn't fling), and a new grip follows
-			if time.Since(d.moved) >= stillBeforeLift {
-				d.finger(false, 0, 0)
+		if top, bottom := float64(d.height)*gripTop, float64(d.height)*gripBottom; next < top || next > bottom {
+			edge := bottom
+			if part < 0 {
+				edge = top
 			}
-			d.mu.Unlock()
-			continue
+			if math.Abs(edge-d.fingerY) < 1 {
+				// Out of room: let go once standing still (Android takes a finger 40 ms
+				// still as stopped, so the app doesn't fling), and a new grip follows
+				if time.Since(d.moved) >= stillBeforeLift {
+					d.finger(false, 0, 0)
+				}
+				d.mu.Unlock()
+				continue
+			}
+			// Only as far as the room goes: a part bigger than all of it, as a quick spin's,
+			// would never move, gripping again where it starts and never using the glide up
+			part = edge - d.fingerY
+			next = edge
 		}
 		d.glide -= part
 		if math.Abs(d.glide) < 0.5 {
@@ -826,9 +865,9 @@ func openWheel() (*os.File, error) {
 	return nil, fmt.Errorf("no %s input device", wheelName)
 }
 
-// touchscreenSize is the real touchscreen's range, which r1-wheel-touch copies so the
-// display maps both alike.
-func touchscreenSize() (int32, int32) {
+// touchscreen is the real touchscreen's path and range, which r1-wheel-touch copies so the
+// display maps both alike; no path without one.
+func touchscreen() (string, int32, int32) {
 	paths, _ := filepath.Glob("/dev/input/event*")
 	for _, path := range paths {
 		f, err := os.Open(path)
@@ -844,10 +883,10 @@ func touchscreenSize() (int32, int32) {
 			x.Maximum > 0 && y.Maximum > 0
 		f.Close()
 		if ok {
-			return x.Maximum + 1, y.Maximum + 1
+			return path, x.Maximum + 1, y.Maximum + 1
 		}
 	}
-	return touchscreenWidth, touchscreenHeight
+	return "", touchscreenWidth, touchscreenHeight
 }
 
 // buttonPaths lists the devices with KEY_POWER: the side button may come from more than one
@@ -897,6 +936,71 @@ func (d *daemon) watchButton(path string) {
 		d.setButton(false)
 		logf("side button %s: %v, reopening", path, err)
 		time.Sleep(time.Second)
+	}
+}
+
+// letGo lets go of every finger of ours and drops what is left to glide. Locked.
+func (d *daemon) letGo() {
+	d.glide = 0
+	d.pinch = 0
+	d.liftTap()
+	if d.down {
+		d.finger(false, 0, 0)
+	}
+	if d.pinchDown {
+		d.fingers(false)
+	}
+}
+
+// watchTouchscreen follows the real touchscreen, read and not grabbed: a finger on it lets
+// go of ours, as Android drops a second device's touches while one is down, and ours stay
+// off until it lets go. Reopened if it goes away.
+func (d *daemon) watchTouchscreen(path string) {
+	var ev inputEvent
+	buf := (*[unsafe.Sizeof(inputEvent{})]byte)(unsafe.Pointer(&ev))[:]
+	for {
+		screen, err := os.Open(path)
+		if err != nil {
+			logf("touchscreen %s: %v, retrying", path, err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		for {
+			if _, err = screen.Read(buf); err != nil {
+				break
+			}
+			if ev.Type == evKey && ev.Code == btnTouch {
+				d.mu.Lock()
+				d.userTouch = ev.Value != 0
+				if d.userTouch && (d.down || d.pinchDown) {
+					logf("a touch on the screen, letting go of ours")
+					d.letGo()
+				}
+				d.mu.Unlock()
+			}
+		}
+		screen.Close()
+		d.mu.Lock()
+		d.userTouch = false
+		d.mu.Unlock()
+		logf("touchscreen %s: %v, reopening", path, err)
+		time.Sleep(time.Second)
+	}
+}
+
+// watchStuck lets go of a finger of ours down stuckAfter without moving, whatever kept it
+// down, so the screen never stays held.
+func (d *daemon) watchStuck() {
+	for {
+		time.Sleep(stuckAfter / 3)
+		d.mu.Lock()
+		if d.down && time.Since(d.moved) >= stuckAfter ||
+			d.pinchDown && time.Since(d.pinchMoved) >= stuckAfter {
+			logf("a finger of ours down %v without moving (glide %.0f, pinch %.2f, mode %d), letting go",
+				stuckAfter, d.glide, d.pinch, d.mode)
+			d.letGo()
+		}
+		d.mu.Unlock()
 	}
 }
 
@@ -1080,7 +1184,7 @@ func main() {
 		logf("uinput: %v", err)
 		os.Exit(1)
 	}
-	width, height := touchscreenSize()
+	screen, width, height := touchscreen()
 	xs := absInfo{Maximum: width - 1}
 	ys := absInfo{Maximum: height - 1}
 	touch, err := createDevice(touchName, productTouch, []uintptr{evKey, evAbs}, []uintptr{btnTouch},
@@ -1107,6 +1211,14 @@ func main() {
 	}
 	for _, path := range buttons {
 		go d.watchButton(path)
+	}
+	if touch != nil {
+		if screen != "" {
+			go d.watchTouchscreen(screen)
+		} else {
+			logf("no touchscreen to watch, a touch on it doesn't let go of ours")
+		}
+		go d.watchStuck()
 	}
 
 	stop := make(chan os.Signal, 1)
