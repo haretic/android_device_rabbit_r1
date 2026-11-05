@@ -6,11 +6,5 @@ PRODUCT_NAME := haretic_r1
 PRODUCT_BRAND := haretic
 PRODUCT_MANUFACTURER := haretic
 PRODUCT_MODEL := rabbit r1
-# The haretic version, as the image is named: haretic-YYYYMMDD-<style>, the style one of
-# nightly, beta and release, nightly unless HARETIC_RELEASE says otherwise
-HARETIC_RELEASE ?= nightly
-ifeq ($(filter nightly beta release,$(HARETIC_RELEASE)),)
-$(error HARETIC_RELEASE is nightly, beta or release, not "$(HARETIC_RELEASE)")
-endif
-HARETIC_VERSION := haretic-$(shell date -u +%Y%m%d)-$(HARETIC_RELEASE)
+include device/rabbit/r1/version.mk
 PRODUCT_SYSTEM_PROPERTIES += ro.haretic.version=$(HARETIC_VERSION)

@@ -104,6 +104,12 @@ BOARD_AVB_ENABLE := true
 # reads every partition it asks for in full: boot plus the unused 64 MiB
 # vendor_boot, 1.2 s. Verified, it reads only the hashed 29 MiB of boot.
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 1
+# What the installer reads back before an update that keeps data: the version, haretic or the
+# plain LineageOS build (aosp), and Google apps
+include $(DEVICE_PATH)/version.mk
+BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --prop com.haretic.version:$(HARETIC_VERSION) \
+    --prop com.haretic.style:$(if $(filter haretic_r1,$(TARGET_PRODUCT)),haretic,aosp) \
+    --prop com.haretic.gapps:$(if $(filter true,$(WITH_GMS)),true,false)
 
 TARGET_ENABLE_MEDIADRM_64 := true
 TARGET_LMKD_STATS_LOG := true
