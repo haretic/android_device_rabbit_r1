@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.rabbit.r1.overlay.icons.documentsui">
-    <overlay android:targetPackage="com.android.documentsui" android:isStatic="true" android:priority="1" />
+    <overlay android:targetPackage="com.android.documentsui" android:targetName="DocumentsUICustomization"
+        android:isStatic="true" android:priority="1" />
 </manifest>
