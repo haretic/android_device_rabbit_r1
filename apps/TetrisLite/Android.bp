@@ -4,7 +4,8 @@
 android_app_import {
     name: "TetrisLite",
     apk: "TetrisLite.apk",
-    presigned: false,
+    // signed with the build's own key (release-keys in release builds)
+    default_dev_cert: true,
     product_specific: true,
     dex_preopt: { enabled: false },
 }
