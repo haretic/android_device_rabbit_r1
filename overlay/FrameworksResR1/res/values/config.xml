@@ -55,8 +55,8 @@
         <item>com.android.settings=app</item>
         <item>org.cromite.cromite=app</item>
         <item>org.lineageos.lineageparts=app</item>
-        <!-- R1HA's entity lists and dashboards scroll with the wheel -->
-        <item>com.github.itskenny0.r1ha=scroll</item>
+        <!-- R1HA, made for the R1, takes the wheel's steps as keys itself, as on rabbit's OS -->
+        <item>com.github.itskenny0.r1ha=app</item>
         <!-- Pages and dialogs Settings opens in other packages: the wheel goes through them as
              through Settings -->
         <item>com.android.permissioncontroller=app</item>
