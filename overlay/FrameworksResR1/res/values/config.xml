@@ -136,7 +136,9 @@
         <item>emergency</item>
         <item>bugreport</item>
     </string-array>
-    <!-- No dock: the screen saver starts while charging, its only trigger -->
+    <!-- No screen saver until the user turns one on; then, with no dock, it starts while
+         charging, its only trigger -->
+    <bool name="config_dreamsEnabledByDefault">false</bool>
     <bool name="config_dreamsActivatedOnDockByDefault">false</bool>
     <bool name="config_dreamsActivatedOnSleepByDefault">true</bool>
     <!-- The power + volume-up chord can't be pressed: the R1 has no volume keys -->
