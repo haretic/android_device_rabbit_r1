@@ -73,7 +73,7 @@
 
     <string name="kt_trip">Throttle temperature</string>
     <string name="kt_board_trip">Board throttle temperature</string>
-    <string name="kt_board_trip_what">The temperature of the r1's board that the cores start slowing down at; from 6 °C above it they slow harder.\n\nThe battery runs a few degrees under it. Lower keeps the r1 and its battery cooler. Higher keeps speeds up for longer in long, heavy use, and warms the battery more. The extreme battery saver uses 42 °C.</string>
+    <string name="kt_board_trip_what">The temperature of the r1\'s board that the cores start slowing down at; from 6 °C above it they slow harder.\n\nThe battery runs a few degrees under it. Lower keeps the r1 and its battery cooler. Higher keeps speeds up for longer in long, heavy use, and warms the battery more. The extreme battery saver uses 42 °C.</string>
     <string name="kt_trip_value"><xliff:g id="degrees">%d</xliff:g> °C</string>
     <string name="kt_trip_what">The temperature the cores start slowing down at to cool off.\n\nLower keeps the r1 cooler in the hand. Higher keeps speeds up for longer, but the chip runs hotter; above 85 °C you\'re on your own.</string>
 
