@@ -248,19 +248,18 @@ PRODUCT_COPY_FILES += \
 
 # Default attestation keybox for the KeyMint HAL. The owner can override it at runtime by
 # dropping a replacement at /data/vendor/keymint/keybox.xml; this is the built-in fallback.
-# It is private, next to the release keys; without it KeyMint signs with its software keys.
-# HARETIC_PUBLIC=true, for images published as releases, leaves it and the adb key out.
-ifneq ($(HARETIC_PUBLIC),true)
+# It is private, next to the release keys, and published images carry it too; without it
+# KeyMint signs with its software keys.
 ifneq ($(wildcard vendor/lineage-priv/keymint/keybox.xml),)
 PRODUCT_COPY_FILES += \
     vendor/lineage-priv/keymint/keybox.xml:$(TARGET_COPY_OUT_VENDOR)/etc/keymint/keybox.xml
-endif
 endif
 
 # Debuggable builds: recovery's adbd trusts the development host, so a reboot
 # into recovery can be left without its menu. Its /adb_keys links to
 # /product/etc/security/adb_keys and recovery never mounts /product, so the key
-# goes there in the recovery ramdisk.
+# goes there in the recovery ramdisk. HARETIC_PUBLIC=true, for images published as releases,
+# leaves it out.
 ifneq ($(filter eng userdebug,$(TARGET_BUILD_VARIANT)),)
 ifneq ($(HARETIC_PUBLIC),true)
 ifneq ($(wildcard vendor/lineage-priv/adb/adb_keys),)
