@@ -3,8 +3,10 @@ package cat.kenny.r1.wheel.settings;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -36,7 +38,7 @@ public class TourActivity extends Activity {
     public static final String KEY_DONE = "r1_wheel_tour_done";
 
     private static final int WELCOME = 0, TURN = 1, PRESS = 2, HOLD = 3, TASKBAR = 4,
-            SLIDER = 5, BACK = 6, POWER = 7, HELP = 8, DONE = 9;
+            SLIDER = 5, BACK = 6, POWER = 7, SLEEP = 8, HELP = 9, DONE = 10;
     private static final int PAGES = DONE + 1;
     /** The gadget's full height. */
     private static final int GADGET_DP = 150;
@@ -51,6 +53,8 @@ public class TourActivity extends Activity {
     private boolean mSliderGrabbed;
     private boolean mSliderChanged;
     private boolean mCompleted;
+    /** The screen went off on the sleep page, the double tap tried. */
+    private boolean mSlept;
 
     private Gadget mGadget;
     private LinearLayout.LayoutParams mGadgetParams;
@@ -61,6 +65,14 @@ public class TourActivity extends Activity {
     private final TextView[] mRowViews = new TextView[3];
     private int mAccent, mOnAccent, mSurface, mText, mTextDim;
     private final Runnable mAdvance = this::next;
+    private final BroadcastReceiver mScreenOff = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mPage == SLEEP) {
+                mSlept = true;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +96,8 @@ public class TourActivity extends Activity {
         }
         setContentView(build());
         show(mPage);
+        registerReceiver(mScreenOff, new IntentFilter(Intent.ACTION_SCREEN_OFF),
+                Context.RECEIVER_NOT_EXPORTED);
     }
 
     @Override
@@ -217,6 +231,7 @@ public class TourActivity extends Activity {
         mSliderGrabbed = false;
         mSliderChanged = false;
         mCompleted = false;
+        mSlept = false;
         final int[][] texts = {
                 {R.string.tour_welcome_title, R.string.tour_welcome_body, R.string.tour_welcome_hint},
                 {R.string.tour_turn_title, R.string.tour_turn_body, R.string.tour_turn_hint},
@@ -226,6 +241,7 @@ public class TourActivity extends Activity {
                 {R.string.tour_slider_title, R.string.tour_slider_body, R.string.tour_slider_hint},
                 {R.string.tour_back_title, R.string.tour_back_body, R.string.tour_back_hint},
                 {R.string.tour_power_title, R.string.tour_power_body, R.string.tour_power_hint},
+                {R.string.tour_sleep_title, R.string.tour_sleep_body, R.string.tour_sleep_hint},
                 {R.string.tour_help_title, R.string.tour_help_body, R.string.tour_help_hint},
                 {R.string.tour_done_title, R.string.tour_done_body, R.string.tour_done_hint},
         };
@@ -239,6 +255,7 @@ public class TourActivity extends Activity {
         mSlider.setProgress(5);
         updateRows(-1);
         mGadget.show(page == TURN ? Gadget.WHEEL
+                : page == SLEEP ? Gadget.STATUS_BAR
                 : page == WELCOME || page == POWER || page == DONE
                 ? Gadget.NONE : page == HOLD ? Gadget.HOLD
                 : page == TASKBAR || page == BACK ? Gadget.DOUBLE : Gadget.PRESS);
@@ -415,6 +432,10 @@ public class TourActivity extends Activity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
+        // Back from a double tap's sleep, woken and unlocked: the screen-off exercise is done
+        if (mPage == SLEEP && hasFocus && mSlept) {
+            completePage();
+        }
         // The Back exercise also needs a Back event; closing the bar alone does not pass it.
         if (mPage == TASKBAR || mPage == BACK) {
             if (!hasFocus) {
@@ -447,6 +468,7 @@ public class TourActivity extends Activity {
     @Override
     protected void onDestroy() {
         mHint.removeCallbacks(mAdvance);
+        unregisterReceiver(mScreenOff);
         super.onDestroy();
     }
 
@@ -485,10 +507,11 @@ public class TourActivity extends Activity {
     /**
      * The gadget from the front, its screen to the left, the wheel and the side button to the
      * right, with the control in question lit: the wheel's grooves run as it turns, the button
-     * pulses once for a press, twice for a double press, and fills for a hold.
+     * pulses once for a press, twice for a double press, and fills for a hold. For the status
+     * bar's double tap, the screen's top strip is lit with two rings on it.
      */
     private static final class Gadget extends View {
-        static final int NONE = 0, WHEEL = 1, PRESS = 2, DOUBLE = 3, HOLD = 4;
+        static final int NONE = 0, WHEEL = 1, PRESS = 2, DOUBLE = 3, HOLD = 4, STATUS_BAR = 5;
 
         private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF mRect = new RectF();
@@ -520,7 +543,8 @@ public class TourActivity extends Activity {
                 mAnim.cancel();
             }
             mAnim = ValueAnimator.ofFloat(0f, 1f);
-            mAnim.setDuration(mode == HOLD ? 1600 : mode == DOUBLE ? 1300 : 1100);
+            mAnim.setDuration(mode == HOLD ? 1600 : mode == DOUBLE || mode == STATUS_BAR ? 1300
+                    : 1100);
             mAnim.setRepeatCount(ValueAnimator.INFINITE);
             mAnim.addUpdateListener(a -> {
                 mPulse = (float) a.getAnimatedValue();
@@ -569,6 +593,11 @@ public class TourActivity extends Activity {
             part(canvas, left, top, h, 0f, 0f, 1f, 1f, 0.085f, mBody);
             part(canvas, left, top, h, 0.02f, 0.027f, 0.71f, 0.966f, 0.075f, mPanel);
             part(canvas, left, top, h, 0.085f, 0.11f, 0.645f, 0.855f, 0.02f, mScreen);
+            if (mMode == STATUS_BAR) {
+                // The status bar along the screen's top, lit, a double tap's two rings on it
+                part(canvas, left, top, h, 0.085f, 0.11f, 0.645f, 0.175f, 0.02f, mAccent);
+                rings(canvas, left + h * 0.365f, top + h * 0.1425f, 2, d);
+            }
             // The camera's block: a thick red frame round its window, the camera's orange drum
             // behind it in shadow at the top, its lens just below the middle
             part(canvas, left, top, h, 0.754f, 0.042f, 0.951f, 0.237f, 0.045f, mCameraFrame);
@@ -621,18 +650,27 @@ public class TourActivity extends Activity {
                 mRect.set(cx - r, cy - r, cx + r, cy + r);
                 canvas.drawArc(mRect, -90, 360 * Math.min(1f, mPulse * 1.4f), false, mPaint);
             } else {
-                final int pulses = mMode == DOUBLE ? 2 : 1;
-                for (int i = 0; i < pulses; i++) {
-                    final float t = mPulse * (mMode == DOUBLE ? 2.2f : 1.4f) - i * 0.9f;
-                    if (t < 0 || t > 1) {
-                        continue;
-                    }
-                    mPaint.setColor(mAccent);
-                    mPaint.setAlpha((int) (255 * (1 - t)));
-                    canvas.drawCircle(cx, cy, r * (0.6f + t), mPaint);
-                }
-                mPaint.setAlpha(255);
+                rings(canvas, cx, cy, mMode == DOUBLE ? 2 : 1, d);
             }
+        }
+
+        /** One ring growing and fading per press or tap, the second just after the first. */
+        private void rings(Canvas canvas, float cx, float cy, int pulses, float d) {
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(3 * d);
+            final float r = 9 * d;
+            for (int i = 0; i < pulses; i++) {
+                final float t = mPulse * (pulses == 2 ? 2.2f : 1.4f) - i * 0.9f;
+                if (t < 0 || t > 1) {
+                    continue;
+                }
+                // On the lit status bar the rings are dark, elsewhere in the accent
+                mPaint.setColor(mMode == STATUS_BAR ? 0xFF000000 : mAccent);
+                mPaint.setAlpha((int) (255 * (1 - t)));
+                canvas.drawCircle(cx, cy, r * (0.6f + t), mPaint);
+            }
+            mPaint.setAlpha(255);
+            mPaint.setStyle(Paint.Style.FILL);
         }
     }
 }

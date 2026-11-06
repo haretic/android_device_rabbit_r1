@@ -561,8 +561,9 @@ t_tour() {
 	side_press; sleep 0.8; wheel down 2; sleep 0.5; side_press; sleep 1.8; shot tour-7
 	# Back: the taskbar opened and shut, then Back
 	side_double; sleep 1; side_double; sleep 1; key 4; sleep 1.8; shot tour-8
-	# Power options told of, the help page opened and left
-	side_press; sleep 1.5; side_press; sleep 2.5
+	# Power options told of, the status bar's double tap for sleep told of, the help page opened
+	# and left
+	side_press; sleep 1.5; shot tour-sleep; side_press; sleep 1.5; side_press; sleep 2.5
 	focus_win | grep -q WheelActivity && ok "the tour opens the help page" || bad "no help page from the tour ($(focus_win))"
 	key 4; sleep 2; shot tour-9
 	focus_win | grep -q TourActivity && ok "back from help, back in the tour" || bad "help left the tour ($(focus_win))"

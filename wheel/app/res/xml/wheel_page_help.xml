@@ -36,6 +36,11 @@
         android:title="@string/help_grab_title"
         android:summary="@string/help_grab_summary"
         android:selectable="false" />
+    <Preference
+        android:key="help_sleep"
+        android:title="@string/help_sleep_title"
+        android:summary="@string/help_sleep_summary"
+        android:selectable="false" />
 
     <Preference
         android:key="help_back"
