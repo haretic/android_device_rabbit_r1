@@ -39,6 +39,7 @@
             "Throttling":[
                 {
                     "Type": "Hot",
+                    "Severe": 85,
                     "Shutdown": 110
                 }
             ]
