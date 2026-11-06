@@ -201,9 +201,10 @@ TARGET_IS_GROUPER := true
 $(call inherit-product, vendor/gapps/arm64/arm64-vendor.mk)
 endif
 
-# Cromite's first-run switch, from system_ext's init
+# Cromite's first-run switch, written by a system_ext service
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/init.r1.cromite.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.r1.cromite.rc
+    $(LOCAL_PATH)/rootdir/init.r1.cromite.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.r1.cromite.rc \
+    $(LOCAL_PATH)/rootdir/r1-cromite-switches.sh:$(TARGET_COPY_OUT_SYSTEM_EXT)/bin/r1-cromite-switches.sh
 
 # The bundled app stores' notifications granted from the start; setup lets them install apps
 PRODUCT_COPY_FILES += \
