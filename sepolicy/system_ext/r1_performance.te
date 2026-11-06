@@ -12,6 +12,8 @@ init_daemon_domain(r1_ktweaks)
 
 allow r1_ktweaks { shell_exec toolbox_exec }:file rx_file_perms;
 set_prop(r1_ktweaks, r1_ktweaks_prop)
+# The hints the power HAL holds: the extreme saver brings its own board trip (board_trip)
+get_prop(r1_ktweaks, powerhal_held_hints_prop)
 allow r1_ktweaks kmsg_device:chr_file w_file_perms;
 allow r1_ktweaks sysfs:dir r_dir_perms;
 allow r1_ktweaks sysfs:lnk_file read;

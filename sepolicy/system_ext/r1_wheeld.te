@@ -15,3 +15,9 @@ allow r1_wheeld uhid_device:chr_file rw_file_perms;
 # Apps (SystemUI) carry MLS categories, the socket has none
 type r1_wheel_socket, file_type, coredomain_socket, mlstrustedobject;
 unix_socket_connect(platform_app, r1_wheel, r1_wheeld)
+
+# stdio_to_kmsg (r1-wheeld.rc): its log lines in the kernel log, through /dev/kmsg_debug on
+# debuggable builds
+userdebug_or_eng(`
+  allow r1_wheeld kmsg_debug_device:chr_file { w_file_perms getattr ioctl };
+')

@@ -24,8 +24,8 @@ on post-fs-data
     chown radio radio /sys/kernel/ccci/boot
     mkdir /data/vendor/mdlpm 0770 system radio
     restorecon /data/vendor/mdlpm
-    mkdir /data/vendor_de/md 0770 system radio
-    restorecon /data/vendor_de/md
+    # Stock also made /data/vendor_de/md for ccci_mdinit, but only vold may add to /data/vendor_de
+    # (neverallow in vold.te), so the mkdir was only ever denied; mdinit starts without it
     restorecon_recursive /mnt/vendor/nvdata
     restorecon_recursive /mnt/vendor/nvcfg
     restorecon_recursive /mnt/vendor/protect_f
