@@ -805,7 +805,7 @@ t_landshade() {
 	# Turned, the wheel's shade stays one column in tabs, the wheel walking one list: never the
 	# split shade with the controls beside the notifications
 	local auto user; auto=$(dev "settings get system accelerometer_rotation"); user=$(dev "settings get system user_rotation")
-	sh "settings put system accelerometer_rotation 0; settings put system user_rotation 1"; sleep 2
+	turn 1; sleep 1
 	key 224; sh "wm dismiss-keyguard; am start -W -S -a android.settings.DISPLAY_SETTINGS >/dev/null"; sleep 2
 	sh "cmd statusbar expand-notifications"; sleep 1.5; ui landshade; shot landshade
 	if grep -q 'text="Display brightness"' $SHOTS/smoke-landshade.xml && grep -q 'USB debugging' $SHOTS/smoke-landshade.xml; then
@@ -821,7 +821,7 @@ t_landpower() {
 	# Turned, the power menu is the wheel's list as upright: one action a row, Restart naming
 	# its targets, not the stock grid of round buttons
 	local auto user; auto=$(dev "settings get system accelerometer_rotation"); user=$(dev "settings get system user_rotation")
-	sh "settings put system accelerometer_rotation 0; settings put system user_rotation 1"; sleep 2
+	turn 1; sleep 1
 	key 224; sh "wm dismiss-keyguard; am start -W -S -a android.settings.DISPLAY_SETTINGS >/dev/null"; sleep 2
 	sh "service call window 119 >/dev/null"; sleep 2; ui landpower; shot landpower
 	grep -q 'Recovery' $SHOTS/smoke-landpower.xml && ok "turned power menu is the list" \
