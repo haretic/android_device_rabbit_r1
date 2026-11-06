@@ -30,7 +30,7 @@ runtime_resource_overlay {
     name: "R1CompactEtar",
     vendor: true,
     manifest: "manifests/Etar.xml",
-    resource_dirs: ["res"],
+    resource_dirs: ["res", "res-etar"],
 }
 
 runtime_resource_overlay {

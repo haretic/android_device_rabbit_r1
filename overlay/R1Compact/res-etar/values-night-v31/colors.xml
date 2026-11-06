@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- haretic: the new event button in the dark theme's accent, as the other apps' buttons, not
+     accent1_500, a brown with the haretic style's deeper accent tones -->
+<resources>
+    <color name="colorAccent">@android:color/system_accent1_200</color>
+</resources>

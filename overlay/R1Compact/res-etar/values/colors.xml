@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- haretic: the day view's today in the accent, not the stock light blue -->
+<resources>
+    <color name="week_today_dark">@android:color/system_accent1_200</color>
+    <color name="week_today_black">@android:color/system_accent1_200</color>
+</resources>
