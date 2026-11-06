@@ -1,2 +1,4 @@
 /dev/wmtWifi							u:object_r:wmtwifi_device:s0
 /(vendor|system/vendor)/bin/mtk-consys-wifi-on\.sh		u:object_r:mtk_consys_wifi_on_exec:s0
+# Runs as the mainline set_bdaddr service (bt_bdaddr/r1-bt-bdaddr.rc).
+/(vendor|system/vendor)/bin/r1-bt-bdaddr			u:object_r:set_bdaddr_exec:s0

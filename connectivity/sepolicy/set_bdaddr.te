@@ -1,0 +1,4 @@
+# r1-bt-bdaddr: the factory address in nvdata, else a hash of the eMMC CID.
+allow set_bdaddr nvdata_file:dir search;
+allow set_bdaddr nvdata_file:file r_file_perms;
+r_dir_file(set_bdaddr, sysfs_r1_mmc)

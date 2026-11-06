@@ -1,0 +1,17 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+cc_binary {
+    name: "r1-bt-bdaddr",
+    srcs: ["bt_bdaddr.cpp"],
+    vendor: true,
+    shared_libs: [
+        "libbase",
+        "libcrypto",
+        "liblog",
+    ],
+    // Runs device/mainline/common's bdaddr, in PRODUCT_PACKAGES.
+    init_rc: ["r1-bt-bdaddr.rc"],
+}

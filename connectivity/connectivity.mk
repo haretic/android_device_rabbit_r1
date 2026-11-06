@@ -65,10 +65,13 @@ endif
 
 # Bluetooth: btmtk_wmt registers hci0, which the default AIDL HAL
 # (TARGET_BLUETOOTH_HAL=default-aidl, on by default) opens through the HCI
-# user channel. If the controller reports no address, btmtk_wmt leaves it
-# unconfigured and the mainline set_bdaddr service programs one via MGMT.
+# user channel. The controller powers on with a ROM default address, which
+# btmtk_wmt treats as none: the controller stays unconfigured, and hidden
+# from the HAL, until set_bdaddr programs one via MGMT. r1-bt-bdaddr takes
+# the place of the mainline set_bdaddr.sh with the factory address in NVRAM.
 PRODUCT_PACKAGES += \
-    bdaddr
+    bdaddr \
+    r1-bt-bdaddr
 
 # The HAL's prebuilt.xml declares only android.hardware.bluetooth; the
 # MT6765 CONSYS controller is dual mode, and apps look for this one to scan.

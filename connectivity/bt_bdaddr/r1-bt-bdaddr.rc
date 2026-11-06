@@ -1,0 +1,14 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# device/mainline/common's set_bdaddr (bdaddr.rc), with the r1's address:
+# set_bdaddr.sh makes one from androidboot.serialno, r1-bt-bdaddr takes the
+# factory one from NVRAM. It runs bdaddr, in the same set_bdaddr domain.
+service set_bdaddr /vendor/bin/r1-bt-bdaddr
+    override
+    class core
+    user root
+    group system
+    capabilities NET_ADMIN
+    oneshot
