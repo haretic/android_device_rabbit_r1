@@ -44,5 +44,25 @@ algorithms:
   - Adjust:
       contrast: 1.1
       saturation: 1.3
+  # The stock AE where it was readable (hi846_mipi_raw_tuning.so AE NVRAM):
+  # target 50/255 (u4AETarget), highlights from 240/255 (u4OverExpThres),
+  # analogue gain to 8x (u4MaxGain 8192). The sensor steps its gain by 0.5x
+  # (8 codes of 1/16); exposure and the ISP's digital gain take the rest.
   - Agc:
+      target: 0.196
+      tolerance: 0.08
+      speed: 0.8
+      maxStep: 2.0
+      highlightLevel: 0.94
+      highlightFraction: 0.03
+      againMax: 8.0
+      againStep: 0.5
+      digitalGainMax: 4.0
+      settleFrames: 6
+      initialExposureTime: 0.02
+      # Noise variance per unit of white squared: shot per gain (full well
+      # about 4500 e-, estimated), read per gain squared (4 LSB at 16x,
+      # measured on a dark frame)
+      noiseShot: 2.2e-4
+      noiseRead: 6.0e-8
 ...
