@@ -1,6 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 LOCAL_PATH := device/rabbit/r1
 
+# What the build is, for the updater to fetch the same build again, as the vbmeta signs it for
+# the installer: the version, the style (haretic, or aosp for the plain LineageOS build) and
+# whether it has Google apps
+include $(LOCAL_PATH)/version.mk
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.haretic.version=$(HARETIC_VERSION) \
+    ro.haretic.style=$(if $(filter haretic_r1,$(TARGET_PRODUCT)),haretic,aosp) \
+    ro.haretic.gapps=$(if $(filter true,$(WITH_GMS)),true,false)
+
 TARGET_HAS_BATTERY := true
 # Lineage charging control in "limit" mode: the kernel charging policy stops at
 # charge_stop_level and resumes at charge_start_level, keeping the system on
@@ -65,7 +74,9 @@ TARGET_FORCE_PREBUILT_KERNEL := true
 # Dedicated A/B extents use the upstream dm-linear driver. Stock uses virtual
 # A/B; do not inherit its userspace snapshots without a working dm-user driver.
 AB_OTA_UPDATER := true
-AB_OTA_PARTITIONS += boot dtbo system system_ext product vendor vbmeta
+# Not dtbo: LK applies the stock v0.8.293 DTBO to its own board tree, which the installer writes
+# to both slots, and an update must leave it
+AB_OTA_PARTITIONS += boot system system_ext product vendor vbmeta
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 PRODUCT_BUILD_SUPER_PARTITION := true
 PRODUCT_VIRTUAL_AB_OTA := false
@@ -182,6 +193,10 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml \
     $(LOCAL_PATH)/permissions/r1-hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/r1-hardware.xml
 
+# Cromite's first-run switch, from system_ext's init
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/init.r1.cromite.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.r1.cromite.rc
+
 # The bundled app stores' notifications granted from the start; setup lets them install apps
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/permissions/default-permissions-r1-stores.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/default-permissions-r1-stores.xml
@@ -226,9 +241,12 @@ PRODUCT_COPY_FILES += \
 # Default attestation keybox for the KeyMint HAL. The owner can override it at runtime by
 # dropping a replacement at /data/vendor/keymint/keybox.xml; this is the built-in fallback.
 # It is private, next to the release keys; without it KeyMint signs with its software keys.
+# HARETIC_PUBLIC=true, for images published as releases, leaves it and the adb key out.
+ifneq ($(HARETIC_PUBLIC),true)
 ifneq ($(wildcard vendor/lineage-priv/keymint/keybox.xml),)
 PRODUCT_COPY_FILES += \
     vendor/lineage-priv/keymint/keybox.xml:$(TARGET_COPY_OUT_VENDOR)/etc/keymint/keybox.xml
+endif
 endif
 
 # Debuggable builds: recovery's adbd trusts the development host, so a reboot
@@ -236,9 +254,11 @@ endif
 # /product/etc/security/adb_keys and recovery never mounts /product, so the key
 # goes there in the recovery ramdisk.
 ifneq ($(filter eng userdebug,$(TARGET_BUILD_VARIANT)),)
+ifneq ($(HARETIC_PUBLIC),true)
 ifneq ($(wildcard vendor/lineage-priv/adb/adb_keys),)
 PRODUCT_COPY_FILES += \
     vendor/lineage-priv/adb/adb_keys:$(TARGET_COPY_OUT_RECOVERY)/root/product/etc/security/adb_keys
+endif
 endif
 endif
 

@@ -25,13 +25,6 @@ on property:sys.boot_completed=1
     swapon_all /vendor/etc/fstab.r1
     write /sys/module/mt6765_mcdi/parameters/enable 1
 
-# Cromite opens without its first-run screens: Chromium reads its switches from this file on
-# userdebug builds, the first word standing for the program
-on post-fs-data
-    write /data/local/tmp/chrome-command-line "_ --disable-fre"
-    chown shell shell /data/local/tmp/chrome-command-line
-    chmod 0644 /data/local/tmp/chrome-command-line
-
 # Off-mode charging never completes boot.
 on charger
     start watchdogd

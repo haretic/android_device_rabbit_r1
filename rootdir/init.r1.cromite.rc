@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Cromite opens without its first-run screens: Chromium reads its switches from this file on
+# userdebug builds, the first word standing for the program. In system_ext, as vendor_init may
+# not write /data/local/tmp
+on post-fs-data
+    write /data/local/tmp/chrome-command-line "_ --disable-fre"
+    chown shell shell /data/local/tmp/chrome-command-line
+    chmod 0644 /data/local/tmp/chrome-command-line

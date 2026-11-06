@@ -10,5 +10,3 @@ PRODUCT_NAME := haretic_r1
 PRODUCT_BRAND := haretic
 PRODUCT_MANUFACTURER := haretic
 PRODUCT_MODEL := rabbit r1
-include device/rabbit/r1/version.mk
-PRODUCT_SYSTEM_PROPERTIES += ro.haretic.version=$(HARETIC_VERSION)
