@@ -31,6 +31,8 @@ runtime_resource_overlay {
     vendor: true,
     manifest: "manifests/Etar.xml",
     resource_dirs: ["res", "res-etar"],
+    // res-etar's colours are Etar's alone, not in the shared res it overlays
+    aaptflags: ["--auto-add-overlay"],
 }
 
 runtime_resource_overlay {
