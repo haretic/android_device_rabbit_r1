@@ -13,10 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SubSettingsBase.Expressive">
 
-        <!-- Settings > System > Scroll wheel -->
+        <!-- Settings > System > Scroll wheel. It lays itself out again on a turn of the gadget
+             rather than start over, so the wheel's focus stays on the row it was on -->
         <activity
             android:name=".WheelActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:label="@string/wheel_title">
             <intent-filter>
                 <action android:name="com.android.settings.action.IA_SETTINGS" />

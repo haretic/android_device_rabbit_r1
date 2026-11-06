@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 package cat.kenny.r1.wheel;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.SystemClock;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -57,6 +59,11 @@ public final class WheelSelect implements InvocationHandler {
         if (dialog != null && dialog.getWindow() != null) {
             attach(dialog.getWindow());
         }
+        // A list of choices draws into its padding (clipToPadding false), and the wheel scrolls
+        // its rows up there, over the dialog's title: keep them below it
+        if (dialog instanceof AlertDialog && ((AlertDialog) dialog).getListView() != null) {
+            ((AlertDialog) dialog).getListView().setClipToPadding(true);
+        }
     }
 
     public static void attach(Window window) {
@@ -95,21 +102,23 @@ public final class WheelSelect implements InvocationHandler {
     }
 
     private void onPowerKey(KeyEvent event) {
+        // A hold is told by how long the button is down: the side button's events reach the
+        // window without FLAG_LONG_PRESS, and maybe without repeats
+        final boolean held = event.getEventTime() - event.getDownTime()
+                >= ViewConfiguration.getLongPressTimeout();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (event.getRepeatCount() == 0) {
                 mSlept = false;
-            } else if (event.isLongPress() && !mSlept) {
-                // A hold goes back, as everywhere with the wheel UI
-                mSlept = true;
-                final long now = SystemClock.uptimeMillis();
-                mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
-                        KeyEvent.KEYCODE_BACK, 0));
-                mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP,
-                        KeyEvent.KEYCODE_BACK, 0));
+            } else if (held && !mSlept) {
+                goBack();
             }
             return;
         }
         if (mSlept || event.isCanceled()) {
+            return;
+        }
+        if (held) {
+            goBack();
             return;
         }
         final View decor = mWindow.getDecorView();
@@ -126,5 +135,15 @@ public final class WheelSelect implements InvocationHandler {
                 KeyEvent.KEYCODE_DPAD_CENTER, 0));
         mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP,
                 KeyEvent.KEYCODE_DPAD_CENTER, 0));
+    }
+
+    /** A hold goes back, as everywhere with the wheel UI */
+    private void goBack() {
+        mSlept = true;
+        final long now = SystemClock.uptimeMillis();
+        mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_BACK, 0));
+        mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP,
+                KeyEvent.KEYCODE_BACK, 0));
     }
 }
