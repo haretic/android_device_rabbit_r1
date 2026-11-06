@@ -48,8 +48,11 @@ import java.util.List;
 /** Native rendition of the approved 01-06 mockups, using UsbMode's workflows. */
 public final class UsbActivity extends FragmentActivity {
     private static final int TREE = 1, IMPORT = 2;
-    private static final int INK = 0xffd9e3e5, MUTED = 0xffa4afb3, ACCENT = 0xffa7d6e1;
-    private static final int CARD = 0xff171717, GUIDE = 0xff131d20, CYAN = 0xff142125;
+    private static final int INK = 0xffe2e2e2, MUTED = 0xffababab;
+    private static final int CARD = 0xff171717, GUIDE = 0xff131313, BANNER = 0xff1f1f1f;
+    // haretic: the theme's accent as the wheel's ring has it (the seed in the haretic style), what
+    // is on it, and the grey container with the accent on it, not the mockups' fixed cyan
+    private int ACCENT, ON_ACCENT, CONTAINER, ON_CONTAINER;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final List<View> targets = new ArrayList<>();
     private final ArrayList<String> requests = new ArrayList<>();
@@ -96,6 +99,10 @@ public final class UsbActivity extends FragmentActivity {
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
         if (UserHandle.myUserId() != 0) { finish(); return; }
+        ACCENT = getColor(android.R.color.system_primary_dark);
+        ON_ACCENT = getColor(android.R.color.system_on_primary_dark);
+        CONTAINER = getColor(android.R.color.system_primary_container_dark);
+        ON_CONTAINER = getColor(android.R.color.system_on_primary_container_dark);
         WheelSelect.attach(this);
         getWindow().setDecorFitsSystemWindows(false);
         if (saved != null) {
@@ -228,7 +235,7 @@ public final class UsbActivity extends FragmentActivity {
         bar.topMargin = px(28); root.addView(toolbar, bar);
         back = new ImageView(this); back.setImageResource(R.drawable.ic_arrow_back);
         back.setScaleType(ImageView.ScaleType.CENTER_INSIDE); back.setPadding(px(10), px(10), px(10), px(10));
-        back.setContentDescription(s(R.string.back)); back.setBackground(background(0xff202a2d, 23));
+        back.setContentDescription(s(R.string.back)); back.setBackground(background(0xff262626, 23));
         toolbar.addView(back, new LinearLayout.LayoutParams(px(46), px(46)));
         TextView title = single(s(title()), 26, INK); title.setTypeface(medium);
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, -2, 1); tp.leftMargin = px(22); toolbar.addView(title, tp);
@@ -329,20 +336,20 @@ public final class UsbActivity extends FragmentActivity {
         LinearLayout choices = landscape ? column() : stack(); add(body, choices, -2, landscape ? 9 : 10);
         if (landscape) {
             LinearLayout top = row(), bottom = row(); add(choices, top, -2, 0); add(choices, bottom, -2, 7);
-            hubChoice(top, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xff5ad2f5, true);
-            hubChoice(top, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xffffafe8, true);
-            hubChoice(bottom, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffa1c7ff, true);
-            hubChoice(bottom, R.string.touchpad_mode, R.string.touchpad_sub, R.drawable.ic_touch, 0xffb4e7a5, true);
+            hubChoice(top, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xfffdb791, true);
+            hubChoice(top, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xfffdb3bc, true);
+            hubChoice(bottom, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffe1c292, true);
+            hubChoice(bottom, R.string.touchpad_mode, R.string.touchpad_sub, R.drawable.ic_touch, 0xffb6cda8, true);
             LinearLayout third = row(); add(choices, third, -2, 7);
-            hubChoice(third, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
+            hubChoice(third, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffecb8d4, false);
             third.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
             ((LinearLayout.LayoutParams) third.getChildAt(1).getLayoutParams()).leftMargin = px(7);
         } else {
-            hubChoice(choices, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xff5ad2f5, true);
-            hubChoice(choices, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xffffafe8, true);
-            hubChoice(choices, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffa1c7ff, true);
-            hubChoice(choices, R.string.touchpad_mode, R.string.touchpad_sub, R.drawable.ic_touch, 0xffb4e7a5, true);
-            hubChoice(choices, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffffb77e, false);
+            hubChoice(choices, R.string.drive_title, R.string.drive_sub, R.drawable.ic_drive, 0xfffdb791, true);
+            hubChoice(choices, R.string.sound, R.string.sound_sub, R.drawable.ic_sound, 0xfffdb3bc, true);
+            hubChoice(choices, R.string.keyboard, R.string.input_sub, R.drawable.ic_keyboard, 0xffe1c292, true);
+            hubChoice(choices, R.string.touchpad_mode, R.string.touchpad_sub, R.drawable.ic_touch, 0xffb6cda8, true);
+            hubChoice(choices, R.string.flipper, R.string.coming_soon, R.drawable.ic_flipper, 0xffecb8d4, false);
         }
         int combinedHeight = landscape ? 54 : 58;
         View combine = card(s(R.string.drive_input), s(R.string.combine_sub), R.drawable.ic_combo, 0, true,
@@ -383,8 +390,8 @@ public final class UsbActivity extends FragmentActivity {
         connection.setPadding(px(15), px(3), px(15), px(3));
         ((LinearLayout.LayoutParams) ((ViewGroup) connection).getChildAt(0).getLayoutParams()).rightMargin = px(13);
         TextView detail = connection.findViewWithTag("detail"); ((LinearLayout.LayoutParams) detail.getLayoutParams()).topMargin = 0;
-        detail.setTextColor(0xffa8c2c8);
-        connection.setBackground(background(CYAN, 18)); add(parent, connection, height, hub ? (landscape ? 7 : 9) : 10);
+        detail.setTextColor(0xffbdbdbd);
+        connection.setBackground(background(BANNER, 18)); add(parent, connection, height, hub ? (landscape ? 7 : 9) : 10);
     }
     private boolean adb() { return ("," + android.os.SystemProperties.get("sys.usb.config", "") + ",").contains(",adb,"); }
     private void folderButton() {
@@ -408,7 +415,7 @@ public final class UsbActivity extends FragmentActivity {
             note(list, s(R.string.current_disc, Images.session()[1]), 14, landscape ? 0 : 10);
         } else {
             note(list, s(R.string.free_images, size(Images.free())), 16, 0);
-            ProgressBar meter = meter(5, 0xff2c3234, 0xff75bdcf);
+            ProgressBar meter = meter(5, 0xff303030, ACCENT);
             meter.setProgress(Images.total() > 0 ? (int) (100 * (Images.total() - Images.free()) / Images.total()) : 0);
             LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(-1, px(5)); mp.setMargins(px(10), px(10), px(10), px(13)); list.addView(meter, mp);
         }
@@ -421,7 +428,7 @@ public final class UsbActivity extends FragmentActivity {
             if (swap && !image.iso) sub = s(R.string.not_cd);
             final boolean enabled = !swap || image.iso;
             View item = card(image.name, sub, image.iso ? R.drawable.ic_disc : R.drawable.ic_drive,
-                    0xff91cbd9, enabled, () -> {
+                    ACCENT, enabled, () -> {
                         if (current) navigate("session");
                         else if (swap) { nextDisc = image; navigate("confirm"); }
                         else { selected = image; readOnly = image.readOnly; navigate("review"); }
@@ -518,9 +525,9 @@ public final class UsbActivity extends FragmentActivity {
         note(buttons, s(enough ? R.string.create_explanation : R.string.not_enough), 15, 12);
     }
     private void segment(LinearLayout parent, String label, boolean selected, Runnable click) {
-        TextView button = single(label, 18, selected ? 0xffc7ebf3 : INK); button.setGravity(Gravity.CENTER);
-        GradientDrawable normal = shape(selected ? 0xff254650 : CARD, 13, false); normal.setStroke(px(1), selected ? ACCENT : 0xff59666a);
-        StateListDrawable states = new StateListDrawable(); states.addState(new int[] {android.R.attr.state_focused}, focused(selected ? 0xff254650 : CARD, 13));
+        TextView button = single(label, 18, selected ? ON_CONTAINER : INK); button.setGravity(Gravity.CENTER);
+        GradientDrawable normal = shape(selected ? CONTAINER : CARD, 13, false); normal.setStroke(px(1), selected ? ACCENT : 0xff5e5e5e);
+        StateListDrawable states = new StateListDrawable(); states.addState(new int[] {android.R.attr.state_focused}, focused(selected ? CONTAINER : CARD, 13));
         states.addState(new int[] {}, normal); button.setBackground(states);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1); if (parent.getChildCount() > 0) lp.leftMargin = px(8); parent.addView(button, lp);
         target(button, click);
@@ -588,7 +595,7 @@ public final class UsbActivity extends FragmentActivity {
         add(panel, single(s(importing ? R.string.copying : R.string.creating_blank), 18, INK), 23, 0);
         int percent = importing ? Control.prefs(this).getInt("importPercent", 0) : parsePercent();
         TextView number = single(percent < 0 ? s(R.string.working) : s(R.string.percent, percent), 44, ACCENT); number.setTypeface(medium); add(panel, number, 52, 4);
-        ProgressBar progress = meter(8, 0xff354348, ACCENT);
+        ProgressBar progress = meter(8, 0xff3a3a3a, ACCENT);
         progress.setIndeterminate(percent < 0); progress.setProgress(percent); add(panel, progress, 8, 10);
         TextView stage = single(stageText(Control.prop("st.stage")), 16, MUTED); add(panel, stage, 21, 12);
         if (!importing) {
@@ -693,7 +700,7 @@ public final class UsbActivity extends FragmentActivity {
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(px(50), px(30)); sp.leftMargin = px(12); heading.addView(toggle(on), sp);
         LinearLayout levels = row(); levels.setGravity(Gravity.CENTER_VERTICAL); add(panel, levels, 19, 14);
         for (int i = 0; i < 22; i++) {
-            View bar = new View(this); bar.setBackground(shape(i * 96 / 22 < level ? 0xff86c6d7 : 0xff303b3f, 2, false));
+            View bar = new View(this); bar.setBackground(shape(i * 96 / 22 < level ? ACCENT : 0xff353535, 2, false));
             LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, px(15), 1); if (i > 0) bp.leftMargin = px(4); levels.addView(bar, bp);
         }
         LinearLayout captions = row(); add(panel, captions, 18, 8);
@@ -718,19 +725,19 @@ public final class UsbActivity extends FragmentActivity {
         LinearLayout brief = row(); brief.setGravity(Gravity.CENTER_VERTICAL); brief.setPadding(px(10), 0, px(10), 0);
         add(parent, brief, 38, 0);
         LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(px(19), px(19)); ip.rightMargin = px(7); brief.addView(icon(R.drawable.ic_usb, ACCENT), ip);
-        brief.addView(single(s(adb() ? R.string.input_connected_adb : R.string.input_connected), 15, 0xffb0c4c9), new LinearLayout.LayoutParams(0, -2, 1));
+        brief.addView(single(s(adb() ? R.string.input_connected_adb : R.string.input_connected), 15, 0xffbdbdbd), new LinearLayout.LayoutParams(0, -2, 1));
     }
     private FrameLayout pointerPad(boolean directions) {
         FrameLayout pad = new FrameLayout(this);
-        GradientDrawable normal = shape(0xff172023, 23, false); normal.setStroke(px(1), 0xff3c5056);
-        StateListDrawable states = new StateListDrawable(); states.addState(new int[] {android.R.attr.state_focused}, focused(0xff172023, 23));
+        GradientDrawable normal = shape(0xff1b1b1b, 23, false); normal.setStroke(px(1), 0xff474747);
+        StateListDrawable states = new StateListDrawable(); states.addState(new int[] {android.R.attr.state_focused}, focused(0xff1b1b1b, 23));
         states.addState(new int[] {}, normal); pad.setBackground(states);
         ImageView symbol = icon(directions ? R.drawable.ic_mouse : R.drawable.ic_touch, ACCENT);
         FrameLayout.LayoutParams ip = new FrameLayout.LayoutParams(px(35), px(35), Gravity.TOP | Gravity.CENTER_HORIZONTAL); ip.topMargin = px(directions ? 18 : 26); pad.addView(symbol, ip);
         TextView title = single(s(directions ? R.string.pointer_title : R.string.touchpad_title), directions ? 21 : 22, INK);
         title.setTypeface(medium); title.setGravity(Gravity.CENTER);
         FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1, px(28)); tp.setMargins(px(10), px(directions ? 62 : 74), px(10), 0); pad.addView(title, tp);
-        TextView hint = single(s(directions ? R.string.pointer_hint : R.string.touchpad_hint), directions ? 14 : 15, 0xffa7c0c7); hint.setGravity(Gravity.CENTER);
+        TextView hint = single(s(directions ? R.string.pointer_hint : R.string.touchpad_hint), directions ? 14 : 15, 0xffbdbdbd); hint.setGravity(Gravity.CENTER);
         FrameLayout.LayoutParams hp = new FrameLayout.LayoutParams(-1, px(20)); hp.setMargins(px(10), px(directions ? 98 : 110), px(10), 0); pad.addView(hint, hp);
         FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(px(25), px(29), Gravity.TOP | Gravity.RIGHT); cp.topMargin = px(45); cp.rightMargin = px(73); pad.addView(icon(R.drawable.ic_pointer, ACCENT), cp);
         pad.setContentDescription(s(directions ? R.string.pointer_title : R.string.touchpad_title)); return pad;
@@ -804,8 +811,8 @@ public final class UsbActivity extends FragmentActivity {
         note(draftPane, s(R.string.typing_hint), 16, 0);
         TextView preview = text(draft.isEmpty() ? s(R.string.draft_empty) : draft, 20, INK);
         preview.setTypeface(regular); preview.setLineHeight(px(28));
-        GradientDrawable input = shape(0xff141b1e, 17, false); input.setStroke(px(1), 0xff5e777e);
-        StateListDrawable states = new StateListDrawable(); states.addState(new int[] {android.R.attr.state_focused}, focused(0xff141b1e, 17)); states.addState(new int[] {}, input);
+        GradientDrawable input = shape(0xff171717, 17, false); input.setStroke(px(1), 0xff5e5e5e);
+        StateListDrawable states = new StateListDrawable(); states.addState(new int[] {android.R.attr.state_focused}, focused(0xff171717, 17)); states.addState(new int[] {}, input);
         preview.setBackground(states); preview.setPadding(px(16), px(12), px(16), px(12)); preview.setMinimumHeight(px(82)); add(draftPane, preview, -2, 10);
         LinearLayout send = landscape ? column() : row(); add(draftPane, send, landscape ? -2 : 49, 10);
         Runnable sendDraft = () -> {
@@ -824,7 +831,7 @@ public final class UsbActivity extends FragmentActivity {
             pairAction(send, s(R.string.send_text), true, sendDraft); sendButton = send.getChildAt(1);
         }
         initialFocus = sendButton;
-        LinearLayout keyboard = column(); keyboard.setBackground(background(0xff1b2529, 23)); keyboard.setPadding(px(8), px(12), px(8), px(10));
+        LinearLayout keyboard = column(); keyboard.setBackground(background(0xff1f1f1f, 23)); keyboard.setPadding(px(8), px(12), px(8), px(10));
         add(keysPane, keyboard, -2, landscape ? 0 : 14);
         add(keyboard, single(s(R.string.keyboard_layout), 14, MUTED), 20, 0);
         target(preview, () -> { keyboard.setVisibility(View.VISIBLE); });
@@ -848,7 +855,7 @@ public final class UsbActivity extends FragmentActivity {
         note(keysPane, s(R.string.typing_keys_hint), 14, 8);
     }
     private void keyboardKey(LinearLayout parent, String label, float weight, int size, Runnable click) {
-        TextView key = single(label, size, INK); key.setGravity(Gravity.CENTER); key.setBackground(background(0xff303d42, 9));
+        TextView key = single(label, size, INK); key.setGravity(Gravity.CENTER); key.setBackground(background(0xff353535, 9));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, weight); if (parent.getChildCount() > 0) lp.leftMargin = px(4); parent.addView(key, lp); target(key, click);
     }
     private void confirmPage() {
@@ -857,7 +864,7 @@ public final class UsbActivity extends FragmentActivity {
         LinearLayout panel = column(); panel.setPadding(px(20), px(18), px(20), px(18)); panel.setBackground(background(CARD, 25)); add(panes[0], panel, -2, 0);
         TextView title = text(s(R.string.change_locked), 25, INK); title.setTypeface(medium); add(panel, title, -2, 0);
         TextView warning = text(s(R.string.locked_guidance), 18, MUTED); warning.setLineHeight(px(25)); add(panel, warning, -2, 10);
-        LinearLayout files = column(); files.setPadding(px(15), px(12), px(15), px(12)); files.setBackground(background(0xff232b2e, 15)); add(panel, files, -2, 17);
+        LinearLayout files = column(); files.setPadding(px(15), px(12), px(15), px(12)); files.setBackground(background(0xff262626, 15)); add(panel, files, -2, 17);
         discLabel(files, s(R.string.remove_disc, Images.session()[1]), false);
         discLabel(files, s(R.string.insert_disc, nextDisc.name), true);
         LinearLayout buttons = landscape ? panes[1] : panel;
@@ -1070,7 +1077,18 @@ public final class UsbActivity extends FragmentActivity {
     }
     private ImageView icon(int resource, int tint) {
         ImageView image = new ImageView(this); image.setImageResource(resource);
-        image.setImageTintList(android.content.res.ColorStateList.valueOf(tint == ACCENT ? 0xffacdce7 : tint)); return image;
+        image.setImageTintList(android.content.res.ColorStateList.valueOf(tint)); return image;
+    }
+    /** The ink on a badge, as Settings' homepage icons have on the same tones. */
+    private static int ink(int badge) {
+        switch (badge) {
+            case 0xfffdb791: return 0xff6a3a1d;
+            case 0xfffdb3bc: return 0xff6c373f;
+            case 0xffe1c292: return 0xff59431e;
+            case 0xffb6cda8: return 0xff384c2f;
+            case 0xffecb8d4: return 0xff613b52;
+            default: return 0xff1b1b1b;
+        }
     }
     private void note(LinearLayout parent, String value, int size, int margin) {
         TextView note = text(value, size, MUTED); note.setLineHeight(px(size + 5));
@@ -1078,7 +1096,7 @@ public final class UsbActivity extends FragmentActivity {
     }
     private GradientDrawable shape(int color, int radius, boolean focus) {
         GradientDrawable d = new GradientDrawable(); d.setColor(color); d.setCornerRadius(px(radius));
-        if (focus) d.setStroke(px(3), 0xffade4ef); return d;
+        if (focus) d.setStroke(px(3), ACCENT); return d;
     }
     private StateListDrawable background(int color, int radius) { return background(color, radius, radius); }
     private StateListDrawable background(int color, int radius, int focusRadius) {
@@ -1091,7 +1109,7 @@ public final class UsbActivity extends FragmentActivity {
         GradientDrawable outer = shape(color, radius, true);
         if (color != ACCENT) return outer;
         GradientDrawable inner = shape(Color.TRANSPARENT, Math.max(0, radius - 3), false);
-        inner.setStroke(px(2), 0xff194651);
+        inner.setStroke(px(2), 0xff1b1b1b);
         android.graphics.drawable.LayerDrawable layers = new android.graphics.drawable.LayerDrawable(
                 new android.graphics.drawable.Drawable[] {outer, inner});
         layers.setLayerInset(1, px(3), px(3), px(3), px(3)); return layers;
@@ -1141,8 +1159,8 @@ public final class UsbActivity extends FragmentActivity {
     }
     private View toggle(boolean on) {
         FrameLayout toggle = new FrameLayout(this);
-        GradientDrawable track = shape(on ? ACCENT : 0xff20282b, 16, false); track.setStroke(px(2), on ? ACCENT : 0xff69777b); toggle.setBackground(track);
-        View thumb = new View(this); thumb.setBackground(shape(on ? 0xff22515d : 0xff9eabad, 10, false));
+        GradientDrawable track = shape(on ? ACCENT : 0xff262626, 16, false); track.setStroke(px(2), on ? ACCENT : 0xff777777); toggle.setBackground(track);
+        View thumb = new View(this); thumb.setBackground(shape(on ? ON_ACCENT : 0xffababab, 10, false));
         FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(px(20), px(20), Gravity.CENTER_VERTICAL | (on ? Gravity.RIGHT : Gravity.LEFT));
         if (on) tp.rightMargin = px(5); else tp.leftMargin = px(5); toggle.addView(thumb, tp);
         toggle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO); return toggle;
@@ -1160,7 +1178,7 @@ public final class UsbActivity extends FragmentActivity {
         if (page.equals("review") && height <= 54) item.setPadding(px(17), px(vertical), px(17), px(vertical));
         if (icon != 0) {
             boolean imageRow = pageCards && (page.equals("images") || page.equals("swap")) && badge != 0;
-            ImageView image = icon(icon, badge != 0 ? 0xff10475b : ACCENT);
+            ImageView image = icon(icon, badge != 0 ? ink(badge) : ACCENT);
             int side = badge != 0 ? (grid ? 41 : imageRow ? 42 : 46) : icon == R.drawable.ic_radio || icon == R.drawable.ic_radio_on ? 22 : 26;
             if (badge != 0) {
                 int inset = grid || imageRow ? 7 : 9;
@@ -1191,11 +1209,11 @@ public final class UsbActivity extends FragmentActivity {
     private void disabled(View card) {
         card.setEnabled(false); card.setFocusable(false); targets.remove(card);
         TextView title = card.findViewWithTag("title"), detail = card.findViewWithTag("detail");
-        if (title != null) title.setTextColor(0xff747d80); if (detail != null) detail.setTextColor(0xff747d80);
+        if (title != null) title.setTextColor(0xff777777); if (detail != null) detail.setTextColor(0xff777777);
         if (card instanceof ViewGroup && ((ViewGroup) card).getChildAt(0) instanceof ImageView) ((ViewGroup) card).getChildAt(0).setAlpha(.48f);
     }
     private void hero(LinearLayout parent, String title, String sub, int icon) {
-        View hero = card(title, sub, icon, 0xff5ad2f5, false, null, 83); cardText(hero, 22, 16);
+        View hero = card(title, sub, icon, 0xfffdb791, false, null, 83); cardText(hero, 22, 16);
         hero.setPadding(px(18), px(8), px(18), px(8));
         hero.findViewWithTag("title").getLayoutParams().height = px(28);
         ((LinearLayout.LayoutParams) hero.findViewWithTag("detail").getLayoutParams()).topMargin = px(3);
@@ -1203,9 +1221,9 @@ public final class UsbActivity extends FragmentActivity {
     }
     private View action(LinearLayout parent, String label, boolean primary, Runnable click, int height) {
         boolean stop = label.equals(s(R.string.stop));
-        TextView button = single(label, stop ? 23 : 17, primary ? (stop ? 0xffd1eff4 : 0xff073743) : INK);
+        TextView button = single(label, stop ? 23 : 17, primary ? (stop ? ON_CONTAINER : ON_ACCENT) : INK);
         button.setTypeface(medium); button.setGravity(Gravity.CENTER);
-        button.setBackground(background(primary ? (stop ? 0xff245761 : ACCENT) : 0xff202b2f, stop ? 23 : 19));
+        button.setBackground(background(primary ? (stop ? CONTAINER : ACCENT) : 0xff262626, stop ? 23 : 19));
         if (click == null) { button.setEnabled(false); button.setAlpha(.45f); }
         target(button, click);
         if (stop && targets.remove(button)) targets.add(0, button);
@@ -1213,24 +1231,24 @@ public final class UsbActivity extends FragmentActivity {
                 ? R.drawable.ic_usb : label.equals(s(R.string.change_anyway)) ? R.drawable.ic_swap : label.equals(s(R.string.keep_size, gb)) ? R.drawable.ic_check
                 : label.equals(s(R.string.create_title)) ? R.drawable.ic_plus : label.equals(s(R.string.import_title)) ? R.drawable.ic_import
                 : label.equals(s(R.string.send_text)) ? R.drawable.ic_keyboard : label.equals(s(R.string.scroll_pc)) || label.equals(s(R.string.scroll_pc_active)) ? R.drawable.ic_wheel : 0;
-        if (icon != 0) iconLabel(button, label, icon, primary && !stop ? 0xff073743 : ACCENT);
+        if (icon != 0) iconLabel(button, label, icon, primary && !stop ? ON_ACCENT : ACCENT);
         add(parent, button, height, 12); return button;
     }
     private void pairAction(LinearLayout pair, String label, boolean primary, Runnable click) {
-        TextView button = single(label, 17, primary ? 0xff073743 : INK); button.setTypeface(medium); button.setGravity(Gravity.CENTER);
-        button.setBackground(background(primary ? ACCENT : 0xff202b2f, 16)); button.setPadding(px(5), 0, px(5), 0);
+        TextView button = single(label, 17, primary ? ON_ACCENT : INK); button.setTypeface(medium); button.setGravity(Gravity.CENTER);
+        button.setBackground(background(primary ? ACCENT : 0xff262626, 16)); button.setPadding(px(5), 0, px(5), 0);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1); if (pair.getChildCount() > 0) lp.leftMargin = px(8); pair.addView(button, lp);
         int icon = label.equals(s(R.string.create_use)) ? R.drawable.ic_usb : label.equals(s(R.string.create_title)) ? R.drawable.ic_plus
                 : label.equals(s(R.string.import_title)) ? R.drawable.ic_import : label.equals(s(R.string.send_text)) || label.equals(s(R.string.type_text)) ? R.drawable.ic_keyboard
                 : label.equals(s(R.string.move_pointer)) ? R.drawable.ic_pointer : label.equals(s(R.string.left_click)) || label.equals(s(R.string.right_click)) ? R.drawable.ic_mouse : 0;
-        if (icon != 0) iconLabel(button, label, icon, primary ? 0xff073743 : ACCENT);
+        if (icon != 0) iconLabel(button, label, icon, primary ? ON_ACCENT : ACCENT);
         if (click == null) { button.setEnabled(false); button.setAlpha(.45f); } else target(button, click);
     }
     private void iconLabel(TextView view, String label, int icon, int color) {
         android.text.SpannableString text = new android.text.SpannableString(s(R.string.icon_button_label, label));
         android.graphics.drawable.Drawable drawable = getDrawable(icon).mutate();
         int side = icon == R.drawable.ic_stop ? 24 : 22;
-        drawable.setTint(color == ACCENT ? 0xffacdce7 : color); drawable.setBounds(0, 0, px(side), px(side));
+        drawable.setTint(color); drawable.setBounds(0, 0, px(side), px(side));
         text.setSpan(new android.text.style.ImageSpan(drawable, android.text.style.ImageSpan.ALIGN_CENTER),
                 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         view.setText(text); view.setContentDescription(label);
