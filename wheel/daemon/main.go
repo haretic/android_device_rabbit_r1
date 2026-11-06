@@ -112,6 +112,8 @@ const (
 	keyPower          = 116
 	keyNextSong       = 163
 	keyPreviousSong   = 165
+	keyRewind         = 168
+	keyFastForward    = 208
 	keyScrollUp       = 177
 	keyScrollDown     = 178
 	keyBrightnessDown = 224
@@ -239,6 +241,7 @@ const (
 	modeVolume
 	modeBrightness
 	modeMedia
+	modeSeek
 	modeZoom
 	modeCamera
 	modeTouch
@@ -248,7 +251,7 @@ const (
 var modeNames = map[string]mode{
 	"taskbar": modeTaskbar, "app": modeApp, "scroll": modeScroll, "tab": modeTab,
 	"arrows": modeArrows, "page": modePage, "volume": modeVolume,
-	"brightness": modeBrightness, "media": modeMedia, "zoom": modeZoom, "pinch": modePinch,
+	"brightness": modeBrightness, "media": modeMedia, "seek": modeSeek, "zoom": modeZoom, "pinch": modePinch,
 	"camera": modeCamera,
 }
 
@@ -268,6 +271,7 @@ var modeKeys = map[mode][2]chord{
 	modeVolume:     {{key: keyVolumeUp}, {key: keyVolumeDown}},
 	modeBrightness: {{key: keyBrightnessUp}, {key: keyBrightnessDown}},
 	modeMedia:      {{key: keyPreviousSong}, {key: keyNextSong}},
+	modeSeek:       {{key: keyRewind}, {key: keyFastForward}},
 	modeZoom: {{mods: []uint16{keyLeftCtrl}, key: keyEqual},
 		{mods: []uint16{keyLeftCtrl}, key: keyMinus}},
 	modeCamera: {{key: keyZoomIn}, {key: keyZoomOut}},
@@ -280,7 +284,7 @@ var outKeys = []uintptr{
 	keyMinus, keyEqual, keyTab, keyLeftCtrl, keyLeftShift, keyUp, keyPageUp, keyLeft,
 	keyRight, keyDown, keyPageDown, keyVolumeDown, keyVolumeUp, keyNextSong,
 	keyPreviousSong, keyScrollUp, keyScrollDown, keyBrightnessDown, keyBrightnessUp, keySelect,
-	keyZoomIn, keyZoomOut,
+	keyZoomIn, keyZoomOut, keyRewind, keyFastForward,
 }
 
 type daemon struct {
