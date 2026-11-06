@@ -51,8 +51,8 @@
             "Throttling":[
                 {
                     "Type": "Hot",
-                    "Light": 45,
-                    "Severe": 53
+                    "Light": 52,
+                    "Severe": 58
                 }
             ]
         },
