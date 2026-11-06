@@ -143,4 +143,8 @@
     <bool name="config_dreamsActivatedOnSleepByDefault">true</bool>
     <!-- The power + volume-up chord can't be pressed: the R1 has no volume keys -->
     <bool name="config_volumeHushGestureEnabled">false</bool>
+    <!-- Headphone volume warning, in media steps. Media has 30 steps (ro.config.media_vol_steps,
+         audio/audio.mk), so the stock 10 would warn at a third of the range; 20 is the stock
+         10 of 15 -->
+    <integer name="config_safe_media_volume_index">20</integer>
 </resources>
