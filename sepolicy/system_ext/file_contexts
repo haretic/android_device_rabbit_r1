@@ -14,4 +14,3 @@
 /dev/socket/r1-usbemu-audio u:object_r:r1_usbemu_audio_socket:s0
 /dev/hidg[0-9]+ u:object_r:r1_usbemu_hid_device:s0
 /data/misc/r1-selftest(/.*)? u:object_r:r1_selftest_data_file:s0
-/(system_ext|system/system_ext)/bin/r1-cromite-switches\.sh u:object_r:r1_cromite_switches_exec:s0

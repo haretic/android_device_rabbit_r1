@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Cromite opens without its first-run screens: Chromium reads its switches from
 # /data/local/tmp/chrome-command-line on userdebug builds, the first word standing for the
-# program. init may not add files there, so a shell-user service writes it
-service r1-cromite-switches /system_ext/bin/r1-cromite-switches.sh
+# program. Only the shell domain may add files there, init not, so a shell oneshot writes it
+service r1-cromite-switches /system/bin/sh /system_ext/bin/r1-cromite-switches.sh
     user shell
     group shell
+    seclabel u:r:shell:s0
     oneshot
     disabled
 
