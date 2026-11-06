@@ -22,6 +22,10 @@
             android:title="@string/save_title"
             android:summary="@string/save_summary" />
         <Preference
+            android:key="github"
+            android:title="@string/github_title"
+            android:summary="@string/github_summary" />
+        <Preference
             android:key="last_start"
             android:title="@string/last_start_title"
             android:selectable="false" />

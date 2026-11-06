@@ -18,6 +18,14 @@
     <string name="save_done">Saved: <xliff:g id="file">%1$s</xliff:g></string>
     <string name="save_done_toast">Report saved in <xliff:g id="file">%1$s</xliff:g></string>
     <string name="save_failed">Not saved. <xliff:g id="why">%1$s</xliff:g></string>
+    <string name="github_title">Report on GitHub</string>
+    <string name="github_summary">Opens a new issue for haretic with this build filled in. Sign in, attach the saved .zip and post it.</string>
+    <string name="github_no_browser">No browser to open GitHub with</string>
+    <string name="github_no_note">(what you were doing, and what happened)</string>
+    <string name="github_gapps">with Google apps</string>
+    <string name="github_no_gapps">without Google apps</string>
+    <!-- The new issue's text on GitHub, in Markdown -->
+    <string name="github_body">**What happened**\n<xliff:g id="note">%1$s</xliff:g>\n\n**Build**\n<xliff:g id="version">%2$s</xliff:g>, <xliff:g id="gapps">%3$s</xliff:g>\n\n**Problem report**\nAttach <xliff:g id="file">%4$s</xliff:g> here.\n</string>
     <string name="error_busy">Another report is being saved.</string>
     <string name="error_start">The log collector didn\'t start.</string>
     <string name="error_stopped">The report stopped before it was done.</string>

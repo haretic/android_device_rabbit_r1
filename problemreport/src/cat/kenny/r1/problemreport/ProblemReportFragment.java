@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 package cat.kenny.r1.problemreport;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemProperties;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.widget.Toast;
@@ -16,17 +21,22 @@ import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 /**
  * Settings > System > Problem report: what went wrong (optional), Save with its progress,
  * and what the last start left behind. The report is made by Report in ReportService; this
- * page only shows how far it is.
+ * page only shows how far it is. Once saved, Report on GitHub opens a new issue on the release
+ * repo filled in with this build, the description and the report to attach.
  */
 public class ProblemReportFragment extends SettingsBasePreferenceFragment {
 
     private static final long POLL_MS = 500;
+    private static final String NEW_ISSUE = "https://github.com/haretic/release/issues/new";
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mPoll = this::poll;
     private EditTextPreference mNote;
     private Preference mSave;
     private Preference mLastStart;
+    private Preference mGitHub;
+    /** The description the last Save took, for the issue: Report clears it once saved. */
+    private String mSentNote;
     private String mSelfTestToken;
 
     @Override
@@ -35,6 +45,8 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
         mNote = findPreference(Report.KEY_NOTE);
         mSave = findPreference("save");
         mLastStart = findPreference("last_start");
+        mGitHub = findPreference("github");
+        mGitHub.setVisible(false);
         mSelfTestToken = SelfTest.token(getArguments() == null ? null
                 : getArguments().getString(SelfTest.EXTRA_TOKEN));
         findPreference("self_test").setVisible(!mSelfTestToken.isEmpty());
@@ -49,6 +61,7 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
             return true;
         });
         mSave.setOnPreferenceClickListener(p -> {
+            mSentNote = mNote.getText();
             Report.start(requireContext(), mNote.getText(), mSelfTestToken);
             poll();
             return true;
@@ -109,9 +122,14 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
         }
         mSave.setEnabled(true);
         final boolean news = Report.takeNews();
+        mGitHub.setVisible(s.state == Report.DONE);
         switch (s.state) {
             case Report.DONE:
                 mSave.setSummary(getString(R.string.save_done, s.text));
+                mGitHub.setOnPreferenceClickListener(p -> {
+                    openIssue(s.text);
+                    return true;
+                });
                 if (news) {
                     Toast.makeText(requireContext(), getString(R.string.save_done_toast, s.text),
                             Toast.LENGTH_LONG).show();
@@ -126,6 +144,23 @@ public class ProblemReportFragment extends SettingsBasePreferenceFragment {
             default:
                 mSave.setSummary(R.string.save_summary);
                 break;
+        }
+    }
+
+    /** A new issue on the release repo, filled in with this build and the report to attach. */
+    private void openIssue(String report) {
+        final String body = getString(R.string.github_body,
+                TextUtils.isEmpty(mSentNote) ? getString(R.string.github_no_note) : mSentNote,
+                SystemProperties.get("ro.haretic.version", Build.DISPLAY),
+                getString("true".equals(SystemProperties.get("ro.haretic.gapps"))
+                        ? R.string.github_gapps : R.string.github_no_gapps),
+                report);
+        final Uri uri = Uri.parse(NEW_ISSUE).buildUpon()
+                .appendQueryParameter("body", body).build();
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), R.string.github_no_browser, Toast.LENGTH_LONG).show();
         }
     }
 
