@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- haretic: the shutter in the theme's accent, not Open Camera's blue -->
+<resources>
+    <color name="shutter_icon">@android:color/system_accent1_200</color>
+    <color name="shutter_icon_pressed">@android:color/system_accent1_100</color>
+</resources>

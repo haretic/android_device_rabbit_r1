@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Camera</string>
+    <!-- haretic: the shutter is the accent's colour, not blue (colors.xml) -->
+    <string name="intro_text">Touch to focus, and press the circular shutter button to take photos.\n\nTo save to SD cards, see Settings/More camera controls/\"Storage Access Framework\". For more help, click \"Online help\" from Settings.</string>
 </resources>
