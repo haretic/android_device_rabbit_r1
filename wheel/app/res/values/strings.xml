@@ -276,7 +276,7 @@
     <string name="help_double_press_title">Double press - taskbar</string>
     <string name="help_double_press_summary">Open the taskbar from any app. Change its edge and timing here.</string>
     <string name="help_grab_title">Grab - turn - let go</string>
-    <string name="help_grab_summary">Sliders, time and date pickers, and lists of choices in Settings: press to grab, turn to set, press or pause to let go. Press a list without turning to see all its choices.</string>
+    <string name="help_grab_summary">Sliders, time and date pickers, as an alarm's time in Clock, and lists of choices in Settings: press to grab, turn to set, press or pause to let go. Press a list without turning to see all its choices.</string>
     <string name="help_sleep_title">Turn the screen off</string>
     <string name="help_sleep_summary">Double-tap the status bar along the top of the screen. The side button wakes it again.</string>
     <string name="help_back_summary">Taskbar - go back a screen. Show, hide or reorder the bar\'s buttons here.</string>
