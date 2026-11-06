@@ -3,6 +3,7 @@
 # r1-problem-report.sh. The page and the script meet in /data/misc/r1-problem-report.
 on post-fs-data
     mkdir /data/misc/r1-problem-report 0770 system system
+    start r1-problem-report-startlog
 
 on property:sys.boot_completed=1
     start r1-problem-report-check
@@ -36,3 +37,11 @@ service r1-problem-report-check /system_ext/bin/r1-problem-report.sh check
     group system log
     disabled
     oneshot
+
+# Saves the logs of a start that never finishes, before the watchdog restarts the R1
+service r1-problem-report-startlog /system_ext/bin/r1-problem-report.sh startlog
+    user system
+    group system log
+    disabled
+    oneshot
+    priority 10

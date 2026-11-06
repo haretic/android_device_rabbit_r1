@@ -19,6 +19,9 @@ last-start-logcat.txt   the end of the last start's Android log (pstore pmsg)
 last-start-crash-*.txt  the kernel's crash records (oops or panic). They are
                 numbered from 0 again at every start, so one can be older than
                 the last start: its first line says which crash it was
+unfinished-start-*.txt  Android and kernel logs of a start that hadn't finished
+                after 3 minutes, saved before the watchdog restarted the r1. Up
+                to 3, removed once a report has them
 selinux-denials.txt  SELinux denials from the kernel and Android logs, of now
                 and of the last start
 crashes.txt     crash reports: the newest tombstones and ANR traces

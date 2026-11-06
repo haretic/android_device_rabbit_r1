@@ -16,6 +16,12 @@
 #                                  only be read by a few system domains, init among them, see
 #                                  r1-problem-report.rc)
 #
+#   r1-problem-report.sh startlog  by init at post-fs-data: when Android hasn't finished
+#                                  starting after START_WAIT s, saves this start's Android
+#                                  and kernel logs to start-logs/ before the watchdog
+#                                  (watchdog.open_timeout=240 in BoardConfig.mk) restarts
+#                                  it. The page adds them to the next report.
+#
 # collect writes work/ and reports in sys.r1.report.status: "running <step> <steps> <name>"
 # for steps 2 to 4 of the page's 8, then "collected", or "error <why>".
 
@@ -23,6 +29,13 @@ DIR=/data/misc/r1-problem-report
 WORK=$DIR/work
 PSTORE=$DIR/pstore
 STEPS=8
+STARTLOGS=$DIR/start-logs
+# A normal start takes about 70 s and a first start about 105 s. The save takes a few
+# seconds and has to be done before the watchdog fires at 240 s: change both together.
+START_WAIT=${R1_REPORT_START_WAIT:-180}
+START_STEP=5
+# start logs kept, the oldest go
+START_KEEP=3
 
 status() { setprop sys.r1.report.status "$*"; }
 
@@ -122,11 +135,43 @@ collect() {
 	status collected
 }
 
+startlog() {
+	local waited=0 name tmp f
+	while [ "$waited" -lt "$START_WAIT" ]; do
+		[ "$(getprop sys.boot_completed)" = 1 ] && return 0
+		sleep "$START_STEP"
+		waited=$((waited + START_STEP))
+	done
+	umask 007
+	mkdir -p "$STARTLOGS" || return 1
+	name=start-$(date +%Y%m%d-%H%M%S).txt
+	tmp=$STARTLOGS/.$name
+	{
+		echo "Android had not finished starting after ${START_WAIT} s."
+		echo "Boot reason (bootstat): $(getprop sys.boot.reason)"
+		echo
+		echo "== logcat -d -b all"
+		timeout 30 logcat -d -b all -v threadtime 2>&1 </dev/null | cap 4194304
+		echo
+		echo "== dmesg -S"
+		timeout 10 dmesg -S 2>&1 </dev/null | cap 2097152
+	} >"$tmp" 2>&1
+	mv -f "$tmp" "$STARTLOGS/$name"
+	# the newest START_KEEP stay
+	for f in $(ls -t "$STARTLOGS"/start-*.txt 2>/dev/null | tail -n +$((START_KEEP + 1))); do
+		rm -f "$f"
+	done
+	log -t r1-problem-report "start not finished after ${START_WAIT} s, saved $name"
+}
+
 case "$1" in
 check)
 	check
 	;;
 collect)
 	collect
+	;;
+startlog)
+	startlog
 	;;
 esac

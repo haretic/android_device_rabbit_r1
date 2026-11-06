@@ -19,6 +19,8 @@ final class Helper {
     static final File WORK = new File(DIR, "work");
     /** What init copies from /sys/fs/pstore, empty where this start has none */
     static final File PSTORE = new File(DIR, "pstore");
+    /** Logs of starts that never finished (r1-problem-report.sh startlog), until a report has them */
+    static final File START_LOGS = new File(DIR, "start-logs");
     /** The same names as in r1-problem-report.rc */
     static final String[] PSTORE_FILES = {
         "console-ramoops-0", "pmsg-ramoops-0",

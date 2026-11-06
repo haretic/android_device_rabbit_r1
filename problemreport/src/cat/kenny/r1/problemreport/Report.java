@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -242,6 +243,12 @@ final class Report {
         add(names, files, "power.txt", new File(dir, "power.txt"));
         add(names, files, "devices.txt", new File(dir, "devices.txt"));
         add(names, files, "apps.txt", new File(dir, "apps.txt"));
+        final File[] startLogs = Helper.START_LOGS.listFiles(
+                f -> f.getName().startsWith("start-") && f.getName().endsWith(".txt"));
+        if (startLogs != null) {
+            Arrays.sort(startLogs);
+            for (File f : startLogs) add(names, files, "unfinished-" + f.getName(), f);
+        }
         for (Map.Entry<String, File> file : SelfTest.files(sSelfTestToken).entrySet()) {
             add(names, files, "selftest/" + file.getKey(), file.getValue());
         }
@@ -308,6 +315,10 @@ final class Report {
         values.put(MediaStore.MediaColumns.IS_PENDING, 0);
         resolver.update(uri, values, null, null);
         Log.i(TAG, "saved " + FOLDER + "/" + name + ".zip");
+        // This report has them now
+        if (startLogs != null) {
+            for (File f : startLogs) f.delete();
+        }
     }
 
     /** Only files with something in them; the first of a name wins. */
