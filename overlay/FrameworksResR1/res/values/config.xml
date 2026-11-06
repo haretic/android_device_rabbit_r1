@@ -147,4 +147,8 @@
          audio/audio.mk), so the stock 10 would warn at a third of the range; 20 is the stock
          10 of 15 -->
     <integer name="config_safe_media_volume_index">20</integer>
+    <!-- The camera access switch (quick settings and Settings > Privacy). The camera can't show
+         a muting test pattern, so with access off the camera service doesn't open it at all and
+         the turning camera stays parked, facing away: it can be seen not to film -->
+    <bool name="config_supportsCamToggle">true</bool>
 </resources>
