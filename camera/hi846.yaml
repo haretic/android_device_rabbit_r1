@@ -2,8 +2,8 @@
 #
 # libcamera software ISP tuning for the Hi-846, installed to
 # /vendor/etc/libcamera/ipa/simple/hi846.yaml (the IPA looks it up by sensor
-# model before uncalibrated.yaml). The black level comes from the libcamera
-# sensor helper (64 at 10 bits).
+# model before uncalibrated.yaml). The black level is 64 at 10 bits (the
+# libcamera sensor helper's), split per column parity below.
 #
 # The colour correction matrices are the five of the stock MediaTek tuning,
 # lib64/hi846_mipi_raw_tuning.so at 0xbc358 (13-bit signed, 512 = 1.0, rows
@@ -14,7 +14,14 @@
 ---
 version: 1
 algorithms:
+  # The sensor reads its even and odd columns out with different offsets: on
+  # a dark frame at 16x gain (1280x720 binned mode) the even columns sit at
+  # 64.4 LSB of 1023 and the odd ones at 62.1, vertical stripes once the gain
+  # is up. R, Gr, Gb, B as 16-bit values; in GBRG order R and Gb are the even
+  # columns. Measured at 16x in a binned mode, as the 1632x1224 one the camera
+  # runs - check a dark frame at 1x and 8x.
   - BlackLevel:
+      blackLevels: [ 4119, 3976, 4120, 3976 ]
   # Warm light keeps some of its warmth (in front of a projector in a dim
   # room the R1 matched a phone camera's look with these three)
   - Awb:
