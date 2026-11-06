@@ -193,6 +193,14 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml \
     $(LOCAL_PATH)/permissions/r1-hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/r1-hardware.xml
 
+# Google apps, WITH_GMS=true: MindTheGapps (vendor/gapps), its lean set for small devices -
+# Play Store, Play services and the sync adapters, not Google's own setup wizard (haretic's
+# runs), the Google app, TalkBack or Wellbeing
+ifeq ($(WITH_GMS),true)
+TARGET_IS_GROUPER := true
+$(call inherit-product, vendor/gapps/arm64/arm64-vendor.mk)
+endif
+
 # Cromite's first-run switch, from system_ext's init
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.r1.cromite.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.r1.cromite.rc
