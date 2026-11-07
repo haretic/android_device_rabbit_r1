@@ -97,6 +97,7 @@ PRODUCT_PACKAGES += \
     Cromite \
     DroidIfy \
     OpenCamera \
+    haretic-magisk-apk \
     R1CompactDeskClock \
     R1CompactGlimpse \
     R1CompactTwelve \

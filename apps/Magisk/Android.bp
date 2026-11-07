@@ -1,0 +1,10 @@
+// The APK is hydrated by r1-tools scripts/ensure-r1-apk.py from android/magisk-pin.json, not committed.
+// Magisk's full app as a file, not an app: the rooted builds' boot installs it from here over
+// the stub Magisk's ramdisk carries, as the boot partition has no room for the app
+prebuilt_etc {
+    name: "haretic-magisk-apk",
+    src: "Magisk.apk",
+    filename: "magisk.apk",
+    sub_dir: "haretic",
+    product_specific: true,
+}
