@@ -40,12 +40,13 @@
             "Path": "/dev/cpuctl/top-app/cpu.uclamp.min",
             "Values": [
                 "100",
+                "60",
                 "40",
                 "30",
                 "20",
                 "0"
             ],
-            "DefaultIndex": 4,
+            "DefaultIndex": 5,
             "ResetOnInit": true
         },
         {
@@ -333,7 +334,7 @@
         {
             "PowerHint": "INTERACTION",
             "Node": "TAUClampBoost",
-            "Value": "40",
+            "Value": "60",
             "Duration": 0
         },
         {
@@ -345,7 +346,7 @@
         {
             "PowerHint": "DISPLAY_UPDATE_IMMINENT",
             "Node": "TAUClampBoost",
-            "Value": "20",
+            "Value": "60",
             "Duration": 100
         },
         {
