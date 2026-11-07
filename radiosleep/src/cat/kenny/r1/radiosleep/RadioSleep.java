@@ -38,10 +38,20 @@ public final class RadioSleep extends Application {
         if (!getSystemService(UserManager.class).isSystemUser()) return;
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
+        // The countdown skips a plugged-in r1; unplugged with the screen already off, start it
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(new BroadcastReceiver() {
             @Override public void onReceive(Context context, Intent intent) {
-                if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) schedule(context);
-                else wake(context);
+                final String action = intent.getAction();
+                if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+                    schedule(context);
+                } else if (Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+                    if (!context.getSystemService(PowerManager.class).isInteractive()) {
+                        schedule(context);
+                    }
+                } else {
+                    wake(context);
+                }
             }
         }, filter, Context.RECEIVER_NOT_EXPORTED);
         // A restarted process may have missed the screen coming back on.
