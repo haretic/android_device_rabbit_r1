@@ -1,3 +1,6 @@
 # rabbit r1 AP keypad, row 0 / column 1. Stock mtk-kpd maps it to KEY_POWER.
 
 key 116   POWER
+
+# The driver's resume reports a press that ended before it could read it, so it still wakes.
+key 143   WAKEUP
