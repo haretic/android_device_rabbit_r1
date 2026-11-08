@@ -1,0 +1,2 @@
+# init.r1.rc drops the RT tasks' default uclamp from the full clock to 0.
+allow vendor_init proc_sched:file w_file_perms;
