@@ -338,18 +338,6 @@
             "Duration": 0
         },
         {
-            "PowerHint": "DISPLAY_UPDATE_IMMINENT",
-            "Node": "CPUBigClusterMinFreq",
-            "Value": "1484000",
-            "Duration": 100
-        },
-        {
-            "PowerHint": "DISPLAY_UPDATE_IMMINENT",
-            "Node": "TAUClampBoost",
-            "Value": "60",
-            "Duration": 100
-        },
-        {
             "PowerHint": "LAUNCH",
             "Node": "CPUBigClusterMinFreq",
             "Value": "2200000",

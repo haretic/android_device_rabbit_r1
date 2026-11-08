@@ -48,6 +48,11 @@ service vendor.modprobe-pvr /vendor/bin/modprobe -a -d /vendor/lib/modules pvrsr
     group root
     seclabel u:r:vendor_modprobe:s0
 
+# An RT task asks for the full clock by default, so audio, input and display
+# threads waking every frame held the big cores at 2.2 GHz while idle.
+on boot
+    write /proc/sys/kernel/sched_util_clamp_min_rt_default 0
+
 # drmfb (system) dims and blanks the panel through the MT6370 backlight.
 on boot
     chown system system /sys/class/backlight/mt6370-backlight/brightness
