@@ -338,6 +338,12 @@
             "Duration": 0
         },
         {
+            "PowerHint": "INTERACTION",
+            "Node": "DRAMMinFreq",
+            "Value": "3200000000",
+            "Duration": 0
+        },
+        {
             "PowerHint": "LAUNCH",
             "Node": "CPUBigClusterMinFreq",
             "Value": "2200000",
@@ -353,6 +359,12 @@
             "PowerHint": "LAUNCH",
             "Node": "TAUClampBoost",
             "Value": "100",
+            "Duration": 5000
+        },
+        {
+            "PowerHint": "LAUNCH",
+            "Node": "DRAMMinFreq",
+            "Value": "3200000000",
             "Duration": 5000
         },
         {
