@@ -202,7 +202,9 @@ set_wheel() {
 # the page to show as the default
 note_defaults() {
 	[ -n "$(getprop sys.r1.kt.default_governor)" ] && return
-	setprop sys.r1.kt.default_governor "$(cat $BIG/scaling_governor)"
+	# Not the live governor: the first apply races the boot_completed write of schedutil and
+	# read r1-boot-perf's boot-time performance, which it then put back for the whole start
+	setprop sys.r1.kt.default_governor schedutil
 	setprop sys.r1.kt.default_swappiness "$(cat $SWAPPINESS)"
 	sched=$(cat $EMMC/scheduler)
 	current=${sched#*[}
