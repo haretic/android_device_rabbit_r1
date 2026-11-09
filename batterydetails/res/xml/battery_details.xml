@@ -26,6 +26,12 @@
             android:key="charge_current"
             android:title="@string/current_title"
             android:persistent="false" />
+        <!-- Lists the charge currents above 2 A, for larger cells fitted by hand -->
+        <SwitchPreferenceCompat
+            android:key="show_unsafe_current"
+            android:title="@string/unsafe_show_title"
+            android:summary="@string/unsafe_show_summary"
+            android:defaultValue="false" />
         <!-- Lineage's Charging control; removed when the health HAL has none -->
         <Preference
             android:key="charge_limit"

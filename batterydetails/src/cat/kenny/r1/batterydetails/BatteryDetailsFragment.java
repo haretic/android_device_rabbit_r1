@@ -7,10 +7,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
+import androidx.preference.SwitchPreferenceCompat;
 
 import cat.kenny.r1.wheel.WheelSelect;
 
@@ -53,6 +60,8 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
     private ValuePreference mCharger;
     /** Null when the kernel has no charging policy */
     private Preference mChargeCurrent;
+    /** Lists the unsafe charge currents; null with the charge current */
+    private SwitchPreferenceCompat mShowUnsafe;
     /** Null without Lineage's Charging control */
     private Preference mChargeLimit;
     /** The last reading, for the charge current's second line */
@@ -186,7 +195,7 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
             return getString(R.string.charger_none);
         }
         final int input = r.policy == null ? Reading.UNKNOWN : r.policy.inputUa;
-        final String kind = getString(input >= ChargeCurrent.MAX_MA * 1000
+        final String kind = getString(input >= ChargeCurrent.STD_MA * 1000
                 ? R.string.charger_fast
                 : input >= ChargeCurrent.MIN_MA * 1000 ? R.string.charger_port
                 : R.string.charger_usb);
@@ -200,13 +209,31 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
 
     private void setUpChargeCurrent() {
         mChargeCurrent = findPreference("charge_current");
+        mShowUnsafe = findPreference(ChargeCurrent.KEY_SHOW_UNSAFE);
         if (!ChargeCurrent.isSupported()) {
-            ((PreferenceCategory) findPreference("care")).removePreference(mChargeCurrent);
+            final PreferenceCategory care = findPreference("care");
+            care.removePreference(mChargeCurrent);
+            care.removePreference(mShowUnsafe);
             mChargeCurrent = null;
+            mShowUnsafe = null;
             return;
         }
         mChargeCurrent.setOnPreferenceClickListener(p -> {
             pickChargeCurrent();
+            return true;
+        });
+        // Hiding them again takes an unsafe choice back to the default
+        mShowUnsafe.setOnPreferenceChangeListener((p, value) -> {
+            if (!(Boolean) value && ChargeCurrent.isUnsafe(ChargeCurrent.chosen())) {
+                if (ChargeCurrent.choose(ChargeCurrent.AUTO)) {
+                    Toast.makeText(requireContext(), R.string.unsafe_hidden,
+                            Toast.LENGTH_LONG).show();
+                }
+                mHandler.post(() -> {
+                    showChargeCurrent();
+                    refresh();
+                });
+            }
             return true;
         });
     }
@@ -220,6 +247,8 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         final int ma = ChargeCurrent.milliamps(choice);
         final String amps = ChargeCurrent.amps(ma);
         String summary = getString(ChargeCurrent.AUTO.equals(choice) ? R.string.current_default
+                : ChargeCurrent.isUnsafe(choice) ? R.string.current_unsafe
+                : ChargeCurrent.isFast(choice) ? R.string.current_fast
                 : ma <= ChargeCurrent.MIN_MA ? R.string.current_slowest
                 : R.string.current_slower, amps);
         final ChargeCurrent.State policy = mLast == null ? null : mLast.policy;
@@ -244,14 +273,18 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
      */
     private void pickChargeCurrent() {
         final Context context = requireContext();
-        final String[] choices = ChargeCurrent.CHOICES;
+        final String[] choices = ChargeCurrent.choices(
+                mShowUnsafe != null && mShowUnsafe.isChecked());
         final CharSequence[] labels = new CharSequence[choices.length];
         final String chosen = ChargeCurrent.chosen();
         int checked = -1;
         for (int i = 0; i < choices.length; i++) {
             final int ma = ChargeCurrent.milliamps(choices[i]);
             labels[i] = getString(ChargeCurrent.AUTO.equals(choices[i])
-                    ? R.string.current_choice_default : R.string.current_choice,
+                    ? R.string.current_choice_default
+                    : ChargeCurrent.isUnsafe(choices[i]) ? R.string.current_choice_unsafe
+                    : ChargeCurrent.isFast(choices[i]) ? R.string.current_choice_fast
+                    : R.string.current_choice,
                     ChargeCurrent.amps(ma), ChargeCurrent.batteryWatts(ma));
             if (choices[i].equals(chosen)) {
                 checked = i;
@@ -260,16 +293,68 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         final AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(R.string.current_title)
                 .setSingleChoiceItems(labels, checked, (d, which) -> {
-                    if (!ChargeCurrent.choose(choices[which])) {
-                        Toast.makeText(context, R.string.current_save_failed,
-                                Toast.LENGTH_LONG).show();
-                    }
                     d.dismiss();
-                    showChargeCurrent();
-                    refresh();
+                    // Faster than stock only once confirmed, each time it is picked anew
+                    if (ChargeCurrent.isFast(choices[which]) && !choices[which].equals(chosen)) {
+                        confirmFast(choices[which]);
+                    } else {
+                        applyChargeCurrent(choices[which]);
+                    }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
+        dialog.show();
+        WheelSelect.attach(dialog);
+    }
+
+    private void applyChargeCurrent(String choice) {
+        if (!ChargeCurrent.choose(choice)) {
+            Toast.makeText(requireContext(), R.string.current_save_failed,
+                    Toast.LENGTH_LONG).show();
+        }
+        showChargeCurrent();
+        refresh();
+    }
+
+    /**
+     * The warning above the stock 1 A, stronger for the unsafe values: the choice is only
+     * applied with "I understand" ticked. Wheel and side button reach the box and the buttons.
+     */
+    private void confirmFast(String choice) {
+        final Context context = requireContext();
+        final boolean unsafe = ChargeCurrent.isUnsafe(choice);
+        final String amps = ChargeCurrent.amps(ChargeCurrent.milliamps(choice));
+        final int pad = Math.round(20 * context.getResources().getDisplayMetrics().density);
+
+        final TextView message = new TextView(context);
+        message.setText(getString(unsafe ? R.string.unsafe_confirm_message
+                : R.string.fast_confirm_message, amps));
+        message.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
+        final CheckBox understood = new CheckBox(context);
+        understood.setText(unsafe ? R.string.unsafe_confirm_check : R.string.fast_confirm_check);
+        final LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setPadding(pad, pad / 2, pad, 0);
+        column.addView(message);
+        column.addView(understood, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        final ScrollView scroll = new ScrollView(context);
+        scroll.addView(column);
+
+        final AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(unsafe ? R.string.unsafe_confirm_title : R.string.fast_confirm_title)
+                .setView(scroll)
+                .setPositiveButton(getString(R.string.confirm_use, amps),
+                        (d, which) -> applyChargeCurrent(choice))
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        dialog.setOnShowListener(d -> {
+            final Button use = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            use.setEnabled(false);
+            understood.setOnCheckedChangeListener((box, checked) -> use.setEnabled(checked));
+            // Cancel first: a press of the side button right away must not confirm
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus();
+        });
         dialog.show();
         WheelSelect.attach(dialog);
     }

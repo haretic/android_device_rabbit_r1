@@ -48,7 +48,9 @@
     <!-- Battery care -->
     <string name="care_title">Battery care</string>
     <string name="current_title">Charge current</string>
-    <string name="current_default"><xliff:g id="amps">%1$s</xliff:g> A - the default, fastest</string>
+    <string name="current_default"><xliff:g id="amps">%1$s</xliff:g> A - the default, what the stock battery is rated for</string>
+    <string name="current_fast"><xliff:g id="amps">%1$s</xliff:g> A - faster than the stock battery is rated for</string>
+    <string name="current_unsafe"><xliff:g id="amps">%1$s</xliff:g> A - UNSAFE, for a larger battery and a PMIC heat sink only</string>
     <string name="current_slower"><xliff:g id="amps">%1$s</xliff:g> A - gentler, slower</string>
     <string name="current_slowest"><xliff:g id="amps">%1$s</xliff:g> A - gentlest, slowest</string>
     <!-- Second line while plugged in, when the charger gets less than the choice -->
@@ -58,6 +60,21 @@
     <string name="current_choice"><xliff:g id="amps">%1$s</xliff:g> A, about <xliff:g id="watts">%2$s</xliff:g> W</string>
     <string name="current_choice_default"><xliff:g id="amps">%1$s</xliff:g> A, about <xliff:g id="watts">%2$s</xliff:g> W (default)</string>
     <string name="current_save_failed">Couldn\'t change the charge current</string>
+    <!-- Picker labels above the stock 1 A -->
+    <string name="current_choice_fast"><xliff:g id="amps">%1$s</xliff:g> A, about <xliff:g id="watts">%2$s</xliff:g> W (faster than stock)</string>
+    <string name="current_choice_unsafe"><xliff:g id="amps">%1$s</xliff:g> A, about <xliff:g id="watts">%2$s</xliff:g> W (UNSAFE)</string>
+    <!-- Show unsafe values -->
+    <string name="unsafe_show_title">Show unsafe values</string>
+    <string name="unsafe_show_summary">Lists charge currents above 2 A, for an r1 with a larger battery fitted by hand. Never for the stock battery.</string>
+    <string name="unsafe_hidden">Unsafe values hidden, the charge current is back to 1 A</string>
+    <!-- The confirmation above the stock 1 A -->
+    <string name="fast_confirm_title">Faster than stock charging</string>
+    <string name="fast_confirm_message">The r1\'s battery is rated for 1 A. At <xliff:g id="amps">%1$s</xliff:g> A it and the charging chip run hotter, and the battery wears out sooner and holds less charge over time.\n\nThe r1 drops back to 1 A from 38 °C battery temperature, but that does not make this as safe as the default. If the battery swells or the r1 gets hot to the touch, unplug it and go back to 1 A.</string>
+    <string name="fast_confirm_check">I understand the risk to my battery</string>
+    <string name="unsafe_confirm_title">UNSAFE charge current</string>
+    <string name="unsafe_confirm_message">Do NOT use this with the stock battery. <xliff:g id="amps">%1$s</xliff:g> A is far more than the stock 1000 mAh battery can take: it can overheat, swell, catch fire or explode.\n\nThis is only for an r1 with a larger replacement battery that is rated for this current, AND a heat sink fitted to the PMIC. Without a heat sink the PMIC can overheat and be damaged at this current, and the battery\'s temperature sensor cannot see it.\n\nThe r1 still drops back to 1 A from 42 °C battery temperature. Any damage to the r1, the battery or anything around it is your own responsibility.</string>
+    <string name="unsafe_confirm_check">I understand. My r1 has a larger battery rated for this current and a PMIC heat sink.</string>
+    <string name="confirm_use">Use <xliff:g id="amps">%1$s</xliff:g> A</string>
     <string name="limit_title">Charge limit</string>
     <string name="limit_stops_at">Stops at <xliff:g id="percent">%1$d</xliff:g> %%</string>
     <string name="limit_off" formatted="false">Off, charges to 100 %</string>
