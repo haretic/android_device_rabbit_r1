@@ -322,13 +322,13 @@
         {
             "PowerHint": "INTERACTION",
             "Node": "CPUBigClusterMinFreq",
-            "Value": "1750000",
+            "Value": "2200000",
             "Duration": 0
         },
         {
             "PowerHint": "INTERACTION",
             "Node": "CPULittleClusterMinFreq",
-            "Value": "1309000",
+            "Value": "1600000",
             "Duration": 0
         },
         {
