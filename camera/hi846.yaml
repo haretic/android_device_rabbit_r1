@@ -231,33 +231,44 @@ algorithms:
       daylightFrom: 28.0
       daylightAt: 230.0
       daylightCt: 5500
-  # The stock tuning interpolates these five by white balance gain, not by
-  # colour temperature: their gain knots (0xbc958: R/B 600/1492, 734/1289,
-  # 952/1069, 1018/1046, 1318/713 of 512) placed on the grey locus by their
-  # red to blue ratio give the colour temperatures below. Daylight at 6500 K
-  # is three quarters of the last, as the stock ISP has it.
+  # Colour matrices as stock holds them: five, at the white balance gains they
+  # were made for. Stock blends them by the gains and then corrects colour
+  # further; with its blend alone a green patch of a screen stood at 98 degrees
+  # of hue where stock's own picture has 83 and a phone 81. So for daylight
+  # one matrix, 0.26 of the second and 0.74 of the third, fitted to that
+  # pattern and a daylight scene of foliage together (green 86 degrees), and
+  # under warm light the matrices by colour temperature as before, fading to
+  # the daylight one between the R/B gain ratios of daylightRatio.
   - Ccm:
-      ccms:
+      gainKnots:
+        - r: 1.171875
+          b: 2.9140625
+          ccm: [ 1.3184, -0.3203, 0.0020, -0.4785, 1.3105, 0.1680, -0.4316, -1.9238, 3.3555 ]
+        - r: 1.43359375
+          b: 2.517578125
+          ccm: [ 1.4824, -0.3711, -0.1113, -0.3301, 1.3906, -0.0605, -0.1055, -1.2988, 2.4043 ]
+        - r: 1.859375
+          b: 2.087890625
+          ccm: [ 1.5605, -0.5332, -0.0273, -0.3086, 1.4355, -0.1270, -0.0391, -0.6973, 1.7363 ]
+        - r: 1.98828125
+          b: 2.04296875
+          ccm: [ 1.8906, -0.9258, 0.0352, -0.3789, 1.4551, -0.0762, -0.0332, -0.6074, 1.6406 ]
+        - r: 2.57421875
+          b: 1.392578125
+          ccm: [ 1.6992, -0.7324, 0.0332, -0.1895, 1.4902, -0.3008, -0.0020, -0.5801, 1.5820 ]
+      daylightCcm: [ 1.5402, -0.4911, -0.0492, -0.3142, 1.4239, -0.1097, -0.0563, -0.8537, 1.9100 ]
+      daylightRatio: [ 0.7, 0.95 ]
+      warmCcms:
         - ct: 2130
-          ccm: [ 1.3184, -0.3203, 0.0020,
-                 -0.4785, 1.3105, 0.1680,
-                 -0.4316, -1.9238, 3.3555 ]
+          ccm: [ 1.3184, -0.3203, 0.0020, -0.4785, 1.3105, 0.1680, -0.4316, -1.9238, 3.3555 ]
         - ct: 2780
-          ccm: [ 1.4824, -0.3711, -0.1113,
-                 -0.3301, 1.3906, -0.0605,
-                 -0.1055, -1.2988, 2.4043 ]
+          ccm: [ 1.4824, -0.3711, -0.1113, -0.3301, 1.3906, -0.0605, -0.1055, -1.2988, 2.4043 ]
         - ct: 3840
-          ccm: [ 1.5605, -0.5332, -0.0273,
-                 -0.3086, 1.4355, -0.1270,
-                 -0.0391, -0.6973, 1.7363 ]
+          ccm: [ 1.5605, -0.5332, -0.0273, -0.3086, 1.4355, -0.1270, -0.0391, -0.6973, 1.7363 ]
         - ct: 4230
-          ccm: [ 1.8906, -0.9258, 0.0352,
-                 -0.3789, 1.4551, -0.0762,
-                 -0.0332, -0.6074, 1.6406 ]
+          ccm: [ 1.8906, -0.9258, 0.0352, -0.3789, 1.4551, -0.0762, -0.0332, -0.6074, 1.6406 ]
         - ct: 7240
-          ccm: [ 1.6992, -0.7324, 0.0332,
-                 -0.1895, 1.4902, -0.3008,
-                 -0.0020, -0.5801, 1.5820 ]
+          ccm: [ 1.6992, -0.7324, 0.0332, -0.1895, 1.4902, -0.3008, -0.0020, -0.5801, 1.5820 ]
   # The look picked against a phone's picture of the same scene: the sRGB
   # curve without a shoulder, a quarter more contrast about mid grey blended
   # in at three quarters, saturation up 15%
@@ -268,6 +279,9 @@ algorithms:
       toneKnee: 1.0
       displayContrast: 1.25
       contrastBlend: 0.764
+      gamutStrength: 1.0
+      gamutKnee: 0.90
+      gamutCeiling: 0.94
   # The stock AE where it was readable (hi846_mipi_raw_tuning.so AE NVRAM):
   # target 50/255 (u4AETarget), highlights from 240/255 (u4OverExpThres),
   # analogue gain to 8x (u4MaxGain 8192). The sensor steps its gain by 0.5x
@@ -279,6 +293,10 @@ algorithms:
       maxStep: 2.0
       highlightLevel: 0.94
       highlightFraction: 0.03
+      colorHighlightFraction: 0.02
+      colorHighlightTarget: 0.88
+      colorHighlightChroma: 0.80
+      colorHighlightMaxStep: 2.0
       againMax: 8.0
       againStep: 0.5
       digitalGainMax: 4.0
