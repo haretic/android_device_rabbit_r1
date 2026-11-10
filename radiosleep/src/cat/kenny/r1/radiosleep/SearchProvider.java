@@ -44,7 +44,8 @@ public class SearchProvider extends SearchIndexablesProvider {
         row[COLUMN_INDEX_RAW_KEYWORDS] = context.getString(R.string.search_keywords);
         row[COLUMN_INDEX_RAW_INTENT_ACTION] = Intent.ACTION_MAIN;
         row[COLUMN_INDEX_RAW_INTENT_TARGET_PACKAGE] = context.getPackageName();
-        row[COLUMN_INDEX_RAW_INTENT_TARGET_CLASS] = RadioSleepActivity.class.getName();
+        // The search alias: the activity itself needs DEVICE_POWER, which Settings search lacks
+        row[COLUMN_INDEX_RAW_INTENT_TARGET_CLASS] = context.getPackageName() + ".RadioSleepSearch";
         cursor.addRow(row);
         return cursor;
     }

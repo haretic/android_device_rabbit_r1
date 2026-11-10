@@ -36,6 +36,10 @@
             <meta-data android:name="com.android.settings.keyhint" android:value="r1_radio_sleep_network" />
             <meta-data android:name="com.android.settings.profile" android:value="primary_profile_only" />
         </activity-alias>
+        <!-- What a Settings search hit opens: Settings search lacks DEVICE_POWER, but holds this -->
+        <activity-alias android:name=".RadioSleepSearch" android:exported="true"
+            android:targetActivity=".RadioSleepActivity"
+            android:permission="android.permission.READ_SEARCH_INDEXABLES" />
         <provider android:name=".SearchProvider"
             android:authorities="cat.kenny.r1.radiosleep.search"
             android:multiprocess="false"
