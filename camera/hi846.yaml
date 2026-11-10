@@ -273,6 +273,10 @@ algorithms:
   # curve without a shoulder, a quarter more contrast about mid grey blended
   # in at three quarters, saturation up 15%
   - Adjust:
+      # Linear post-CCM Rec.709 Y; retain 5% chroma below low, full chroma above high.
+      shadowChromaLow: 0.015
+      shadowChromaHigh: 0.02
+      shadowChromaFloor: 0.05
       contrast: 1.0
       saturation: 1.15
       transfer: srgb
