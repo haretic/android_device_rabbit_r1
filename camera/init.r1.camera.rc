@@ -3,3 +3,8 @@
 on boot
     chown cameraserver cameraserver /sys/devices/platform/stepper-motor/orientation
     chmod 0664 /sys/devices/platform/stepper-motor/orientation
+
+# Compiled shader programs of the GPU debayer, so only the first camera open
+# after an update waits for the compiler.
+on post-fs-data
+    mkdir /data/vendor/camera 0770 cameraserver cameraserver

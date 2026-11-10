@@ -10,6 +10,9 @@ cameras:
     # 0 degrees faces the front, 90 hides the sensor, 180 faces the back.
     # Android gets a back and a front camera; opening one turns the module
     # that way, closing it parks the module with the sensor hidden.
+    # The lens, as the stock camera HAL reports it: f/2.8, 2.85 mm
+    aperture: 2.8
+    focal_length: 2.85
     position_control: /sys/devices/platform/stepper-motor/orientation
     park_position: 90
     # The rotation is the clockwise turn that makes frames upright. Facing

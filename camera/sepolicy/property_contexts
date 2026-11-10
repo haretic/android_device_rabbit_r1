@@ -1,0 +1,2 @@
+# Burst merge settings, read by the camera HAL
+persist.vendor.camera.          u:object_r:vendor_camera_prop:s0

@@ -35,6 +35,12 @@ PRODUCT_VENDOR_PROPERTIES += \
     ro.vendor.camera.req.fmq.size=1048576 \
     ro.vendor.camera.res.fmq.size=1048576
 
+# Multi-frame merge for stills: off, nr, hdr or night, and 2 to 8 frames. Off
+# until the cost of the frame ring on the preview is measured on the device.
+PRODUCT_VENDOR_PROPERTIES += \
+    persist.vendor.camera.burst.mode=off \
+    persist.vendor.camera.burst.frames=4
+
 PRODUCT_COPY_FILES += \
     $(R1_CAMERA_PATH)/camera_hal.yaml:$(TARGET_COPY_OUT_VENDOR)/etc/libcamera/camera_hal.yaml \
     $(R1_CAMERA_PATH)/configuration.yaml:$(TARGET_COPY_OUT_VENDOR)/etc/libcamera/configuration.yaml \

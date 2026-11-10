@@ -1,2 +1,5 @@
 # The camera module motor position, /sys/devices/platform/stepper-motor/orientation
 type sysfs_r1_camera_motor, sysfs_type, fs_type;
+
+# /data/vendor/camera: the camera HAL's cache of compiled shader programs
+type camera_vendor_data_file, file_type, data_file_type;

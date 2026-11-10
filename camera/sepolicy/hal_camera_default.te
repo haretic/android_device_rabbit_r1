@@ -18,3 +18,7 @@ get_prop(hal_camera_default, r1_camera_park_prop)
 # libcamera's software ISP debayers on the GPU: EGL's graphics environment reads whether the
 # zygote preloads GL, as in every process that draws
 get_prop(hal_camera_default, zygote_config_prop)
+
+# The cache of compiled shader programs
+allow hal_camera_default camera_vendor_data_file:dir create_dir_perms;
+allow hal_camera_default camera_vendor_data_file:file create_file_perms;
