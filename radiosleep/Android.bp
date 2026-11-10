@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-// Settings > Battery > Radios in sleep: airplane mode once the screen has been off a while,
-// a Settings page like the others, the wheel working on it.
+// Settings > Battery and Network & internet > Radios in sleep, also in Settings search:
+// airplane mode once the screen has been off a while, a Settings page like the others,
+// the wheel working on it.
 android_app {
     name: "R1RadioSleep",
     defaults: ["SettingsLibDefaults"],

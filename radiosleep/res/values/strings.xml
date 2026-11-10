@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Radios in sleep</string>
+    <!-- Settings search: what people type looking for this page -->
+    <string name="search_keywords">wifi, wi-fi, wlan, bluetooth, airplane, aeroplane, flight mode, radio, radios, mobile data, sleep, screen off, battery</string>
     <string name="tile_summary">Turn off Wi‑Fi, Bluetooth and mobile radio while the screen stays off</string>
     <string name="after">Turn radios off after</string>
     <string name="never">Never</string>
