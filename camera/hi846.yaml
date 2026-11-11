@@ -291,6 +291,15 @@ algorithms:
   # analogue gain to 8x (u4MaxGain 8192). The sensor steps its gain by 0.5x
   # (8 codes of 1/16); exposure and the ISP's digital gain take the rest.
   - Agc:
+      # Optional raw DPC; use off/all/stills. Stills gates on capture intent.
+      dpcMode: stills
+      dpcPreviewRawNoise: true
+      dpcMinAnalogueGain: 4.0
+      dpcSigma: 6.0
+      dpcFloor: 8.0
+      dpcSpread: 0.5
+      dpcSupport: 0.03125
+      dpcMaxNeighbour: 0.10
       target: 0.196
       tolerance: 0.08
       speed: 0.8
