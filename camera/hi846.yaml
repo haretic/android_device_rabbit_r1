@@ -314,6 +314,16 @@ algorithms:
       stillSharpenRadius: 1.2
       stillSharpenGain: 1.5
       stillSharpenHighGain: 1.0
+      # Gate on rendered Y noise; keep the accepted unity-gain daylight path.
+      stillSharpenGateMinGain: 1.5
+      stillSharpenGateSigma: 3.0
+      stillSharpenGateStartSigma: 2.0
+      stillSharpenNoiseFloor: 2.3452
+      stillSharpenNoiseSlope: 0.15
+      stillSharpenGateSupport: 4
+      stillSharpenGateRadius: 2.0
+      stillSharpenGateGain: 4.0
+      stillSharpenHalo: 0.0
       dpcMinAnalogueGain: 4.0
       dpcSigma: 6.0
       dpcFloor: 8.0
