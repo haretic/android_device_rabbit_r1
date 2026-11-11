@@ -294,6 +294,16 @@ algorithms:
       # Optional raw DPC; use off/all/stills. Stills gates on capture intent.
       dpcMode: stills
       dpcPreviewRawNoise: true
+      # CPU UV denoising in the still JPEG encoder. Blend from unity gain
+      # to full strength at the analogue × digital gain threshold below.
+      stillChromaNrLow: 0.85
+      stillChromaNrHigh: 1.0
+      stillChromaNrFullGain: 1.65
+      # Limited CPU luma unsharp for the main still JPEG.
+      # HighGain is the remaining fraction of strength at total gain 8.
+      stillSharpenRadius: 1.2
+      stillSharpenGain: 1.5
+      stillSharpenHighGain: 0.5
       dpcMinAnalogueGain: 4.0
       dpcSigma: 6.0
       dpcFloor: 8.0
