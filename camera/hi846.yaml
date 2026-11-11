@@ -286,6 +286,10 @@ algorithms:
       transfer: srgb
       toneKnee: 1.0
       displayContrast: 1.25
+      # Mild low-gain curve; keep the validated laptop/face/night curve from 1.5x.
+      displayContrastLowGain: 1.15
+      displayContrastFromGain: 1.0
+      displayContrastFullGain: 1.5
       contrastBlend: 0.764
       gamutStrength: 1.0
       gamutKnee: 0.90
