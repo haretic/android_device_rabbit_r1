@@ -208,6 +208,9 @@ algorithms:
   # Warm light keeps some of its warmth (in front of a projector in a dim
   # room the R1 matched a phone camera's look with these three)
   - Awb:
+      # Find grey after the scene floor the renderer subtracts, so a
+      # coloured floor no longer tints neutrals cyan in daylight.
+      flareCompensation: 0.8
       warmth: 0.15
       # The grey locus: the gains a grey needs under the stock tuning's light
       # sources (hi846_mipi_raw_tuning.so, Q9 triples at 0x250480), records 1,
