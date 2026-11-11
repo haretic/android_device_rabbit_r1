@@ -309,13 +309,13 @@ algorithms:
       stillChromaNrGuideHigh: 1.333333
       # Limited CPU luma unsharp for the main still JPEG.
       # Audit candidate: retain strength at high gain; native face/laptop SFR
-      # improves within the measured halo/noise budgets. Radius is unchanged.
+      # supplies the fallback when the optional guided path is not enabled.
       # HighGain is the remaining fraction of strength at total gain 8.
       stillSharpenRadius: 1.2
       stillSharpenGain: 1.5
       stillSharpenHighGain: 1.0
-      # Gate on rendered Y noise; keep the accepted unity-gain daylight path.
-      stillSharpenGateMinGain: 1.5
+      # Gate on rendered Y noise, including daylight at unity gain.
+      stillSharpenGateMinGain: 1.0
       stillSharpenGateSigma: 3.0
       stillSharpenGateStartSigma: 2.0
       stillSharpenNoiseFloor: 2.3452
@@ -324,6 +324,26 @@ algorithms:
       stillSharpenGateRadius: 2.0
       stillSharpenGateGain: 4.0
       stillSharpenHalo: 0.0
+      # A single guided path over the whole physical gain range. Smooth
+      # coefficients, not a blend of two separately sharpened images.
+      stillSharpenGateFullGain: 1.65
+      stillSharpenDetailFromGain: 1.3
+      stillSharpenLowRadius: 0.8
+      stillSharpenLowGain: 8.0
+      stillSharpenLowStartSigma: 0.5
+      stillSharpenLowSigma: 1.5
+      stillSharpenLowCoring: 0.2
+      # Only cap added positive detail; original highlights are preserved.
+      stillSharpenHighlightLimit: 235.0
+      stillSharpenColorHeadroom: 3.0
+      # On low-gain stills protect coherent edges on a generic 32px grid;
+      # protection/coring fade to zero by DetailFromGain; radius/strength
+      # then change smoothly to GateFullGain, without two filter passes.
+      stillSharpenDayProtection: 1.0
+      stillSharpenCoherenceStart: 0.25
+      stillSharpenCoherenceEnd: 0.45
+      stillSharpenContrastStart: 0.0
+      stillSharpenContrastEnd: 0.0
       dpcMinAnalogueGain: 4.0
       dpcSigma: 6.0
       dpcFloor: 8.0
