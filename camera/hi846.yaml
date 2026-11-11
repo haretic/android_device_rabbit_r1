@@ -303,6 +303,10 @@ algorithms:
       stillChromaNrLow: 0.85
       stillChromaNrHigh: 1.0
       stillChromaNrFullGain: 1.65
+      # Relax the luma guide only above the earlier laptop capture gains.
+      stillChromaNrGuideFromGain: 10.0
+      stillChromaNrGuideFullGain: 24.0
+      stillChromaNrGuideHigh: 1.333333
       # Limited CPU luma unsharp for the main still JPEG.
       # HighGain is the remaining fraction of strength at total gain 8.
       stillSharpenRadius: 1.2
