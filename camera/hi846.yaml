@@ -220,6 +220,10 @@ algorithms:
         - { ct: 3750, r: 1.6641, b: 1.9063 }
         - { ct: 5100, r: 1.8496, b: 1.5625 }
         - { ct: 6500, r: 2.1426, b: 1.3516 }
+        # Past D65 the stock table stops, but shade and screens do not: an LCD
+        # white needs R 2.99 B 0.84 here. One point 1.5 times the last step
+        # further along the locus takes those in, the band the rest.
+        - { ct: 9000, r: 2.6710, b: 1.0870 }
       # This unit against the golden module the locus was tuned on: daylight
       # on a cream tarp needs R 2.05 B 1.75 against the locus' D65 R 2.14 B 1.35
       unitGain: { r: 0.9568, b: 1.2948 }
