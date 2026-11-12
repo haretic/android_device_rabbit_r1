@@ -113,6 +113,14 @@ More answers the first step of a turn sooner; less saves a little battery.</stri
     <string name="kt_wheel_step_what">How far the wheel turns for each step through a list or page.
 
 Smaller steps move further for the same turn and give finer control of sliders; a lighter touch can then make a step.</string>
+    <string name="kt_cat_wifi">Wi‑Fi</string>
+    <string name="kt_wifi_wpa2">Stay on WPA2</string>
+    <string name="kt_wifi_wpa2_on">Saved WPA2 networks are not moved to WPA3</string>
+    <string name="kt_wifi_wpa2_off">Uses WPA3 where the network offers it</string>
+    <string name="kt_wifi_wpa2_restart">Takes effect after a restart</string>
+    <string name="kt_wifi_wpa2_what">Try this if a network shows “Connection failure” although the password is right.
+
+Many routers and phone hotspots offer WPA2 and WPA3 together, and the r1 then picks WPA3. With this on it keeps WPA2 for networks you saved as WPA2. Networks that only offer WPA3 still use WPA3. A change takes effect after a restart.</string>
     <string name="kt_cat_storage">Storage</string>
     <string name="kt_gpu">GPU top speed</string>
     <string name="kt_gpu_value"><xliff:g id="mhz">%d</xliff:g> MHz</string>

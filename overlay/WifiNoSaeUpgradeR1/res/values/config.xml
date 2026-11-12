@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A saved WPA2 network stays WPA2 on an access point that also offers WPA3.
+     Networks saved as WPA3 keep WPA3. -->
+<resources>
+    <bool name="config_wifiSaeUpgradeEnabled">false</bool>
+</resources>

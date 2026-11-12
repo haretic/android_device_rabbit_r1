@@ -146,7 +146,8 @@ PRODUCT_PACKAGES += \
     GadgetSystemUIR1
 
 PRODUCT_PACKAGES += \
-    WifiResR1
+    WifiResR1 \
+    WifiNoSaeUpgradeR1
 
 # Airplane mode after the screen has been off for a set time (Settings > Battery).
 PRODUCT_PACKAGES += R1RadioSleep

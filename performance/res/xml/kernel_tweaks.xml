@@ -104,6 +104,13 @@
             android:title="@string/kt_wheel_step"
             android:persistent="false" />
     </PreferenceCategory>
+    <PreferenceCategory android:key="wifi" android:title="@string/kt_cat_wifi">
+        <SwitchPreferenceCompat
+            android:key="wifi_wpa2"
+            android:icon="@drawable/kt_dot_safe"
+            android:title="@string/kt_wifi_wpa2"
+            android:persistent="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:key="storage" android:title="@string/kt_cat_storage">
         <ListPreference
             android:key="io_sched"

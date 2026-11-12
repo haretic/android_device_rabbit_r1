@@ -1,0 +1,5 @@
+// Off unless Settings > System > Kernel Tweaks > "Stay on WPA2" enables it.
+runtime_resource_overlay {
+    name: "WifiNoSaeUpgradeR1",
+    vendor: true,
+}

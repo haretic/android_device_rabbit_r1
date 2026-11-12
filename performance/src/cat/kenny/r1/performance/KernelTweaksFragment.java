@@ -4,12 +4,15 @@ package cat.kenny.r1.performance;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.om.OverlayInfo;
+import android.content.om.OverlayManager;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -77,7 +80,12 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private ListPreference mWheelFast;
     private ListPreference mWheelIdle;
     private ListPreference mWheelStep;
+    private SwitchPreferenceCompat mWifiWpa2;
     private SwitchPreferenceCompat mShowDocs;
+    /** The overlay that keeps saved WPA2 networks on WPA2; the Wi-Fi service reads it as it starts. */
+    private static final String WIFI_WPA2_OVERLAY = "com.rabbit.r1.overlay.wifi.nosae";
+    /** What the Wi-Fi service started with, to say when a restart is still due. */
+    private boolean mWifiWpa2AtStart;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -261,6 +269,21 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
             return true;
         });
 
+        // Not a Kernel Tweak either: an overlay on the Wi-Fi service's settings, on or off
+        // whether the tweaks are in use or not.
+        mWifiWpa2 = findPreference("wifi_wpa2");
+        mWifiWpa2AtStart = wifiWpa2();
+        mWifiWpa2.setOnPreferenceChangeListener((p, value) -> {
+            try {
+                context.getSystemService(OverlayManager.class).setEnabled(
+                        WIFI_WPA2_OVERLAY, (Boolean) value, UserHandle.SYSTEM);
+            } catch (RuntimeException e) {
+                return false;
+            }
+            mHandler.post(mUpdate);
+            return true;
+        });
+
         mShowDocs = findPreference("show_docs");
         mShowDocs.setChecked(Profiles.prefs(context).getBoolean(KEY_SHOW_DOCS, false));
         mShowDocs.setOnPreferenceChangeListener((p, value) -> {
@@ -416,6 +439,24 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
                     + getString(R.string.kt_camera_park_what);
         }
         mCameraPark.setSummary(cameraParkSummary);
+
+        final boolean wpa2 = wifiWpa2();
+        mWifiWpa2.setChecked(wpa2);
+        String wpa2Summary = getString(wpa2 ? R.string.kt_wifi_wpa2_on : R.string.kt_wifi_wpa2_off);
+        if (wpa2 != mWifiWpa2AtStart) {
+            wpa2Summary = wpa2Summary + ". " + getString(R.string.kt_wifi_wpa2_restart);
+        }
+        if (mShowDocs.isChecked()) {
+            wpa2Summary = wpa2Summary + "\n\n" + getString(R.string.kt_wifi_wpa2_what);
+        }
+        mWifiWpa2.setSummary(wpa2Summary);
+    }
+
+    /** Whether saved WPA2 networks are kept on WPA2. */
+    private boolean wifiWpa2() {
+        final OverlayInfo info = requireContext().getSystemService(OverlayManager.class)
+                .getOverlayInfo(WIFI_WPA2_OVERLAY, UserHandle.SYSTEM);
+        return info != null && info.isEnabled();
     }
 
     /** What the device started with, or {@code fallback} before the script noted it. */
