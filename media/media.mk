@@ -128,6 +128,11 @@ PRODUCT_COPY_FILES += \
     $(R1_MEDIA_PATH)/init.r1.media.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.r1.media.rc \
     $(R1_MEDIA_PATH)/ueventd.r1-media.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.r1-media.rc
 
+# Camcorder profiles. With none the framework falls back to built-in
+# 20 fps ones the camera cannot deliver, and every recording fails to start.
+PRODUCT_COPY_FILES += \
+    $(R1_MEDIA_PATH)/media_profiles_V1_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_profiles_V1_0.xml
+
 # The framework only lists HAL components named in a codec list. Stage 1
 # lists the hardware H.264 encoder; stage 2 adds the H.264 and HEVC decoders
 # (r1-tools docs/device/media.md, "Stages"). With no list the HAL runs but the c2.android
