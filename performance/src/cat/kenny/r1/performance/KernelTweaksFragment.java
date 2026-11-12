@@ -4,6 +4,7 @@ package cat.kenny.r1.performance;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.om.OverlayInfo;
 import android.content.om.OverlayManager;
 import android.graphics.drawable.Drawable;
@@ -13,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemProperties;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -84,6 +86,8 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private SwitchPreferenceCompat mShowDocs;
     /** The overlay that keeps saved WPA2 networks on WPA2; the Wi-Fi service reads it as it starts. */
     private static final String WIFI_WPA2_OVERLAY = "com.rabbit.r1.overlay.wifi.nosae";
+    private static final String KEY_WIFI_WPA2_BOOT = "wifi_wpa2_boot";
+    private static final String KEY_WIFI_WPA2_AT_BOOT = "wifi_wpa2_at_boot";
     /** What the Wi-Fi service started with, to say when a restart is still due. */
     private boolean mWifiWpa2AtStart;
 
@@ -272,7 +276,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         // Not a Kernel Tweak either: an overlay on the Wi-Fi service's settings, on or off
         // whether the tweaks are in use or not.
         mWifiWpa2 = findPreference("wifi_wpa2");
-        mWifiWpa2AtStart = wifiWpa2();
+        mWifiWpa2AtStart = wifiWpa2AtBoot(context);
         mWifiWpa2.setOnPreferenceChangeListener((p, value) -> {
             try {
                 context.getSystemService(OverlayManager.class).setEnabled(
@@ -450,6 +454,21 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
             wpa2Summary = wpa2Summary + "\n\n" + getString(R.string.kt_wifi_wpa2_what);
         }
         mWifiWpa2.setSummary(wpa2Summary);
+    }
+
+    /**
+     * What the Wi-Fi service read when it started: the switch as this page first found it since
+     * the restart, kept so the note about restarting is still there after leaving the page.
+     */
+    private boolean wifiWpa2AtBoot(Context context) {
+        final SharedPreferences prefs = Profiles.prefs(context);
+        final int boot = Settings.Global.getInt(context.getContentResolver(),
+                Settings.Global.BOOT_COUNT, 0);
+        if (prefs.getInt(KEY_WIFI_WPA2_BOOT, -1) != boot) {
+            prefs.edit().putInt(KEY_WIFI_WPA2_BOOT, boot)
+                    .putBoolean(KEY_WIFI_WPA2_AT_BOOT, wifiWpa2()).apply();
+        }
+        return prefs.getBoolean(KEY_WIFI_WPA2_AT_BOOT, false);
     }
 
     /** Whether saved WPA2 networks are kept on WPA2. */
