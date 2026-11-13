@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 package cat.kenny.r1.performance;
 
+import android.app.AlertDialog;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.UnderlineSpan;
+import android.util.TypedValue;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -29,6 +34,13 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
     private ListPreference mBig;
     private ListPreference mLittle;
     private Preference mTest;
+    private Preference mSkip;
+
+    @Override
+    public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        LongSummaries.apply(getListView());
+    }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -48,6 +60,24 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
                 return true;
             });
         }
+        mSkip = findPreference("skip");
+        mSkip.setOnPreferenceClickListener(p -> {
+            if (Overclock.isForced()) {
+                Overclock.setForced(false);
+                changed();
+                return true;
+            }
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.oc_skip_title)
+                    .setMessage(R.string.oc_skip_text)
+                    .setPositiveButton(R.string.oc_skip_use, (d, w) -> {
+                        Overclock.setForced(true);
+                        changed();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return true;
+        });
         mTest = findPreference("test");
         mTest.setOnPreferenceClickListener(p -> {
             Overclock.startTest();
@@ -87,6 +117,16 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
         bind(mBig, Overclock.BIG, running);
         bind(mLittle, Overclock.LITTLE, running);
 
+        // A link, not a row: small, in the accent colour, under the test it steps around
+        final SpannableString link = new SpannableString(getString(
+                Overclock.isForced() ? R.string.oc_skip_undo : R.string.oc_skip));
+        link.setSpan(new UnderlineSpan(), 0, link.length(), 0);
+        final TypedValue accent = new TypedValue();
+        requireContext().getTheme().resolveAttribute(android.R.attr.colorAccent, accent, true);
+        link.setSpan(new ForegroundColorSpan(accent.data), 0, link.length(), 0);
+        mSkip.setSummary(link);
+        mSkip.setEnabled(usable && !running);
+
         final String state = Overclock.testState();
         mTest.setEnabled(usable && !running);
         if (running) {
@@ -102,17 +142,21 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
         }
     }
 
-    /** The steps up to the one the test passed; the stock one is always there. */
+    /**
+     * The steps up to the one the test passed, or every step, the others marked, when the user
+     * skipped it; the stock one is always there.
+     */
     private void bind(ListPreference preference, String cluster, boolean running) {
-        final String passed = Overclock.passed(cluster);
         final String stock = Overclock.steps(cluster)[0];
         final List<CharSequence> entries = new ArrayList<>();
         final List<CharSequence> values = new ArrayList<>();
         for (String mhz : Overclock.steps(cluster)) {
-            if (Integer.parseInt(mhz) > Integer.parseInt(passed)) {
+            if (!Overclock.isAllowed(cluster, mhz)) {
                 break;
             }
-            entries.add(mhz.equals(stock) ? getString(R.string.oc_stock, ghz(mhz)) : ghz(mhz));
+            entries.add(mhz.equals(stock) ? getString(R.string.oc_stock, ghz(mhz))
+                    : Overclock.isPassed(cluster, mhz) ? ghz(mhz)
+                    : getString(R.string.oc_untested_step, ghz(mhz)));
             values.add(mhz);
         }
         preference.setEntries(entries.toArray(new CharSequence[0]));
@@ -124,7 +168,9 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
                 && values.size() > 1);
         preference.setSummary(values.size() == 1 ? getString(R.string.oc_untested)
                 : value.equals(stock) ? getString(R.string.oc_stock, ghz(stock))
-                : getString(R.string.oc_step, ghz(value), ghz(stock)));
+                : Overclock.isPassed(cluster, value)
+                        ? getString(R.string.oc_step, ghz(value), ghz(stock))
+                : getString(R.string.oc_step_untested, ghz(value), ghz(stock)));
     }
 
     private String ghz(String mhz) {

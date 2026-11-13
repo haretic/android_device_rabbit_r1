@@ -96,6 +96,8 @@ final class KernelTweaks {
         // The steps go back to stock too; what the stress test passed stays known
         set("oc_big", "");
         set("oc_little", "");
+        set("oc_force_big", "");
+        set("oc_force_little", "");
     }
 
     /** Has the script apply the choices now. */

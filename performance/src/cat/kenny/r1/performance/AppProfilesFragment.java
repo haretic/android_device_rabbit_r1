@@ -33,6 +33,12 @@ public class AppProfilesFragment extends SettingsBasePreferenceFragment {
     private PreferenceCategory mApps;
 
     @Override
+    public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        LongSummaries.apply(getListView());
+    }
+
+    @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.app_profiles, rootKey);
         mApps = findPreference("apps");

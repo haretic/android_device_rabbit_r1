@@ -62,6 +62,10 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mUpdate = this::update;
+    /** The user chose to leave the switch off: not asked again on this visit */
+    private boolean mOffPromptDeclined;
+    private AlertDialog mOffPrompt;
+
     private MainSwitchPreference mEnabled;
     private ListPreference mMemSleep;
     private SwitchPreferenceCompat mPark;
@@ -92,6 +96,12 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private boolean mWifiWpa2AtStart;
 
     @Override
+    public void onViewCreated(android.view.View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        LongSummaries.apply(getListView());
+    }
+
+    @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.kernel_tweaks, rootKey);
         final Context context = requireContext();
@@ -100,7 +110,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mEnabled = findPreference(KernelTweaks.ENABLED);
         mEnabled.setOnPreferenceChangeListener((p, value) -> {
             KernelTweaks.setEnabled((Boolean) value);
-            changed();
+            applied();
             return true;
         });
 
@@ -218,17 +228,26 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         bind(mReadAhead, startValue(KernelTweaks.READ_AHEAD, "128"));
 
         mSpeaker = findPreference(KernelTweaks.SPEAKER);
-        // -6 to +14 dB: +8 is the top of the codec's line out gain, the rest the amplifier's
-        final CharSequence[] speaker = new CharSequence[21];
-        final CharSequence[] speakerValues = new CharSequence[21];
-        for (int i = 0; i < 21; i++) {
-            final int db = 14 - i;
-            speaker[i] = getString(R.string.kt_db_value, db);
+        // -6 to +25 dB: +8 is the top of the codec's line out gain, up to +14 the amplifier's,
+        // and the rest is added to the samples by the audio HAL, behind a limiter
+        final CharSequence[] speaker = new CharSequence[32];
+        final CharSequence[] speakerValues = new CharSequence[32];
+        for (int i = 0; i < 32; i++) {
+            final int db = 25 - i;
+            // Past 4 dB of it the software gain is plainly audible as such: the owner's joke
+            speaker[i] = getString(db > 18 ? R.string.kt_db_value_software_bringus
+                    : db > 14 ? R.string.kt_db_value_software
+                    : db > 8 ? R.string.kt_db_value_amplifier : R.string.kt_db_value, db);
             speakerValues[i] = Integer.toString(db);
         }
         mSpeaker.setEntries(speaker);
         mSpeaker.setEntryValues(speakerValues);
-        bind(mSpeaker, "0");
+        // In use with the tweaks off too (Settings > Sound has it as a slider): no prompt
+        mSpeaker.setOnPreferenceChangeListener((p, value) -> {
+            KernelTweaks.set(p.getKey(), "8".equals(value) ? "" : (String) value);
+            applied();
+            return true;
+        });
 
         mMic = findPreference(KernelTweaks.MIC);
         final CharSequence[] mic = new CharSequence[5];
@@ -302,7 +321,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
                     .setMessage(R.string.kt_reset_confirm)
                     .setPositiveButton(R.string.kt_reset, (d, which) -> {
                         KernelTweaks.reset();
-                        changed();
+                        applied();
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .create();
@@ -364,7 +383,26 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         });
     }
 
+    /** A tweak was chosen: put it in, or say that the switch above is off and offer it. */
     private void changed() {
+        applied();
+        if ((KernelTweaks.isEnabled() && !KernelTweaks.isPaused()) || mOffPromptDeclined
+                || (mOffPrompt != null && mOffPrompt.isShowing())) {
+            return;
+        }
+        mOffPrompt = new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.kt_off_prompt_title)
+                .setMessage(R.string.kt_off_prompt_text)
+                .setPositiveButton(R.string.kt_off_prompt_on, (d, w) -> {
+                    KernelTweaks.setEnabled(true);
+                    applied();
+                })
+                .setNegativeButton(R.string.kt_off_prompt_keep, (d, w) ->
+                        mOffPromptDeclined = true)
+                .show();
+    }
+
+    private void applied() {
         KernelTweaks.apply();
         Controller.get(requireContext()).update();
         update();
@@ -428,7 +466,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         show(mSwappiness, startValue(KernelTweaks.SWAPPINESS, "60"), R.string.kt_swappiness_what);
         show(mIoSched, startValue(KernelTweaks.IO_SCHED, ""), R.string.kt_io_sched_what);
         show(mReadAhead, startValue(KernelTweaks.READ_AHEAD, "128"), R.string.kt_read_ahead_what);
-        show(mSpeaker, "0", R.string.kt_speaker_what);
+        show(mSpeaker, "8", R.string.kt_speaker_what);
         show(mMic, "24", R.string.kt_mic_what);
         show(mMotor, "360", R.string.kt_motor_what);
         show(mWheelFast, DEFAULT_WHEEL_FAST, R.string.kt_wheel_fast_what);

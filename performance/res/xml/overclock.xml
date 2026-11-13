@@ -25,6 +25,9 @@
             android:key="test"
             android:title="@string/oc_test"
             android:persistent="false" />
+        <Preference
+            android:key="skip"
+            android:persistent="false" />
     </PreferenceCategory>
     <com.android.settingslib.widget.FooterPreference
         android:key="about"

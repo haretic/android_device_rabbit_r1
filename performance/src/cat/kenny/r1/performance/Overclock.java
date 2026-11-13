@@ -7,7 +7,8 @@ import android.text.TextUtils;
 
 /**
  * The CPU overclock (Kernel Tweaks > CPU overclock): a top speed per cluster above stock, at
- * the stock top voltage, offered only as far as this r1 passed the stress test. Stored with
+ * the stock top voltage. The stress test says which steps this r1 holds; the user may skip it
+ * behind a warning and pick any step (oc_force_*). Stored with
  * the other tweaks in persist.sys.r1.kt.*; r1-ktweaks.sh turns boost on for the cluster and
  * runs the test, the Controller has the power HAL hold the speed (OC_* hints).
  */
@@ -49,7 +50,34 @@ final class Overclock {
         return TextUtils.isEmpty(mhz) ? steps(cluster)[0] : mhz;
     }
 
-    /** The step in use: on, the tweaks active, picked and passed. Null for stock. */
+    /** Whether the user chose to pick speeds the stress test has not passed. */
+    static boolean isForced() {
+        return !TextUtils.isEmpty(KernelTweaks.get("oc_force_" + BIG));
+    }
+
+    /** Opens every step of both clusters, or goes back to the ones the stress test passed. */
+    static void setForced(boolean forced) {
+        for (String cluster : new String[] {BIG, LITTLE}) {
+            final String[] steps = steps(cluster);
+            KernelTweaks.set("oc_force_" + cluster, forced ? steps[steps.length - 1] : "");
+        }
+    }
+
+    /** Whether the step is one the stress test passed. */
+    static boolean isPassed(String cluster, String mhz) {
+        try {
+            return Integer.parseInt(mhz) <= Integer.parseInt(passed(cluster));
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /** Whether the step may be used: passed, or the user skipped the stress test. */
+    static boolean isAllowed(String cluster, String mhz) {
+        return isPassed(cluster, mhz) || isForced();
+    }
+
+    /** The step in use: on, the tweaks active, picked and allowed. Null for stock. */
     static String step(String cluster) {
         if (!KernelTweaks.isActive() || !isOn()) {
             return null;
@@ -58,11 +86,7 @@ final class Overclock {
         if (mhz == null) {
             return null;
         }
-        try {
-            return Integer.parseInt(mhz) <= Integer.parseInt(passed(cluster)) ? mhz : null;
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return isAllowed(cluster, mhz) ? mhz : null;
     }
 
     static void startTest() {

@@ -15,6 +15,7 @@ android_app {
     privileged: true,
     static_libs: [
         "androidx.preference_preference",
+        "androidx.recyclerview_recyclerview",
         "SettingsLibPreference",
         "r1-wheelselect",
     ],

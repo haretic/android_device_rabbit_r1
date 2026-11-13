@@ -39,8 +39,8 @@
     <string name="app_profiles_remove">Remove</string>
     <string name="app_profiles_pick_app">Pick an app</string>
 
-    <!-- Settings > System > Kernel Tweaks -->
-    <string name="kt_title">Kernel tweaks</string>
+    <!-- Settings > System > Tweaks -->
+    <string name="kt_title">Tweaks</string>
     <string name="kt_summary">Sleep, cores, throttling and swap</string>
     <string name="kt_use">Use tweaks</string>
     <string name="kt_use_none">Nothing changed, everything is at the default</string>
@@ -49,6 +49,10 @@
         <item quantity="other"><xliff:g id="count">%d</xliff:g> changed from the default</item>
     </plurals>
     <string name="kt_use_off">Off, everything runs at the default. Your choices are kept for when you switch this back on.</string>
+    <string name="kt_off_prompt_title">Tweaks are off</string>
+    <string name="kt_off_prompt_text">Your choice is saved, but it changes nothing until tweaks are switched on. Switching them on also puts in every other choice saved on this page.</string>
+    <string name="kt_off_prompt_on">Switch on</string>
+    <string name="kt_off_prompt_keep">Keep off</string>
     <string name="kt_paused">Switched off because the r1 restarted twice in a row soon after the tweaks went in. One of them is probably the reason. Switch this back on to try again.</string>
     <string name="kt_failed">Couldn\'t set: <xliff:g id="tweaks">%s</xliff:g></string>
     <string name="kt_cat_sleep">Sleep</string>
@@ -81,10 +85,13 @@
     <string name="kt_zram_off">Off</string>
     <string name="kt_zram_value"><xliff:g id="size">%s</xliff:g>, lz4</string>
     <string name="kt_cat_hardware">Speaker, mic and camera</string>
-    <string name="kt_speaker">Speaker gain</string>
+    <string name="kt_speaker">Speaker gain (Hardware)</string>
     <string name="kt_db_value"><xliff:g id="db">%+d</xliff:g> dB</string>
-    <string name="kt_speaker_what">How loud the speaker gets at full volume.\n\nMore is louder but distorts sooner on loud music; less keeps it clean and saves a little battery. Above +4 dB loud music clips, and the small speaker can rattle. Above +8 dB the amplifier itself is turned up: quiet things get much louder, loud ones are held back by its limiter, and long loud playing can wear the speaker out.</string>
-    <string name="kt_mic">Mic gain</string>
+    <string name="kt_db_value_amplifier"><xliff:g id="db">%+d</xliff:g> dB - hardware amplifier</string>
+    <string name="kt_db_value_software"><xliff:g id="db">%+d</xliff:g> dB - software</string>
+    <string name="kt_db_value_software_bringus"><xliff:g id="db">%+d</xliff:g> dB - software [BRINGUS WARNING]</string>
+    <string name="kt_speaker_what">How loud the speaker gets at full volume. Works with tweaks off too; Settings - Sound has the same setting as a slider, up to +10 dB.\n\nUp to +8 dB is the audio chip\'s own output and from there to +14 dB the speaker amplifier is turned up. Above +14 dB the hardware has no more to give, and the rest is done in software: the sound is turned up before it reaches the speaker and its peaks are held back, so quiet things get louder still and loud music gets denser, not much louder.</string>
+    <string name="kt_mic">Mic gain (Hardware)</string>
     <string name="kt_mic_value"><xliff:g id="db">%d</xliff:g> dB</string>
     <string name="kt_mic_what">How much the mic amplifies, 24 dB being its most.\n\nLess keeps loud voices and music from clipping in recordings and calls.</string>
     <string name="kt_motor">Camera motor speed</string>
@@ -146,11 +153,11 @@ Many routers and phone hotspots offer WPA2 and WPA3 together, and the r1 then pi
     <string name="kt_show_docs_summary">What each tweak does and why you\'d change it, right in the list</string>
     <string name="kt_reset">Reset everything</string>
     <string name="kt_reset_summary">Back to the defaults for the r1</string>
-    <string name="kt_reset_confirm">Put every kernel tweak back to its default?</string>
+    <string name="kt_reset_confirm">Put every tweak back to its default?</string>
     <string name="oc_title">CPU overclock</string>
     <string name="oc_switch">Overclock</string>
     <string name="oc_on_summary">Big cores up to <xliff:g id="big" example="2.4 GHz">%1$s</xliff:g>, little cores up to <xliff:g id="little" example="1.8 GHz">%2$s</xliff:g></string>
-    <string name="oc_needs_tweaks">Switch on kernel tweaks first</string>
+    <string name="oc_needs_tweaks">Switch on tweaks first</string>
     <string name="oc_speed">Speed</string>
     <string name="oc_big">Big cores</string>
     <string name="oc_little">Little cores</string>
@@ -158,6 +165,13 @@ Many routers and phone hotspots offer WPA2 and WPA3 together, and the r1 then pi
     <string name="oc_stock">Stock, <xliff:g id="speed" example="2.2 GHz">%s</xliff:g></string>
     <string name="oc_step"><xliff:g id="speed" example="2.4 GHz">%1$s</xliff:g> - stock <xliff:g id="stock" example="2.2 GHz">%2$s</xliff:g></string>
     <string name="oc_untested">Stock. Run the stress test to unlock faster speeds.</string>
+    <string name="oc_untested_step"><xliff:g id="speed" example="2.4 GHz">%s</xliff:g> - not passed</string>
+    <string name="oc_step_untested"><xliff:g id="speed" example="2.4 GHz">%1$s</xliff:g> - stock <xliff:g id="stock" example="2.2 GHz">%2$s</xliff:g>. Not passed by the stress test.</string>
+    <string name="oc_skip">Pick speeds without the stress test</string>
+    <string name="oc_skip_undo">Only offer speeds the stress test passed</string>
+    <string name="oc_skip_title">Skip the stress test?</string>
+    <string name="oc_skip_text">Every speed becomes available, whether this r1 holds it or not.\n\nA speed the chip can\'t hold shows as apps crashing, wrong results, freezes or restarts, and work that isn\'t saved can be lost or damaged.\n\nIf the r1 fails to start twice in a row, tweaks switch themselves off and it comes back at stock speed.</string>
+    <string name="oc_skip_use">Skip it</string>
     <string name="oc_test">Stress test</string>
     <string name="oc_test_summary">A minute at each speed on all eight cores, checking every result. Let the r1 cool down first; it gets warm.</string>
     <string name="oc_test_running">Testing <xliff:g id="step" example="2400/1800 MHz">%s</xliff:g>…</string>
