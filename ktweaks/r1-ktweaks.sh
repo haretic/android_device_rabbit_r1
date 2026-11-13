@@ -19,8 +19,9 @@
 #   persist.sys.r1.kt.swappiness 0..200, how readily memory goes to the compressed swap
 #   persist.sys.r1.kt.io_sched  the eMMC's I/O scheduler, one of sys.r1.kt.io_schedulers
 #   persist.sys.r1.kt.read_ahead 128 | 256 | 512 | 1024, the eMMC's read-ahead in KiB
-#   persist.sys.r1.kt.speaker   -6..8, the speaker line out's gain in dB (0 by default; 8 is
-#                               the top of the codec's range)
+#   persist.sys.r1.kt.speaker   -6..14, the speaker's gain in dB (0 by default): up to 8 on the
+#                               codec's line out, the rest on the speaker amplifier (measured
+#                               +6.3 dB at its top gain, so 14 is the most there is)
 #   persist.sys.r1.kt.mic       0..24 in steps of 6, the mic's gain in dB (24 by default)
 #   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
 #   persist.sys.r1.kt.wheel_poll_fast 10 | 16 | 33, ms between the wheel's readings as it turns
@@ -181,10 +182,13 @@ set_io() {
 }
 
 # The gains, as the audio HAL's UCM boot sequence has them: line out 10 (0 dB, -10 dB + 1 dB a
-# step), mic 4 (24 dB, 6 dB a step)
+# step), no amplifier boost, mic 4 (24 dB, 6 dB a step)
 set_audio() {
-	line=$(( 10 + ${1:-0} )) mic=$(( ${2:-24} / 6 ))
+	line=$(( 10 + ${1:-0} )) mic=$(( ${2:-24} / 6 )) boost=0
+	# Past the line out's +8 dB the speaker amplifier's own gain goes up, about 1 dB a step
+	[ $line -gt 18 ] && { boost=$(( line - 18 )); line=18; }
 	tinymix2 -D 0 set "Lineout Volume" $line $line >/dev/null 2>&1 || fail speaker
+	tinymix2 -D 0 set "Speaker Amp AW87390 PA Boost" $boost >/dev/null 2>&1 || fail speaker
 	tinymix2 -D 0 set "Mic Volume" $mic >/dev/null 2>&1 || fail mic
 }
 
@@ -240,7 +244,7 @@ apply() {
 		gpu="" governor="" swappiness="" io_sched="" read_ahead=""
 		speaker="" mic="" motor_step="" wheel_fast="" wheel_idle="" wheel_step=""
 	fi
-	case "$speaker" in -[1-6]|[0-8]) ;; *) speaker=0 ;; esac
+	case "$speaker" in -[1-6]|[0-9]|1[0-4]) ;; *) speaker=0 ;; esac
 	case "$mic" in 0|6|12|18|24) ;; *) mic=24 ;; esac
 	case "$motor_step" in 250|360|600) ;; *) motor_step=360 ;; esac
 	case "$wheel_fast" in 10|16|33) ;; *) wheel_fast=10 ;; esac
