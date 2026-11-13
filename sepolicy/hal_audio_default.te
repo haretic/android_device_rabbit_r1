@@ -1,0 +1,2 @@
+# The speaker gain the HAL adds to the samples (vendor.audio.mainline.speaker_boost.property)
+get_prop(hal_audio_default, r1_speaker_boost_prop)

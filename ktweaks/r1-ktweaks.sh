@@ -19,9 +19,11 @@
 #   persist.sys.r1.kt.swappiness 0..200, how readily memory goes to the compressed swap
 #   persist.sys.r1.kt.io_sched  the eMMC's I/O scheduler, one of sys.r1.kt.io_schedulers
 #   persist.sys.r1.kt.read_ahead 128 | 256 | 512 | 1024, the eMMC's read-ahead in KiB
-#   persist.sys.r1.kt.speaker   -6..14, the speaker's gain in dB (0 by default): up to 8 on the
-#                               codec's line out, the rest on the speaker amplifier (measured
-#                               +6.3 dB at its top gain, so 14 is the most there is)
+#   persist.sys.r1.kt.speaker   -6..25, the speaker's gain in dB (8 by default), in use with
+#                               the tweaks off too (Settings > Sound sets it as well): up to 8 on the
+#                               codec's line out, up to 14 on the speaker amplifier (measured
+#                               +6.3 dB at its top gain) and the rest by the audio HAL on the
+#                               samples, behind its limiter (sys.r1.speaker_boost, in dB)
 #   persist.sys.r1.kt.mic       0..24 in steps of 6, the mic's gain in dB (24 by default)
 #   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
 #   persist.sys.r1.kt.wheel_poll_fast 10 | 16 | 33, ms between the wheel's readings as it turns
@@ -30,9 +32,11 @@
 # and then sys.r1.kt.apply to anything new. Unset means the default. Writes
 # sys.r1.kt.result (ok, or the tweaks that could not be set) for the page.
 #
-# The overclock steps are offered only where this r1 passed the stress test (octest, started
-# with sys.r1.kt.octest): persist.sys.r1.kt.oc_ok_big and oc_ok_little are the fastest steps
-# that held, sys.r1.kt.octest_state is running, done or why it stopped.
+# The stress test (octest, started with sys.r1.kt.octest) says which overclock steps this r1
+# holds: persist.sys.r1.kt.oc_ok_big and oc_ok_little are the fastest steps that held,
+# sys.r1.kt.octest_state is running, done or why it stopped. Every step is used all the same
+# once the user skipped the test behind the page's warning (persist.sys.r1.kt.oc_force_big,
+# _little: the fastest step taken that way).
 #
 # Two starts in a row that don't stay up two minutes after the tweaks went in switch them
 # off (persist.sys.r1.kt.paused=1) until the page switches them on again.
@@ -181,12 +185,15 @@ set_io() {
 	[ -n "$2" ] && { echo "$2" > $EMMC/read_ahead_kb 2>/dev/null || fail read_ahead; }
 }
 
-# The gains, as the audio HAL's UCM boot sequence has them: line out 10 (0 dB, -10 dB + 1 dB a
-# step), no amplifier boost, mic 4 (24 dB, 6 dB a step)
+# The gains, as the audio HAL's UCM boot sequence has them: +8 dB on the speaker (line out 18,
+# its top, 1 dB a step from 10 at 0 dB, no amplifier boost), mic 4 (24 dB, 6 dB a step)
 set_audio() {
-	line=$(( 10 + ${1:-0} )) mic=$(( ${2:-24} / 6 )) boost=0
-	# Past the line out's +8 dB the speaker amplifier's own gain goes up, about 1 dB a step
+	line=$(( 10 + ${1:-8} )) mic=$(( ${2:-24} / 6 )) boost=0 soft=0
+	# Past the line out's +8 dB the speaker amplifier's own gain goes up, about 1 dB a step,
+	# and past its top the audio HAL turns the samples up
 	[ $line -gt 18 ] && { boost=$(( line - 18 )); line=18; }
+	[ $boost -gt 6 ] && { soft=$(( boost - 6 )); boost=6; }
+	setprop sys.r1.speaker_boost $soft
 	tinymix2 -D 0 set "Lineout Volume" $line $line >/dev/null 2>&1 || fail speaker
 	tinymix2 -D 0 set "Speaker Amp AW87390 PA Boost" $boost >/dev/null 2>&1 || fail speaker
 	tinymix2 -D 0 set "Mic Volume" $mic >/dev/null 2>&1 || fail mic
@@ -244,7 +251,10 @@ apply() {
 		gpu="" governor="" swappiness="" io_sched="" read_ahead=""
 		speaker="" mic="" motor_step="" wheel_fast="" wheel_idle="" wheel_step=""
 	fi
-	case "$speaker" in -[1-6]|[0-9]|1[0-4]) ;; *) speaker=0 ;; esac
+	# The speaker's gain is a sound setting as much as a tweak (Settings > Sound has it too): it
+	# holds whether the tweaks are on or not
+	speaker=$(prop speaker)
+	case "$speaker" in -[1-6]|[0-9]|1[0-9]|2[0-5]) ;; *) speaker=8 ;; esac
 	case "$mic" in 0|6|12|18|24) ;; *) mic=24 ;; esac
 	case "$motor_step" in 250|360|600) ;; *) motor_step=360 ;; esac
 	case "$wheel_fast" in 10|16|33) ;; *) wheel_fast=10 ;; esac
@@ -286,11 +296,13 @@ apply() {
 	setprop sys.r1.kt.result "${failed:-ok}"
 }
 
-# The step picked for a cluster, if the stress test passed it
+# The step picked for a cluster, if the stress test passed it or the user skipped the test
 oc_step() {
-	mhz=$(prop oc_$1) ok=$(prop oc_ok_$1)
+	mhz=$(prop oc_$1) ok=$(prop oc_ok_$1) force=$(prop oc_force_$1)
 	case "$mhz" in 2300|2400|1700|1800) ;; *) return ;; esac
-	[ -n "$ok" ] && [ "$mhz" -le "$ok" ] && echo $mhz
+	case "$force" in 2300|2400|1700|1800) ;; *) force=0 ;; esac
+	{ [ -n "$ok" ] && [ "$mhz" -le "$ok" ]; } || [ "$mhz" -le "$force" ] || return
+	echo $mhz
 }
 
 # octest: every step, both clusters at once, at the speed for 60 s with all eight cores
@@ -382,7 +394,13 @@ start)
 	fi
 	;;
 apply)
-	apply
+	# init doesn't start a run that is still going: a change made during it (a slider dragged
+	# in Settings) would be lost, so go again until no change came in while applying
+	while :; do
+		asked=$(getprop sys.r1.kt.apply)
+		apply
+		[ "$(getprop sys.r1.kt.apply)" = "$asked" ] && break
+	done
 	;;
 octest)
 	octest
@@ -390,7 +408,8 @@ octest)
 audio)
 	# After the HAL's UCM boot sequence
 	sleep 2
-	if enabled; then set_audio "$(prop speaker)" "$(prop mic)"; fi
+	if enabled; then mic=$(prop mic); else mic=""; fi
+	set_audio "$(prop speaker)" "$mic"
 	;;
 gpu)
 	# After the power HAL's own write

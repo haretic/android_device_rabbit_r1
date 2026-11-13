@@ -7,3 +7,6 @@ system_public_prop(r1_camera_park_prop)
 # The USB device emulator's functions lent to the gadget HAL, and their id (sys.r1.usbemu.*):
 # set by the emulator, read by the HAL, which links them after Android's
 system_restricted_prop(r1_usbemu_prop)
+# The speaker gain past the hardware's top, in dB (sys.r1.speaker_boost): set by the Kernel
+# Tweaks' script, read by the audio HAL, which adds it to the samples.
+system_public_prop(r1_speaker_boost_prop)

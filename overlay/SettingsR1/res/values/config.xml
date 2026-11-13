@@ -33,4 +33,11 @@
         <item>com.github.itskenny0.r1ha</item>
         <item>com.yet.tetris.release</item>
     </string-array>
+    <!-- Sound has the speaker's gain as a slider over the range that needs no warning; Kernel
+         tweaks has the rest of it. The tweaks' script puts it in. -->
+    <string name="config_speaker_gain_property" translatable="false">persist.sys.r1.kt.speaker</string>
+    <string name="config_speaker_gain_apply_property" translatable="false">sys.r1.kt.apply</string>
+    <integer name="config_speaker_gain_min">-6</integer>
+    <integer name="config_speaker_gain_max">10</integer>
+    <integer name="config_speaker_gain_default">8</integer>
 </resources>

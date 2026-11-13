@@ -29,6 +29,11 @@ PRODUCT_VENDOR_PROPERTIES += \
     vendor.audio.mainline.cards=rabbit-r1 \
     vendor.audio.mainline.wait_for_cards_ms=10000
 
+# The Kernel Tweaks' speaker gain past the hardware's +14 dB, added to the speaker's samples
+PRODUCT_VENDOR_PROPERTIES += \
+    vendor.audio.mainline.speaker_boost.property=sys.r1.speaker_boost \
+    vendor.audio.mainline.speaker_boost.max_db=11
+
 # 30 media volume steps rather than 15: the wheel moves one step per detent, and half-size
 # steps let the small speaker settle between loud and quiet. Saved volumes are rescaled.
 PRODUCT_SYSTEM_PROPERTIES += ro.config.media_vol_steps=30

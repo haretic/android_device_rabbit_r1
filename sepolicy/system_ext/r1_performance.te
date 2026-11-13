@@ -44,3 +44,5 @@ set_prop(system_app, r1_camera_park_prop)
 allow r1_ktweaks system_file:file execute_no_trans;
 allow r1_ktweaks audio_device:dir r_dir_perms;
 allow r1_ktweaks audio_device:chr_file rw_file_perms;
+# and what is past the hardware's top, which the audio HAL adds to the samples
+set_prop(r1_ktweaks, r1_speaker_boost_prop)
