@@ -4,4 +4,7 @@
     <bool name="config_r1ListHome">true</bool>
     <!-- A double tap on the home screen sleeps the r1 -->
     <bool name="config_sleepGestureDefault">true</bool>
+    <!-- The home screen turns with the r1, following the auto-rotate switch: in landscape the
+         list home shows its rows in two columns -->
+    <bool name="config_allowRotation">true</bool>
 </resources>
