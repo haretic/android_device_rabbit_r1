@@ -83,7 +83,7 @@
     <string name="kt_cat_hardware">Speaker, mic and camera</string>
     <string name="kt_speaker">Speaker gain</string>
     <string name="kt_db_value"><xliff:g id="db">%+d</xliff:g> dB</string>
-    <string name="kt_speaker_what">How loud the speaker gets at full volume.\n\nMore is louder but distorts sooner on loud music; less keeps it clean and saves a little battery.</string>
+    <string name="kt_speaker_what">How loud the speaker gets at full volume.\n\nMore is louder but distorts sooner on loud music; less keeps it clean and saves a little battery. Above +4 dB loud music clips, and the small speaker can rattle.</string>
     <string name="kt_mic">Mic gain</string>
     <string name="kt_mic_value"><xliff:g id="db">%d</xliff:g> dB</string>
     <string name="kt_mic_what">How much the mic amplifies, 24 dB being its most.\n\nLess keeps loud voices and music from clipping in recordings and calls.</string>

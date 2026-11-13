@@ -218,10 +218,11 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         bind(mReadAhead, startValue(KernelTweaks.READ_AHEAD, "128"));
 
         mSpeaker = findPreference(KernelTweaks.SPEAKER);
-        final CharSequence[] speaker = new CharSequence[11];
-        final CharSequence[] speakerValues = new CharSequence[11];
-        for (int i = 0; i < 11; i++) {
-            final int db = 4 - i;
+        // -6 to +8 dB, the top of the codec's line out gain
+        final CharSequence[] speaker = new CharSequence[15];
+        final CharSequence[] speakerValues = new CharSequence[15];
+        for (int i = 0; i < 15; i++) {
+            final int db = 8 - i;
             speaker[i] = getString(R.string.kt_db_value, db);
             speakerValues[i] = Integer.toString(db);
         }

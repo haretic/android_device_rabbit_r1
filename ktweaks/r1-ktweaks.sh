@@ -19,7 +19,8 @@
 #   persist.sys.r1.kt.swappiness 0..200, how readily memory goes to the compressed swap
 #   persist.sys.r1.kt.io_sched  the eMMC's I/O scheduler, one of sys.r1.kt.io_schedulers
 #   persist.sys.r1.kt.read_ahead 128 | 256 | 512 | 1024, the eMMC's read-ahead in KiB
-#   persist.sys.r1.kt.speaker   -6..4, the speaker line out's gain in dB (0 by default)
+#   persist.sys.r1.kt.speaker   -6..8, the speaker line out's gain in dB (0 by default; 8 is
+#                               the top of the codec's range)
 #   persist.sys.r1.kt.mic       0..24 in steps of 6, the mic's gain in dB (24 by default)
 #   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
 #   persist.sys.r1.kt.wheel_poll_fast 10 | 16 | 33, ms between the wheel's readings as it turns
@@ -239,7 +240,7 @@ apply() {
 		gpu="" governor="" swappiness="" io_sched="" read_ahead=""
 		speaker="" mic="" motor_step="" wheel_fast="" wheel_idle="" wheel_step=""
 	fi
-	case "$speaker" in -[1-6]|[0-4]) ;; *) speaker=0 ;; esac
+	case "$speaker" in -[1-6]|[0-8]) ;; *) speaker=0 ;; esac
 	case "$mic" in 0|6|12|18|24) ;; *) mic=24 ;; esac
 	case "$motor_step" in 250|360|600) ;; *) motor_step=360 ;; esac
 	case "$wheel_fast" in 10|16|33) ;; *) wheel_fast=10 ;; esac
