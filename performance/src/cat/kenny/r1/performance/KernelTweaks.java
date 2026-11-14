@@ -18,6 +18,10 @@ final class KernelTweaks {
 
     private static final String PREFIX = "persist.sys.r1.kt.";
 
+    // A separate boot preference, like the Wi-Fi overlay, independent of the master switch.
+    static final String LANDSCAPE = "landscape";
+    static final String DISPLAY_ORIENTATION = "ro.vendor.display.primary_orientation";
+
     static final String ENABLED = "enabled";
     /** Set by the script after two starts in a row failed. */
     static final String PAUSED = "paused";
@@ -90,6 +94,7 @@ final class KernelTweaks {
     }
 
     static void reset() {
+        set(LANDSCAPE, "");
         for (String key : TWEAKS) {
             set(key, "");
         }

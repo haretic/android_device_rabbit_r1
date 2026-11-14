@@ -182,4 +182,7 @@ Many routers and phone hotspots offer WPA2 and WPA3 together, and the r1 then pi
     <string name="oc_on_stock">On, but at stock speeds</string>
     <string name="oc_list_summary">Big <xliff:g id="big" example="2.4 GHz">%1$s</xliff:g>, little <xliff:g id="little" example="1.8 GHz">%2$s</xliff:g></string>
     <string name="kt_legend">Dots: green is safe to try, yellow is a last resort, red can stop things from working. Changes kick in right away and stay after a restart; two restarts in a row soon after they went in switch the tweaks off.</string>
+    <string name="kt_landscape">Landscape by default</string>
+    <string name="kt_landscape_summary">The screen starts out in landscape, and touch, auto-rotate, the camera and the wheel follow. Takes a restart. Works with tweaks off too.</string>
+    <string name="kt_landscape_pending">Restart the r1 to change over.</string>
 </resources>

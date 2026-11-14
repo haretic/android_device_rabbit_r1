@@ -226,6 +226,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/och1970-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/och1970-wheel.kl \
     $(LOCAL_PATH)/keylayout/r1-wheel.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/r1-wheel.kl \
     $(LOCAL_PATH)/keylayout/r1-wheel.kcm:$(TARGET_COPY_OUT_VENDOR)/usr/keychars/r1-wheel.kcm \
+    $(LOCAL_PATH)/idc/Hynitron_cst3xx_Touchscreen.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Hynitron_cst3xx_Touchscreen.idc \
     $(LOCAL_PATH)/idc/och1970-wheel.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/och1970-wheel.idc \
     $(LOCAL_PATH)/idc/r1-wheel.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/r1-wheel.idc \
     $(LOCAL_PATH)/idc/r1-wheel-touch.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/r1-wheel-touch.idc

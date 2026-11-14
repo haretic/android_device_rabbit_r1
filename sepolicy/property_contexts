@@ -1,3 +1,4 @@
+ro.vendor.display.primary_orientation u:object_r:vendor_primary_orientation_prop:s0 exact enum 0 90 180 270
 ro.vendor.r1.expdb.enabled u:object_r:vendor_r1_expdb_prop:s0 exact bool
 ro.vendor.drmfb.backlight_min u:object_r:vendor_drmfb_prop:s0 exact uint
 vendor.r1.usbemu.state u:object_r:vendor_r1_usbemu_state_prop:s0 exact string

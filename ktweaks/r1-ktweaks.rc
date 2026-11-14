@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Kernel Tweaks (the Performance app's page): counts starts, applies the choices once Android
 # is up and after every change (sys.r1.kt.apply), see r1-ktweaks.sh.
+# The system post-fs-data action loads persistent properties before this action.
+# Finish the selection before apexd's queued HAL starts and the boot service classes.
+# A read-only snapshot keeps every consumer on the same basis until the next reboot.
 on post-fs-data
+    wait_for_prop ro.persistent_properties.ready true
+    setprop ro.vendor.display.primary_orientation ${persist.sys.r1.kt.landscape:-0}
     exec_background - root root -- /system_ext/bin/r1-ktweaks.sh start
 
 on property:sys.boot_completed=1

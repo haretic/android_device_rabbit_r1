@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Init selects the display basis once after loading persistent properties.
+vendor_restricted_prop(vendor_primary_orientation_prop)
+get_prop(hal_graphics_composer_default, vendor_primary_orientation_prop)
+get_prop(hal_sensors_default, vendor_primary_orientation_prop)
+get_prop(hal_camera_default, vendor_primary_orientation_prop)
+get_prop(system_server, vendor_primary_orientation_prop)
+get_prop(platform_app, vendor_primary_orientation_prop)
+get_prop(system_app, vendor_primary_orientation_prop)
+get_prop(bootanim, vendor_primary_orientation_prop)
+get_prop(shell, vendor_primary_orientation_prop)

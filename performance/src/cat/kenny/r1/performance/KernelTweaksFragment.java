@@ -66,6 +66,7 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private boolean mOffPromptDeclined;
     private AlertDialog mOffPrompt;
 
+    private SwitchPreferenceCompat mLandscape;
     private MainSwitchPreference mEnabled;
     private ListPreference mMemSleep;
     private SwitchPreferenceCompat mPark;
@@ -111,6 +112,13 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         mEnabled.setOnPreferenceChangeListener((p, value) -> {
             KernelTweaks.setEnabled((Boolean) value);
             applied();
+            return true;
+        });
+
+        mLandscape = findPreference(KernelTweaks.LANDSCAPE);
+        mLandscape.setOnPreferenceChangeListener((p, value) -> {
+            KernelTweaks.set(KernelTweaks.LANDSCAPE, (Boolean) value ? "90" : "");
+            mHandler.post(mUpdate);
             return true;
         });
 
@@ -433,6 +441,12 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     }
 
     private void update() {
+        final boolean landscape = "90".equals(KernelTweaks.get(KernelTweaks.LANDSCAPE));
+        final boolean landscapeAtBoot = SystemProperties.getInt(
+                KernelTweaks.DISPLAY_ORIENTATION, 0) == 90;
+        mLandscape.setChecked(landscape);
+        mLandscape.setSummary(landscape != landscapeAtBoot
+                ? R.string.kt_landscape_pending : R.string.kt_landscape_summary);
         final boolean enabled = KernelTweaks.isEnabled();
         mEnabled.setChecked(enabled);
         final int changed = KernelTweaks.changedCount();
