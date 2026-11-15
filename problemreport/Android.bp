@@ -17,8 +17,9 @@ android_app {
         "r1-wheelselect",
     ],
     required: ["r1-problem-report.sh"],
+    // Shrunk: SettingsLib brings 18 MB of code along and the page uses a corner of it.
     optimize: {
-        enabled: false,
+        shrink: true,
     },
 }
 

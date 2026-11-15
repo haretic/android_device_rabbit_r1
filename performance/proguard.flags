@@ -1,0 +1,3 @@
+# The page a preference opens by name (android:fragment in res/xml/performance.xml), which
+# nothing in the code constructs
+-keep class cat.kenny.r1.performance.*Fragment { <init>(); }

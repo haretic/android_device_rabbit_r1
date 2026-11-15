@@ -1,0 +1,3 @@
+# The pages a preference opens by name (android:fragment in app/res/xml), which nothing in the
+# code constructs
+-keep class cat.kenny.r1.wheel.settings.*Fragment { <init>(); }

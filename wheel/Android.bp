@@ -28,7 +28,9 @@ android_app {
         "org.lineageos.platform.internal",
         "r1-wheelselect",
     ],
+    // Shrunk: SettingsLib brings 18 MB of code along and the page uses a corner of it.
     optimize: {
-        enabled: false,
+        shrink: true,
+        proguard_flags_files: ["proguard.flags"],
     },
 }
