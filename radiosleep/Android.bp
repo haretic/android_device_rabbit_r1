@@ -19,5 +19,6 @@ android_app {
     // Shrunk: SettingsLib brings 18 MB of code along and the page uses a corner of it.
     optimize: {
         shrink: true,
+        shrink_resources: true,
     },
 }
