@@ -50,6 +50,12 @@
                 android:value="primary_profile_only" />
         </activity>
 
+        <!-- Where the charge went; also the page of one of its three states -->
+        <activity
+            android:name=".DrainActivity"
+            android:exported="false"
+            android:label="@string/drain_title" />
+
         <!-- Notes the level about every 15 minutes while the r1 is awake, for the graph -->
         <service
             android:name=".SampleJob"

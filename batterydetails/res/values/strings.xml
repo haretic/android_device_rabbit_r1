@@ -79,4 +79,102 @@
     <string name="limit_stops_at">Stops at <xliff:g id="percent">%1$d</xliff:g> %%</string>
     <string name="limit_off" formatted="false">Off, charges to 100 %</string>
     <string name="limit_scheduled">On, finishes charging on a schedule</string>
+
+    <!-- What drained me: where the charge went, by screen on, awake with the screen off, asleep -->
+    <string name="drain_title">What drained me</string>
+    <string name="drain_summary">Where the charge went: the screen, awake and asleep</string>
+    <string name="drain_loading">Reading the battery history…</string>
+    <string name="drain_unavailable">The battery history can\'t be read right now.</string>
+    <string name="drain_period_charge">Since charge</string>
+    <string name="drain_period_day">24 hours</string>
+    <string name="drain_period_week">7 days</string>
+    <!-- The big line, e.g. "100 % → 58 %" for a run off the charger, "37 % used" for a period -->
+    <string name="drain_levels"><xliff:g id="from">%1$d</xliff:g> %% → <xliff:g id="to">%2$d</xliff:g> %%</string>
+    <string name="drain_used"><xliff:g id="percent">%1$d</xliff:g> %% used</string>
+    <!-- Under it, e.g. "in 9 h 25 min, since the charger came off at 22:40" -->
+    <string name="drain_since">in <xliff:g id="time">%1$s</xliff:g>, since the charger came off at <xliff:g id="clock">%2$s</xliff:g></string>
+    <string name="drain_until">in <xliff:g id="time">%1$s</xliff:g>, from <xliff:g id="clock">%2$s</xliff:g> until the charger at <xliff:g id="end">%3$s</xliff:g></string>
+    <string name="drain_off_charger_day"><xliff:g id="time">%1$s</xliff:g> off the charger in the last 24 hours</string>
+    <string name="drain_off_charger_week"><xliff:g id="time">%1$s</xliff:g> off the charger in the last 7 days</string>
+    <string name="drain_bar_now">now</string>
+    <!-- No time off the charger in the period -->
+    <string name="drain_none">On the charger the whole time: nothing to tell.</string>
+    <string name="drain_none_yet">No time off the charger in the history yet.</string>
+    <!-- The sentence. One of the first four, then perhaps one of the "but" sentences -->
+    <string name="drain_story_little">Hardly anything so far.</string>
+    <string name="drain_story_screen">Mostly the screen.</string>
+    <string name="drain_story_awake">Mostly awake with the screen off, when it should have been asleep.</string>
+    <string name="drain_story_asleep">Mostly while asleep.</string>
+    <string name="drain_story_mixed">Spread over the screen, awake and asleep.</string>
+    <!-- e.g. "But Aurora Store also kept the r1 awake for 31 min while the screen was off." -->
+    <string name="drain_story_app">But <xliff:g id="app">%1$s</xliff:g> also kept the r1 awake for <xliff:g id="time">%2$s</xliff:g> while the screen was off.</string>
+    <string name="drain_story_wakeups">But it also woke up <xliff:g id="count">%1$d</xliff:g> times with the screen off, <xliff:g id="time">%2$s</xliff:g> in all.</string>
+    <string name="drain_story_sleep_fast">Asleep it lost more than this r1 usually does.</string>
+    <!-- The three rows -->
+    <string name="drain_screen">Screen on</string>
+    <string name="drain_awake">Awake, screen off</string>
+    <string name="drain_asleep">Asleep</string>
+    <string name="drain_row_percent"><xliff:g id="percent">%1$d</xliff:g> %%</string>
+    <!-- e.g. "1 h 12 min - mostly Cromite" -->
+    <string name="drain_row_mostly"><xliff:g id="time">%1$s</xliff:g> - mostly <xliff:g id="app">%2$s</xliff:g></string>
+    <string name="drain_row_awake_much"><xliff:g id="time">%1$s</xliff:g> - a lot for a screen that was off</string>
+    <!-- e.g. "7 h 21 min - 1.2 % an hour, normal" -->
+    <string name="drain_row_rate"><xliff:g id="time">%1$s</xliff:g> - <xliff:g id="rate">%2$s</xliff:g> %% an hour</string>
+    <string name="drain_row_rate_normal"><xliff:g id="time">%1$s</xliff:g> - <xliff:g id="rate">%2$s</xliff:g> %% an hour, normal</string>
+    <string name="drain_row_rate_high"><xliff:g id="time">%1$s</xliff:g> - <xliff:g id="rate">%2$s</xliff:g> %% an hour, more than usual</string>
+    <!-- The reading sinks for some minutes after the cable is pulled -->
+    <string name="drain_settling"><xliff:g id="percent">%1$d</xliff:g> %% more went while the reading settled after the charger came off. That is the gauge, not use.</string>
+    <string name="drain_hint">Press a row to see who was running.</string>
+    <!-- The page of one state. e.g. "9 %" and "in 52 min" -->
+    <string name="drain_state_time">in <xliff:g id="time">%1$s</xliff:g></string>
+    <string name="drain_screen_story">What was in front while the screen was on:</string>
+    <string name="drain_awake_story">With the screen off the r1 should be asleep. These kept it awake:</string>
+    <string name="drain_asleep_story">Asleep the r1 lost <xliff:g id="rate">%1$s</xliff:g> %% an hour.</string>
+    <string name="drain_asleep_story_usual">Asleep the r1 lost <xliff:g id="rate">%1$s</xliff:g> %% an hour. Its usual is <xliff:g id="usual">%2$s</xliff:g> %%.</string>
+    <string name="drain_state_none">No time in this state.</string>
+    <!-- A row there, e.g. "31 min - about 5 %" -->
+    <string name="drain_who_share"><xliff:g id="time">%1$s</xliff:g> - about <xliff:g id="percent">%2$d</xliff:g> %%</string>
+    <string name="drain_who_share_small"><xliff:g id="time">%1$s</xliff:g> - under 1 %%</string>
+    <string name="drain_who_home">Home screen</string>
+    <string name="drain_who_front">Lock screen and system</string>
+    <string name="drain_who_wakeups">Brief wake-ups</string>
+    <plurals name="drain_who_wakeups_summary">
+        <item quantity="one">Woke once and went back to sleep</item>
+        <item quantity="other">Woke <xliff:g id="count">%1$d</xliff:g> times and went back to sleep</item>
+    </plurals>
+    <string name="drain_who_system">System</string>
+    <string name="drain_who_radio">Mobile radio</string>
+    <string name="drain_who_bluetooth">Bluetooth</string>
+    <string name="drain_who_audio">Sound</string>
+    <string name="drain_who_other">Other</string>
+    <!-- What it was doing, from the name of what held the r1 awake -->
+    <string name="drain_why_job">Ran a background task</string>
+    <string name="drain_why_alarm">An alarm it had set went off</string>
+    <string name="drain_why_radio">Talked to the mobile network</string>
+    <string name="drain_why_audio">Played sound</string>
+    <string name="drain_why_vibrator">Vibrated</string>
+    <string name="drain_why_location">Looked up the location</string>
+    <string name="drain_why_sync">Synced an account</string>
+    <string name="drain_why_wifi">Used Wi-Fi</string>
+    <string name="drain_why_network">Kept a network connection going</string>
+    <string name="drain_why_download">Downloaded</string>
+    <string name="drain_why_power_key">The side button was pressed</string>
+    <!-- At the end of an app's row; a press switches -->
+    <string name="drain_restrict">Restrict</string>
+    <string name="drain_restricted">Restricted</string>
+    <string name="drain_restrict_hint">Press an app to restrict it: it then stops running while you are not using it. Press again to allow it.</string>
+    <string name="drain_about_hint">The time is measured. An app\'s share of the percent goes by its time, so it is a rough figure.</string>
+    <!-- The asleep page -->
+    <string name="drain_woke">Woke up</string>
+    <plurals name="drain_woke_count">
+        <item quantity="one">Once</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> times</item>
+    </plurals>
+    <string name="drain_woke_every">about every <xliff:g id="time">%1$s</xliff:g></string>
+    <string name="drain_longest_sleep">Longest sleep in one piece</string>
+    <!-- Lengths of time -->
+    <string name="drain_minutes"><xliff:g id="minutes">%1$d</xliff:g> min</string>
+    <string name="drain_hours_minutes"><xliff:g id="hours">%1$d</xliff:g> h <xliff:g id="minutes">%2$d</xliff:g> min</string>
+    <string name="drain_hours"><xliff:g id="hours">%1$d</xliff:g> h</string>
+    <string name="drain_seconds"><xliff:g id="seconds">%1$d</xliff:g> s</string>
 </resources>

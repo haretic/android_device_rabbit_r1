@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The period the page is about. One row for the wheel: a press moves to the next -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+    <TextView
+        android:id="@+id/period_0"
+        style="@style/DrainPeriod"
+        android:text="@string/drain_period_charge" />
+    <TextView
+        android:id="@+id/period_1"
+        style="@style/DrainPeriod"
+        android:text="@string/drain_period_day" />
+    <TextView
+        android:id="@+id/period_2"
+        style="@style/DrainPeriod"
+        android:text="@string/drain_period_week" />
+</LinearLayout>

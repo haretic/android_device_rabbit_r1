@@ -4,4 +4,10 @@
     <!-- The level graph, as in the mockup -->
     <color name="graph_line">#9BE29B</color>
     <color name="graph_fill">#2E9BE29B</color>
+    <!-- What drained me: awake with the screen off, asleep, on the charger. Screen on is the
+         theme's accent -->
+    <color name="drain_awake">#F2C230</color>
+    <color name="drain_asleep">#647A93</color>
+    <color name="drain_charging">#2EFFFFFF</color>
+    <color name="drain_on_accent">#1A0D06</color>
 </resources>

@@ -4,6 +4,11 @@
     android:title="@string/details_title">
     <com.android.settingslib.widget.UntitledPreferenceCategory android:key="top">
         <cat.kenny.r1.batterydetails.HeaderPreference android:key="header" />
+        <Preference
+            android:key="drain"
+            android:title="@string/drain_title"
+            android:summary="@string/drain_summary"
+            android:persistent="false" />
     </com.android.settingslib.widget.UntitledPreferenceCategory>
     <PreferenceCategory
         android:key="now"

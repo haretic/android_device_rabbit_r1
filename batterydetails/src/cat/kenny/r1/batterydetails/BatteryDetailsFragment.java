@@ -74,6 +74,7 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         mVoltageCurrent = findPreference("voltage_current");
         mPowerTemperature = findPreference("power_temperature");
         mCharger = findPreference("charger");
+        findPreference("drain").setIntent(new Intent(requireContext(), DrainActivity.class));
         setUpChargeCurrent();
         setUpChargeLimit();
         if (mChargeCurrent == null && mChargeLimit == null) {
