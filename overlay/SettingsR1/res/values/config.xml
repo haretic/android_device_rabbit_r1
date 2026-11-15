@@ -22,6 +22,9 @@
     <string-array name="low_light_display_behavior_supported_values" translatable="false" />
     <!-- VR helper services serve VR mode, which the R1 can't run -->
     <bool name="config_show_enabled_vr_listeners">false</bool>
+    <!-- haret1c, the boot animation, has a sound for its closing part: Sound offers the
+         switch for it, off until turned on (persist.sys.bootanim.play_sound in device.mk) -->
+    <bool name="has_boot_sounds">true</bool>
     <!-- The wheel emits single volume events, not held keys or chords. -->
     <bool name="config_hasPhysicalVolumeKeys">false</bool>
     <!-- The apps haretic bundles that the R1 doesn't need: App info uninstalls them -->

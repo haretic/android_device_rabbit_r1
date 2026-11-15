@@ -151,4 +151,6 @@
          a muting test pattern, so with access off the camera service doesn't open it at all and
          the turning camera stays parked, facing away: it can be seen not to film -->
     <bool name="config_supportsCamToggle">true</bool>
+    <!-- The screenshot's sound: haretic's, where AOSP plays the camera's shutter -->
+    <string translatable="false" name="config_cameraShutterSound">/product/media/audio/ui/Screenshot.ogg</string>
 </resources>

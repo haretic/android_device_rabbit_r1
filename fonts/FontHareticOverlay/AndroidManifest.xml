@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The haretic Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.haretic.overlay.font"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <overlay
+        android:isStatic="true"
+        android:targetPackage="android"
+        android:priority="1" />
+</manifest>

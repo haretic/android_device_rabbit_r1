@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The haretic Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- Name of a font family to use for body text. -->
+    <string name="config_bodyFontFamily" translatable="false">haretic-text</string>
+    <!-- Name of a font family to use for medium body text. -->
+    <string name="config_bodyFontFamilyMedium" translatable="false">haretic-text-medium</string>
+    <!-- Name of the font family to use in the default lockscreen clock -->
+    <string name="config_clockFontFamily" translatable="false">haretic-display</string>
+    <!-- Name of a font family to use for headlines. If empty, falls back to platform default -->
+    <string name="config_headlineFontFamily" translatable="false">haretic-text</string>
+    <!-- Name of the font family used for system surfaces where the font should use medium weight -->
+    <string name="config_headlineFontFamilyMedium" translatable="false">haretic-text-medium</string>
+</resources>

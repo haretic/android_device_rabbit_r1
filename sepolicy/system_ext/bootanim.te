@@ -1,0 +1,7 @@
+# The boot sound, a clip in the animation's closing part. Whether it plays is Sound settings'
+# power on sounds switch, persist.sys.bootanim.play_sound, a plain system property the
+# animation may not read as AOSP has it, so that it takes the sound as always wanted.
+get_prop(bootanim, system_prop)
+# It plays once the audio service is up, as until then the streams have no volume set: the
+# animation asks the service manager for it.
+allow bootanim audio_service:service_manager find;

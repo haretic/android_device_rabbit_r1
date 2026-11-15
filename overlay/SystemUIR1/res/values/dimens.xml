@@ -12,4 +12,8 @@
     <dimen name="global_actions_button_size">82dp</dimen>
     <dimen name="global_actions_button_padding">32dp</dimen>
     <dimen name="global_actions_lite_padding">16dp</dimen>
+
+    <!-- The lock screen clock in haretic's display face, which runs wide: 74 px, where the
+         86dp of the face it replaces came to 100 px -->
+    <dimen name="small_clock_text_size">64dp</dimen>
 </resources>

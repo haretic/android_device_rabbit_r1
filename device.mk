@@ -54,6 +54,10 @@ TARGET_MINIGBM_PLATFORM := all_arm
 TARGET_SUPPORTS_SUSPEND := true
 # libperfmgr: touch/launch boosts from power/powerhint.json.
 TARGET_POWER_HAL := perfmgr-lineage
+# Bundled apps come compiled. Without a profile the build's default is "verify", which leaves
+# an app to the interpreter until its JIT has warmed up, on every cold start: on these cores
+# that is a second of launch and stuttering lists in Settings.
+PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER := speed
 TARGET_BOOT_HAL := r1
 # AOSP's USB HAL, which reads the USB-C port's roles from the Type-C class (Lineage's basic
 # one reports a device-only port) and switches them for Settings' "USB controlled by"
@@ -189,6 +193,24 @@ PRODUCT_VENDOR_PROPERTIES += ro.hw_timeout_multiplier=5
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/wallpaper/haretic.png:$(TARGET_COPY_OUT_PRODUCT)/media/wallpaper/haretic.png
 PRODUCT_PRODUCT_PROPERTIES += ro.config.wallpaper=/product/media/wallpaper/haretic.png
+# The boot animation's sound stays off until Sound settings turn it on
+PRODUCT_PRODUCT_PROPERTIES += persist.sys.bootanim.play_sound=0
+
+# That image alive is the wallpaper a new install starts with; the still image is its fallback
+# and stays in the picker
+PRODUCT_PACKAGES += HareticWallpaper
+PRODUCT_PRODUCT_PROPERTIES += ro.config.wallpaper_component=org.haretic.wallpaper/.HareWallpaper
+
+# haretic's type in place of Google Sans Flex: Atkinson Hyperlegible Next for all that is read,
+# Michroma for the clock, page titles and tabs. LineageOS's config, inherited after this, leaves
+# its own font and overlay out for it; the family names are BoardConfig.mk's
+# TARGET_FONTS_CUSTOMIZATION_MODULE
+TARGET_EXCLUDES_GOOGLE_SANS_FLEX := true
+PRODUCT_PACKAGES += \
+    AtkinsonHyperlegibleNext-VF.ttf \
+    AtkinsonHyperlegibleNext-Italic-VF.ttf \
+    Michroma-Regular.ttf \
+    FontHareticOverlay
 
 # Handheld features; without them system_server skips the appwidget service and Launcher3 crash-loops.
 PRODUCT_COPY_FILES += \

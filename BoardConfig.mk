@@ -132,3 +132,5 @@ TARGET_VENDOR_PROP += $(DEVICE_PATH)/vendor.prop
 
 # haret1c's boot animation (bootanimation/Android.bp).
 TARGET_BOOTANIMATION_MODULE := :bootanimation-r1
+# haretic's font family names (fonts/Android.bp), the source of fonts_customization.xml.
+TARGET_FONTS_CUSTOMIZATION_MODULE := :fonts-customization-r1

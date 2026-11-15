@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-FileCopyrightText: The haretic Project
+     SPDX-License-Identifier: Apache-2.0
+
+     Made by r1-tools scripts/make-fonts-customization.py from LineageOS's file.
+-->
+<fonts-modification version="1">
+    <family customizationType="new-named-family" name="haretic-text">
+        <font weight="100" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="200" />
+        </font>
+        <font weight="200" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="220" />
+        </font>
+        <font weight="300" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="320" />
+        </font>
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+        <font weight="800" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+        <font weight="900" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+        <font weight="100" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="200" />
+        </font>
+        <font weight="200" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="220" />
+        </font>
+        <font weight="300" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="320" />
+        </font>
+        <font weight="400" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+        <font weight="800" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+        <font weight="900" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+    </family>
+    <alias name="haretic-text-medium" to="haretic-text" weight="500" />
+    <alias name="haretic-text-bold" to="haretic-text" weight="700" />
+    <family customizationType="new-named-family" name="haretic-display">
+        <font weight="400" style="normal">Michroma-Regular.ttf</font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+        <font weight="400" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-flex">
+        <font weight="100" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="200" />
+        </font>
+        <font weight="200" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="220" />
+        </font>
+        <font weight="300" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="320" />
+        </font>
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+        <font weight="800" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+        <font weight="900" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+        <font weight="100" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="200" />
+        </font>
+        <font weight="200" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="220" />
+        </font>
+        <font weight="300" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="320" />
+        </font>
+        <font weight="400" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+        <font weight="800" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+        <font weight="900" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="800" />
+        </font>
+    </family>
+    <alias name="google-sans-flex-medium" to="google-sans-flex" weight="500" />
+    <alias name="google-sans-flex-bold" to="google-sans-flex" weight="700" />
+    <family customizationType="new-named-family" name="variable-display-large" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-display-medium" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-display-small" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-headline-large" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-headline-medium" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-headline-small" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-title-large" fallback="google-sans">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-title-medium" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-title-small" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-label-large" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-label-medium" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-label-small" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-body-large" fallback="google-sans-text">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-body-medium" fallback="google-sans-text">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-body-small" fallback="google-sans-text">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-display-large-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-display-medium-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-display-small-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-headline-large-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-headline-medium-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-headline-small-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-title-large-emphasized" fallback="google-sans">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-title-medium-emphasized" fallback="google-sans-text">
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-title-small-emphasized" fallback="google-sans-text">
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-label-large-emphasized" fallback="google-sans-text">
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-label-medium-emphasized" fallback="google-sans-text">
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-label-small-emphasized" fallback="google-sans-text">
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-body-large-emphasized" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-body-medium-emphasized" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="variable-body-small-emphasized" fallback="google-sans-text">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-medium">
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="700" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-clock">
+        <font weight="400" style="normal">Michroma-Regular.ttf</font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-flex-clock">
+        <font weight="400" style="normal">Michroma-Regular.ttf</font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-bold">
+        <font weight="700" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-text">
+        <font weight="400" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="normal">AtkinsonHyperlegibleNext-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+        <font weight="400" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+        <font weight="500" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+        <font weight="600" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="620" />
+        </font>
+        <font weight="700" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+    </family>
+    <alias name="google-sans-text-medium" to="google-sans-text" weight="500" />
+    <alias name="google-sans-text-bold" to="google-sans-text" weight="700" />
+    <family customizationType="new-named-family" name="google-sans-text-italic">
+        <font weight="400" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="420" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-text-medium-italic">
+        <font weight="500" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="550" />
+        </font>
+    </family>
+    <family customizationType="new-named-family" name="google-sans-text-bold-italic">
+        <font weight="700" style="italic">AtkinsonHyperlegibleNext-Italic-VF.ttf<axis tag="wght" stylevalue="700" />
+        </font>
+    </family>
+</fonts-modification>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The haretic Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
+    android:thumbnail="@drawable/thumbnail"
+    android:description="@string/wallpaper_description"
+    android:author="@string/wallpaper_author"
+    android:showMetadataInPreview="true" />

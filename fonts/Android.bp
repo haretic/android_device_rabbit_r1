@@ -1,0 +1,53 @@
+// haretic's type: Atkinson Hyperlegible Next for all that is read, Michroma for the clock,
+// page titles and tabs. The family names the system asks for are given to them in
+// etc/fonts_customization.xml, made by r1-tools scripts/make-fonts-customization.py.
+
+package {
+    default_applicable_licenses: ["device_rabbit_r1_fonts_license"],
+}
+
+license {
+    name: "device_rabbit_r1_fonts_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-OFL", // by exception only
+        "SPDX-license-identifier-Apache-2.0",
+    ],
+    license_text: [
+        "atkinson-hyperlegible-next/OFL.txt",
+        "michroma/OFL.txt",
+    ],
+}
+
+prebuilt_font {
+    name: "AtkinsonHyperlegibleNext-VF.ttf",
+    src: "atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-VF.ttf",
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "AtkinsonHyperlegibleNext-Italic-VF.ttf",
+    src: "atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-Italic-VF.ttf",
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Michroma-Regular.ttf",
+    src: "michroma/Michroma-Regular.ttf",
+    product_specific: true,
+}
+
+// The family names, in place of LineageOS's, which give every one to Google Sans Flex: its
+// fonts_customization.xml module installs this file (TARGET_FONTS_CUSTOMIZATION_MODULE)
+filegroup {
+    name: "fonts-customization-r1",
+    srcs: ["etc/fonts_customization.xml"],
+}
+
+runtime_resource_overlay {
+    name: "FontHareticOverlay",
+    resource_dirs: ["FontHareticOverlay/res"],
+    manifest: "FontHareticOverlay/AndroidManifest.xml",
+    theme: "FontHaretic",
+    product_specific: true,
+}

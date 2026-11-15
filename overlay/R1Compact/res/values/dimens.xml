@@ -10,4 +10,6 @@
     <dimen name="m3_bottom_nav_item_padding_top">6dp</dimen>
     <dimen name="m3_bottom_nav_item_padding_bottom">6dp</dimen>
     <dimen name="design_bottom_navigation_height">48dp</dimen>
+    <!-- Clock: the home clock widget in haretic's display face, which runs wide, at most 66 px -->
+    <dimen name="widget_max_clock_font_size">57dp</dimen>
 </resources>

@@ -104,8 +104,8 @@
     <string name="power_linger_summary">Ten seconds on Power shows its options in the bar too. A hold always does; a press opens the power menu</string>
     <string name="haptics_title">Ticks</string>
     <string name="haptics_summary">A tick for every step of the wheel, in apps too</string>
-    <string name="sounds_title">Clicks</string>
-    <string name="sounds_summary">A quiet click for every step and press in the taskbar and the power menu, while touch sounds are on</string>
+    <string name="sounds_title">Sounds</string>
+    <string name="sounds_summary">The wheel\'s sounds for steps, presses, list ends and switches, while touch sounds are on</string>
 
     <string name="animations_title">Animations</string>
     <string-array name="animations_entries" translatable="false">

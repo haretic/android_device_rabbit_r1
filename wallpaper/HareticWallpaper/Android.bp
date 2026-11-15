@@ -1,0 +1,13 @@
+// haretic's wallpaper, alive: the still image's hares, drawn while something moves them.
+// Platform signed for the one setting it reads, which Wallpaper & style writes.
+android_app {
+    name: "HareticWallpaper",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    sdk_version: "current",
+    certificate: "platform",
+    product_specific: true,
+    optimize: {
+        enabled: false,
+    },
+}

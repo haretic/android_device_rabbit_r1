@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The haretic Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.haretic.wallpaper">
+
+    <uses-feature android:name="android.software.live_wallpaper" />
+
+    <application
+        android:label="@string/wallpaper_name"
+        android:icon="@drawable/thumbnail">
+        <service
+            android:name=".HareWallpaper"
+            android:label="@string/wallpaper_name"
+            android:permission="android.permission.BIND_WALLPAPER"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/wallpaper" />
+        </service>
+    </application>
+</manifest>

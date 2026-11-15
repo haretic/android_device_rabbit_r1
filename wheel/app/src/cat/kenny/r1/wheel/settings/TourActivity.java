@@ -483,7 +483,7 @@ public class TourActivity extends Activity {
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         view.setTextColor(color);
         if (bold) {
-            view.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            view.setTypeface(Typeface.create("haretic-text-medium", Typeface.NORMAL));
         }
         return view;
     }
