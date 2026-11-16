@@ -84,7 +84,10 @@ public final class PhoneService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && ACTION_NO.equals(intent.getAction())) {
-            link.act(intent.getLongExtra(EXTRA_UID, -1), false);
+            final long uid = intent.getLongExtra(EXTRA_UID, -1);
+            if (uid >= 0 && uid <= 0xffffffffL) {
+                link.act(uid, false);
+            }
         }
         return START_STICKY;
     }

@@ -147,6 +147,9 @@ public final class PhoneActivity extends Activity {
         return name == null ? "r1" : name;
     }
 
+    /** Whether the highlight was moved to the music keys since the phone came. */
+    private boolean mShown;
+
     private void render() {
         final Link link = link();
         final int state = link == null ? -1 : link.state();
@@ -176,6 +179,7 @@ public final class PhoneActivity extends Activity {
             mListed = "";
             mNotices.removeAllViews();
             hold(false);
+            mShown = false;
             if (getCurrentFocus() == null) {
                 findViewById(R.id.link).requestFocus();
             }
@@ -194,6 +198,10 @@ public final class PhoneActivity extends Activity {
         key(R.id.prev, music.commands.contains(Ams.PREVIOUS));
         key(R.id.next, music.commands.contains(Ams.NEXT));
         key(R.id.toggle, music.commands.contains(Ams.TOGGLE));
+        if (!mShown && findViewById(R.id.toggle).isFocusable()) {
+            // The phone is here: the press belongs to its music, not to Turn off, where it was
+            mShown = findViewById(R.id.toggle).requestFocus();
+        }
         ((ProgressBar) findViewById(R.id.volume)).setProgress(music.volume == null ? 0
                 : Math.round(music.volume * 100));
         progress();
