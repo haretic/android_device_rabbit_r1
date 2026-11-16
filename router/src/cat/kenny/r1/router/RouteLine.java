@@ -5,13 +5,13 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.view.View;
+import android.widget.LinearLayout;
 
 /**
- * The line through the stops of the route, behind their icons: each stretch in the colour of
- * how things are between the two stops it joins.
+ * The stops of the route, top to bottom, with the line through them drawn behind their icons:
+ * each stretch in the colour of how things are between the two stops it joins.
  */
-public final class RouteLine extends View {
+public final class RouteLine extends LinearLayout {
 
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float mDensity;
@@ -23,6 +23,9 @@ public final class RouteLine extends View {
         super(context, attrs);
         mDensity = getResources().getDisplayMetrics().density;
         mPaint.setStrokeWidth(2 * mDensity);
+        setOrientation(VERTICAL);
+        // A layout draws nothing of its own unless asked to
+        setWillNotDraw(false);
     }
 
     void set(float[] stops, int[] colors) {

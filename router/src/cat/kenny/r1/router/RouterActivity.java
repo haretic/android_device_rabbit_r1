@@ -114,6 +114,7 @@ public final class RouterActivity extends Activity {
         mConnectivity = getSystemService(ConnectivityManager.class);
         mTethering = getSystemService(TetheringManager.class);
         mWifi = getSystemService(WifiManager.class);
+        name();
         findViewById(R.id.sign_in).setOnClickListener(v -> {
             if (mUp != null) {
                 mConnectivity.startCaptivePortalApp(mUp);
@@ -129,6 +130,20 @@ public final class RouterActivity extends Activity {
             Settings.Secure.putInt(getContentResolver(), VPN_UPSTREAMS, throughVpn() ? 0 : 1);
             show();
         });
+    }
+
+    /**
+     * An r1 that still has the stock name for its own network gets the r1's: "burrow" and the
+     * four digits it had. A name the user chose is left alone.
+     */
+    private void name() {
+        final SoftApConfiguration config = mWifi.getSoftApConfiguration();
+        final String ssid = config.getWifiSsid() == null ? ""
+                : config.getWifiSsid().toString().replaceAll("^\"|\"$", "");
+        if (ssid.startsWith("AndroidAP_")) {
+            mWifi.setSoftApConfiguration(new SoftApConfiguration.Builder(config)
+                    .setSsid("burrow_" + ssid.substring("AndroidAP_".length())).build());
+        }
     }
 
     private void start() {
