@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">Synth</string>
+    <!-- The six pads, in the order of SynthEngine's -->
+    <string-array name="pads">
+        <item>Grain</item>
+        <item>Chirp</item>
+        <item>Crush</item>
+        <item>Bell</item>
+        <item>Sub</item>
+        <item>Hat</item>
+    </string-array>
+    <!-- What the wheel's knob works on, in the order of SynthEngine's -->
+    <string-array name="knobs">
+        <item>Filter</item>
+        <item>Pitch</item>
+        <item>Stutter</item>
+    </string-array>
+    <string name="hint_filter">The wheel is the knob. Press for pitch, then stutter.</string>
+    <string name="hint_pitch">The wheel is the pitch. Press for stutter, then filter.</string>
+    <string name="hint_stutter">Hold a pad and turn: the wheel is the stutter. Press for filter.</string>
+</resources>

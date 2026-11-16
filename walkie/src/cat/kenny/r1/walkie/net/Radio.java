@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.InterfaceAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketTimeoutException;
@@ -31,6 +32,8 @@ public final class Radio {
     private final byte[] sendBytes = new byte[Packet.MAX];
     private final byte[] encoded = new byte[Packet.FRAME];
     private final DatagramPacket sendPacket;
+    /** The same bytes again to the subnet's broadcast address, null where there is none. */
+    private DatagramPacket broadcastPacket;
     private String name;
     private int channel = 1;
     private MulticastSocket socket;
@@ -83,6 +86,18 @@ public final class Radio {
             opened.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, loopback);
             opened.setSoTimeout(20);
             opened.joinGroup(new InetSocketAddress(group, port), nif);
+            // A switch that tracks group members without anyone asking for them stops passing
+            // the group on once one device has joined, common at home. Broadcast always passes,
+            // so every packet goes out both ways and the receiver drops the second copy.
+            opened.setBroadcast(true);
+            broadcastPacket = null;
+            for (InterfaceAddress address : nif.getInterfaceAddresses()) {
+                if (address.getBroadcast() != null) {
+                    broadcastPacket = new DatagramPacket(sendBytes, 0, address.getBroadcast(),
+                            port);
+                    break;
+                }
+            }
         } catch (IOException | RuntimeException e) {
             opened.close();
             throw e;
@@ -292,6 +307,10 @@ public final class Radio {
         sendPacket.setLength(length);
         try {
             socket.send(sendPacket);
+            if (broadcastPacket != null) {
+                broadcastPacket.setLength(length);
+                socket.send(broadcastPacket);
+            }
         } catch (IOException ignored) {
             // Wi-Fi can disappear between frames; the peer's silence timer ends the talk.
         }

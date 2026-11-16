@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: Apache-2.0
+// Synth: six pads in the system sounds' own vein and the wheel as one knob, a toy. The side
+// button needs the system-only INPUT_FEATURE_POWER_KEY_SELECTS, hence the platform certificate.
+android_app {
+    name: "R1Synth",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+// Walkie-talkie: r1s on the same Wi-Fi find each other; hold the side button and talk, and it
+// plays out of the others on the channel. No server, no accounts. The side button needs the
+// system-only INPUT_FEATURE_POWER_KEY_SELECTS, hence the platform certificate.
+android_app {
+    name: "R1Walkie",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

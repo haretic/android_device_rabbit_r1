@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:id="@+id/listening" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical"
+        android:fitsSystemWindows="true">
+        <TextView style="@style/Title" android:text="@string/app_name" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="1">
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
+                android:layout_weight="1" android:orientation="vertical"
+                android:layout_marginStart="24dp">
+                <TextView android:id="@+id/channel" style="@style/Number"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp" android:textSize="25sp" />
+                <LinearLayout android:id="@+id/people" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"
+                    android:layout_marginTop="12dp" />
+                <TextView android:id="@+id/nobody" style="@style/Body"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:textColor="@color/text_dim" />
+                <cat.kenny.r1.walkie.WaveView android:id="@+id/wave"
+                    android:layout_width="match_parent" android:layout_height="76dp"
+                    android:layout_marginTop="18dp" android:visibility="gone" />
+                <LinearLayout android:id="@+id/again" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                    android:gravity="center_vertical" android:visibility="gone">
+                    <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                        android:padding="9dp" android:background="@drawable/icon_bg"
+                        android:src="@drawable/ic_replay"
+                        android:tint="?android:attr/colorAccent"
+                        android:importantForAccessibility="no" />
+                    <TextView android:id="@+id/again_text" style="@style/Body"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="haretic-text-medium" />
+                </LinearLayout>
+            </LinearLayout>
+            <cat.kenny.r1.walkie.DrumView android:id="@+id/drum"
+                android:layout_width="150dp" android:layout_height="match_parent" />
+        </LinearLayout>
+        <include layout="@layout/hint" />
+    </LinearLayout>
+    <cat.kenny.r1.walkie.TalkView android:id="@+id/talking"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:visibility="gone" />
+</FrameLayout>

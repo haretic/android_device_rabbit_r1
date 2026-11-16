@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Walkie-talkie</string>
+    <!-- The eight channels. Every r1 has the same eight in the same order. -->
+    <string-array name="channels">
+        <item>Everyone</item>
+        <item>Kitchen</item>
+        <item>Workshop</item>
+        <item>Den</item>
+        <item>Garden</item>
+        <item>Office</item>
+        <item>Upstairs</item>
+        <item>Outside</item>
+    </string-array>
+    <string name="here">here</string>
+    <string name="speaking">speaking now</string>
+    <string name="spoke_now">spoke just now</string>
+    <plurals name="spoke">
+        <item quantity="one">spoke 1 min ago</item>
+        <item quantity="other">spoke <xliff:g id="minutes">%1$d</xliff:g> min ago</item>
+    </plurals>
+    <string name="nobody">Nobody else is on this channel yet.</string>
+    <string name="no_wifi">Walkie-talkie needs Wi-Fi. It reaches the r1s on the same network.</string>
+    <string name="hear_again">Hear <xliff:g id="name">%1$s</xliff:g> again</string>
+    <string name="hint">Hold the side button and talk. Turn the wheel to change channel.</string>
+    <string name="hint_replay">Hold the side button and talk. Press to hear the last message again.</string>
+    <string name="hint_speaking">Hold the side button to answer. While someone speaks, the wheel is the volume.</string>
+    <string name="hint_mic">Walkie-talkie needs the microphone to talk. Press to allow it.</string>
+    <string name="talking">Talking</string>
+    <string name="talking_to">to <xliff:g id="channel">%1$s</xliff:g></string>
+    <string name="hear_nobody">Nobody is on this channel right now</string>
+    <string name="hear_one"><xliff:g id="name">%1$s</xliff:g> hears you now</string>
+    <string name="hear_two"><xliff:g id="name">%1$s</xliff:g> and <xliff:g id="other">%2$s</xliff:g> hear you now</string>
+    <string name="hear_three"><xliff:g id="name">%1$s</xliff:g>, <xliff:g id="other">%2$s</xliff:g> and <xliff:g id="third">%3$s</xliff:g> hear you now</string>
+    <plurals name="hear_many">
+        <item quantity="one">1 r1 hears you now</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> r1s hear you now</item>
+    </plurals>
+    <string name="let_go">Let go when you are done.</string>
+    <string name="turn_off">Turn off</string>
+    <string name="channel">Walkie-talkie</string>
+    <string name="note">Walkie-talkie is on, channel <xliff:g id="channel">%1$s</xliff:g></string>
+    <string name="note_text">Messages play aloud. Tap to talk or to turn it off.</string>
+</resources>

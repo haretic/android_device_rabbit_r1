@@ -52,6 +52,8 @@
         <!-- The toolbox: the wheel is the tools' own control, counting, tuning, choosing -->
         <item>cat.kenny.r1.toolbox=app</item>
         <item>cat.kenny.r1.webdesk=app</item>
+        <item>cat.kenny.r1.walkie=app</item>
+        <item>cat.kenny.r1.synth=app</item>
         <!-- The easter egg's falling blocks: the wheel's steps are keys the game takes, up
              rotating and down dropping, or moving the piece sideways -->
         <item>com.yet.tetris.release=app</item>

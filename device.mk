@@ -162,6 +162,12 @@ PRODUCT_PACKAGES += R1Toolbox
 # Web desk: the r1 in a computer's browser, off until started and paired with a code
 PRODUCT_PACKAGES += R1WebDesk
 
+# Walkie-talkie: r1s on the same Wi-Fi talk to each other, hold the side button and speak
+PRODUCT_PACKAGES += R1Walkie
+
+# Synth: six pads in the system sounds' vein and the wheel as one knob, a toy
+PRODUCT_PACKAGES += R1Synth
+
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 
@@ -238,7 +244,8 @@ PRODUCT_COPY_FILES += \
 
 # The bundled app stores' notifications granted from the start; setup lets them install apps
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/permissions/default-permissions-r1-stores.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/default-permissions-r1-stores.xml
+    $(LOCAL_PATH)/permissions/default-permissions-r1-stores.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/default-permissions-r1-stores.xml \
+    $(LOCAL_PATH)/permissions/default-permissions-r1-roles.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/default-permissions-r1-roles.xml
 
 # ICM-42607 accelerometer and gyroscope through the mainline IIO sensors HAL.
 PRODUCT_COPY_FILES += \

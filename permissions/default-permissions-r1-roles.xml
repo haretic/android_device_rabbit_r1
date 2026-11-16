@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Web desk and the walkie-talkie are nothing but the local network: opening them is the
+     asking. The walkie-talkie's microphone is still asked for. -->
+<exceptions>
+    <exception package="cat.kenny.r1.webdesk">
+        <permission name="android.permission.ACCESS_LOCAL_NETWORK" fixed="false" />
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+    <exception package="cat.kenny.r1.walkie">
+        <permission name="android.permission.ACCESS_LOCAL_NETWORK" fixed="false" />
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+</exceptions>

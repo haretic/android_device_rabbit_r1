@@ -72,9 +72,9 @@ public final class WebDeskActivity extends Activity {
             digit.setGravity(android.view.Gravity.CENTER);
             digit.setBackgroundResource(R.drawable.digit_bg);
             final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    Math.round(56 * density), Math.round(68 * density));
+                    Math.round(50 * density), Math.round(64 * density));
             // The code reads as two threes
-            lp.setMarginEnd(Math.round((i == 2 ? 22 : 6) * density));
+            lp.setMarginEnd(Math.round((i == 2 ? 18 : 5) * density));
             code.addView(digit, lp);
         }
     }
