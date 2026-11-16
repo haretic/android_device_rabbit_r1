@@ -21,7 +21,3 @@ WIFI_DRIVER_STATE_CTRL_PARAM := "/dev/wmtWifi"
 WIFI_DRIVER_STATE_ON := "1"
 WIFI_DRIVER_STATE_OFF := "0"
 endif
-
-# A hotspot beside the Wi-Fi connection, on gen4m's own ap0, instead of one or the other:
-# what lets the r1 pass a Wi-Fi network on to other devices.
-WIFI_HIDL_FEATURE_DUAL_INTERFACE := true
