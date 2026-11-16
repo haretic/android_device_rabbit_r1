@@ -137,7 +137,7 @@ public final class WalkieService extends Service implements Radio.Listener {
         @Override
         public void run() {
             connect();
-            mRadio.peers().expire(System.currentTimeMillis());
+            // The radio drops who has gone quiet itself, on its own clock
             if (mRadio.peers().changedSince(mVersion) || mTalking) {
                 mVersion = mRadio.peers().version();
                 changed();

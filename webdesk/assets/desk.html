@@ -273,7 +273,7 @@ type.addEventListener('compositionend', () => type.dispatchEvent(new Event('inpu
 
 // ---- files
 const size = n => n < 1000 ? n + ' B' : n < 1e6 ? Math.round(n / 1e3) + ' kB' : n < 1e9 ? (n / 1e6).toFixed(1) + ' MB' : (n / 1e9).toFixed(2) + ' GB';
-function send(file) {
+function send(file) { return new Promise(done => {
   const row = document.createElement('div'); row.className = 'file'; $('sent').prepend(row);
   const say = t => row.textContent = file.name + ', ' + size(file.size) + ', ' + t;
   say('sending');
@@ -281,11 +281,23 @@ function send(file) {
   const x = new XMLHttpRequest();
   x.open('POST', '/upload?name=' + encodeURIComponent(file.name));
   x.upload.onprogress = e => { if (e.lengthComputable) say(Math.floor(100 * e.loaded / e.total) + ' %'); };
-  x.onload = () => { if (x.status === 200) say('sent'); else { row.classList.add('bad'); say(x.status === 403 ? 'files are off on the r1' : 'not sent'); } };
-  x.onerror = () => { row.classList.add('bad'); say('not sent'); };
+  x.onload = () => {
+    if (x.status === 200) say('sent');
+    else {
+      row.classList.add('bad');
+      say(x.status === 403 ? 'files are off on the r1' : 'not sent');
+    }
+    done();
+  };
+  x.onerror = () => { row.classList.add('bad'); say('not sent'); done(); };
   x.send(file);
-}
-const sendAll = files => { if (caps && caps.files) for (const f of files) send(f); };
+}); }
+let uploads = Promise.resolve();
+const sendAll = files => {
+  if (caps && caps.files) for (const f of files) uploads = uploads.then(() => {
+    if (!gone && caps && caps.files) return send(f);
+  }).catch(() => {});
+};
 let depth = 0;
 addEventListener('dragenter', ev => { if (ev.dataTransfer && ev.dataTransfer.types.includes('Files')) { depth++; $('drop').classList.add('over'); } });
 addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; $('drop').classList.remove('over'); } });

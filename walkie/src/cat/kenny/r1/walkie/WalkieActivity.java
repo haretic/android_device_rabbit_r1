@@ -11,7 +11,6 @@ import android.os.Looper;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -24,6 +23,9 @@ import java.util.List;
  * the last message again.
  */
 public final class WalkieActivity extends Activity {
+
+    /** Down for this long is talking: short enough that the first word is not lost */
+    private static final int HOLD_MS = 220;
 
     private DrumView mDrum;
     private WaveView mWave;
@@ -46,7 +48,10 @@ public final class WalkieActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         final WindowManager.LayoutParams lp = getWindow().getAttributes();
-        lp.inputFeatures |= WindowManager.LayoutParams.INPUT_FEATURE_POWER_KEY_SELECTS;
+        // Talking lasts for as long as the side button is down: its own down and up, not the
+        // press or hold the system would make of them
+        lp.inputFeatures |= WindowManager.LayoutParams.INPUT_FEATURE_POWER_KEY_SELECTS
+                | WindowManager.LayoutParams.INPUT_FEATURE_POWER_KEY_HELD;
         getWindow().setAttributes(lp);
         setContentView(R.layout.walkie);
         mDrum = findViewById(R.id.drum);
@@ -221,7 +226,7 @@ public final class WalkieActivity extends Activity {
                     // repeats: by the clock
                     mHeld = false;
                     mMain.removeCallbacks(mHold);
-                    mMain.postDelayed(mHold, ViewConfiguration.getLongPressTimeout());
+                    mMain.postDelayed(mHold, HOLD_MS);
                 }
             } else if (mHeld) {
                 letGo();

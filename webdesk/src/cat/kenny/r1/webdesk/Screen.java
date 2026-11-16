@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BooleanSupplier;
+import java.util.concurrent.Semaphore;
 import java.util.zip.CRC32;
 
 /** The r1's screen as pictures: a stream of them for the page, and one as a screenshot. */
@@ -27,6 +28,8 @@ final class Screen {
     private static final long LOOK_MS = 90;
     /** A picture at least this often, so a quiet connection is not taken for a dead one */
     private static final long STILL_MS = 1500;
+    private final Semaphore mCapturing = new Semaphore(1);
+    private final Semaphore mStreaming = new Semaphore(1);
 
     /** The screen as it is composed, in a bitmap that can be read; null when it can't be had. */
     private static Bitmap capture() {
@@ -53,18 +56,41 @@ final class Screen {
     }
 
     byte[] png() {
-        final Bitmap bitmap = capture();
-        if (bitmap == null) {
+        if (!mCapturing.tryAcquire()) {
             return null;
         }
-        final ByteArrayOutputStream out = new ByteArrayOutputStream(256 * 1024);
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-        bitmap.recycle();
-        return out.toByteArray();
+        try {
+            final Bitmap bitmap = capture();
+            if (bitmap == null) {
+                return null;
+            }
+            try {
+                final ByteArrayOutputStream out = new ByteArrayOutputStream(256 * 1024);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                return out.toByteArray();
+            } finally {
+                bitmap.recycle();
+            }
+        } finally {
+            mCapturing.release();
+        }
     }
 
     /** Pictures for as long as the computer may have them and takes them. */
     void stream(Response response, BooleanSupplier allowed) throws IOException {
+        if (!mStreaming.tryAcquire()) {
+            response.status(429);
+            response.sendJson("{}");
+            return;
+        }
+        try {
+            frames(response, allowed);
+        } finally {
+            mStreaming.release();
+        }
+    }
+
+    private void frames(Response response, BooleanSupplier allowed) throws IOException {
         final OutputStream out = response.stream("multipart/x-mixed-replace; boundary="
                 + BOUNDARY);
         final ByteArrayOutputStream jpeg = new ByteArrayOutputStream(128 * 1024);
@@ -79,6 +105,9 @@ final class Screen {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, jpeg);
                 bitmap.recycle();
                 final byte[] bytes = jpeg.toByteArray();
+                if (!allowed.getAsBoolean()) {
+                    return;
+                }
                 crc.reset();
                 crc.update(bytes);
                 if (crc.getValue() != last || began - sent >= STILL_MS) {

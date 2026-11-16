@@ -168,6 +168,9 @@ PRODUCT_PACKAGES += R1Walkie
 # Synth: six pads in the system sounds' vein and the wheel as one knob, a toy
 PRODUCT_PACKAGES += R1Synth
 
+# Travel router: a Wi-Fi network passed on under the r1's own name, signed in to once
+PRODUCT_PACKAGES += R1Router
+
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 

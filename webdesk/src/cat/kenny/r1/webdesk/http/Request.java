@@ -25,6 +25,7 @@ public final class Request {
     private final Body body;
     private final boolean keepAlive;
     private final boolean expect;
+    private ConnectionIO io;
 
     private Request(String method, String target, Map<String, String> headers, Socket socket,
             Body body, long length, boolean keepAlive, boolean expect) throws BadRequest {
@@ -51,6 +52,13 @@ public final class Request {
     }
 
     static Request read(Socket socket, InputStream in) throws IOException {
+        return read(socket, in, null);
+    }
+
+    static Request read(Socket socket, InputStream in, ConnectionIO io) throws IOException {
+        if (io != null) {
+            io.reset();
+        }
         Lines lines = new Lines(in, socket, System.nanoTime() + 15_000_000_000L);
         String first = lines.line(4096, true);
         if (first == null) {
@@ -122,9 +130,14 @@ public final class Request {
         } else if (hasToken(connection, "keep-alive")) {
             alive = true;
         }
+        if (io != null) {
+            in = io.body(in, length >= 0 && length <= 65_536);
+        }
         Body body = te == null ? new FixedBody(in, Math.max(0, length)) : new ChunkBody(in);
-        return new Request(words[0], words[1], headers, socket, body, length, alive,
+        Request request = new Request(words[0], words[1], headers, socket, body, length, alive,
                 expectation != null);
+        request.io = io;
+        return request;
     }
 
     static boolean hasToken(String value, String token) {
@@ -192,6 +205,13 @@ public final class Request {
     boolean keepAlive() { return keepAlive; }
     boolean expectsContinue() { return expect; }
 
+    /** The watchdog closes blocked I/O when this request loses permission. */
+    public void cancelUnless(java.util.function.BooleanSupplier allowed) {
+        if (io != null) {
+            io.allowed = java.util.Objects.requireNonNull(allowed);
+        }
+    }
+
     public String cookie(String name) {
         String value = header("cookie");
         if (value != null) {
@@ -206,6 +226,9 @@ public final class Request {
     }
 
     public String bodyText(int maxBytes) throws IOException {
+        if (io != null) {
+            io.smallBody();
+        }
         if (maxBytes < 0) {
             throw new IllegalArgumentException("Negative limit");
         }

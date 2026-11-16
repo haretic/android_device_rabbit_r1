@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+// Travel router: the r1 joins a Wi-Fi network (a hotel's, with its sign-in page) and passes it
+// on under its own name, so the other devices join once and never see the sign-in. Starting the
+// hotspot and reading who is on it are privileged, hence the platform certificate.
+android_app {
+    name: "R1Router",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

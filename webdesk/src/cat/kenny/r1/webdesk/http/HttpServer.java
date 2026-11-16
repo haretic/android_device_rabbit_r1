@@ -3,6 +3,8 @@ package cat.kenny.r1.webdesk.http;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -21,9 +23,18 @@ public final class HttpServer {
     private volatile ServerSocket listener;
     private ThreadPoolExecutor workers;
     private Thread acceptor;
+    private ScheduledExecutorService timer;
+    private final long progressMillis;
+    private final long transferMillis;
+
+    HttpServer(Handler handler, long progressMillis, long transferMillis) {
+        this.handler = java.util.Objects.requireNonNull(handler);
+        this.progressMillis = progressMillis;
+        this.transferMillis = transferMillis;
+    }
 
     public HttpServer(Handler handler) {
-        this.handler = java.util.Objects.requireNonNull(handler);
+        this(handler, 30_000, 2 * 60 * 60_000L);
     }
 
     public synchronized int start(InetAddress bind, int... ports) throws IOException {
@@ -59,16 +70,23 @@ public final class HttpServer {
                     thread.setDaemon(true);
                     return thread;
                 });
+        timer = Executors.newSingleThreadScheduledExecutor(task -> {
+            Thread thread = new Thread(task, "webdesk-deadlines");
+            thread.setDaemon(true);
+            return thread;
+        });
         listener = selected;
         ServerSocket bound = selected;
         ThreadPoolExecutor pool = workers;
-        acceptor = new Thread(() -> accept(bound, pool), "webdesk-listener");
+        ScheduledExecutorService clock = timer;
+        acceptor = new Thread(() -> accept(bound, pool, clock), "webdesk-listener");
         acceptor.setDaemon(true);
         acceptor.start();
         return selected.getLocalPort();
     }
 
-    private void accept(ServerSocket bound, ThreadPoolExecutor pool) {
+    private void accept(ServerSocket bound, ThreadPoolExecutor pool,
+            ScheduledExecutorService clock) {
         while (!bound.isClosed()) {
             Socket socket = null;
             try {
@@ -83,7 +101,7 @@ public final class HttpServer {
                     connections.add(socket);
                 }
                 Socket accepted = socket;
-                pool.execute(() -> serve(accepted));
+                pool.execute(() -> serve(accepted, clock));
             } catch (IOException | java.util.concurrent.RejectedExecutionException e) {
                 if (socket != null) {
                     close(socket);
@@ -95,14 +113,26 @@ public final class HttpServer {
         }
     }
 
-    private void serve(Socket socket) {
+    private void serve(Socket socket, ScheduledExecutorService clock) {
+        ConnectionIO io = new ConnectionIO(socket, progressMillis, transferMillis);
+        java.util.concurrent.ScheduledFuture<?> watch;
+        try {
+            watch = clock.scheduleAtFixedRate(io::check, 50, 50, TimeUnit.MILLISECONDS);
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            close(socket);
+            synchronized (connections) {
+                connections.remove(socket);
+            }
+            return;
+        }
         try (Socket connection = socket) {
             BufferedInputStream in = new BufferedInputStream(connection.getInputStream(), 8192);
-            BufferedOutputStream out = new BufferedOutputStream(connection.getOutputStream(), 8192);
+            BufferedOutputStream out = new BufferedOutputStream(
+                    io.output(connection.getOutputStream()), 8192);
             while (!connection.isClosed()) {
                 Request request;
                 try {
-                    request = Request.read(connection, in);
+                    request = Request.read(connection, in, io);
                     if (request == null) {
                         return;
                     }
@@ -134,6 +164,7 @@ public final class HttpServer {
         } catch (IOException e) {
             // Disconnects and stop() both cancel the connection.
         } finally {
+            watch.cancel(false);
             synchronized (connections) {
                 connections.remove(socket);
             }
@@ -166,6 +197,10 @@ public final class HttpServer {
                 for (Socket socket : connections) {
                     close(socket);
                 }
+            }
+            if (timer != null) {
+                timer.shutdownNow();
+                timer = null;
             }
             thread = acceptor;
             pool = workers;
