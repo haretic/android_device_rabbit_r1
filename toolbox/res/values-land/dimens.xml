@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <dimen name="tool_number">64sp</dimen>
+    <dimen name="tool_stage">64dp</dimen>
+</resources>

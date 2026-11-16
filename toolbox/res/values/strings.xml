@@ -67,4 +67,58 @@
     <string name="tally_hint">One wheel click down counts one. Press for a new lap, hold to clear.</string>
     <string name="tally_hint_empty">One wheel click down counts one, a click up takes one back.</string>
     <string name="tally_cleared">Cleared</string>
+
+    <string name="metronome">Metronome</string>
+    <string name="metronome_row">beats a minute</string>
+    <plurals name="metronome_bar">
+        <item quantity="one">beats a minute, every beat alike</item>
+        <item quantity="other">beats a minute, <xliff:g id="beats">%1$d</xliff:g> to the bar</item>
+    </plurals>
+    <string name="metronome_running">Running for <xliff:g id="time">%1$s</xliff:g>, bar <xliff:g id="bar">%2$d</xliff:g></string>
+    <string name="metronome_stopped">Stopped.</string>
+    <string name="metronome_hint">Press to start. The wheel sets the tempo.</string>
+    <string name="metronome_hint_running">Press to stop. The wheel sets the tempo, a hold the beats to the bar.</string>
+
+    <string name="tuner">Tuner</string>
+    <string name="tuner_row">listening</string>
+    <string name="tuner_row_ask">open it to let it listen</string>
+    <string name="tuner_flat">flat</string>
+    <string name="tuner_sharp">sharp</string>
+    <string name="tuner_in_tune">In tune.</string>
+    <string name="tuner_is_sharp"><xliff:g id="cents">%1$d</xliff:g> cents sharp.</string>
+    <string name="tuner_is_flat"><xliff:g id="cents">%1$d</xliff:g> cents flat.</string>
+    <string name="tuner_loosen">Loosen it a touch.</string>
+    <string name="tuner_tighten">Tighten it a touch.</string>
+    <string name="tuner_hz"><xliff:g id="hz">%1$s</xliff:g> Hz, with A at <xliff:g id="a">%2$d</xliff:g></string>
+    <string name="tuner_waiting">Play one note close to the r1.</string>
+    <string name="tuner_hint">Press to hold the note. The wheel moves where A is.</string>
+    <string name="tuner_hint_held">Held. Press to listen again.</string>
+    <string name="tuner_denied">The tuner listens through the microphone and keeps nothing. Press to allow it.</string>
+
+    <string name="tone">Tone</string>
+    <string name="tone_hz"><xliff:g id="hz">%1$d</xliff:g> Hz</string>
+    <string name="tone_unit">Hz</string>
+    <string name="tone_off">off</string>
+    <string name="tone_on">playing</string>
+    <string name="tone_note_playing">The note <xliff:g id="note">%1$s</xliff:g>. Playing quietly.</string>
+    <string name="tone_note">The note <xliff:g id="note">%1$s</xliff:g>.</string>
+    <string name="tone_wave_cm">One wave is <xliff:g id="length">%1$d</xliff:g> cm long in air.</string>
+    <string name="tone_wave_m">One wave is <xliff:g id="length">%1$s</xliff:g> m long in air.</string>
+    <string name="tone_volume">Loudness follows the media volume.</string>
+    <string name="tone_hint">Press to play. One wheel click is a semitone, up is higher.</string>
+    <string name="tone_hint_playing">Press to stop. One wheel click is a semitone, up is higher.</string>
+
+    <string name="stopwatch">Stopwatch</string>
+    <string name="stopwatch_ready">ready</string>
+    <string name="stopwatch_row_running">running</string>
+    <string name="stopwatch_row_stopped">stopped</string>
+    <string name="stopwatch_running">running, this lap <xliff:g id="time">%1$s</xliff:g></string>
+    <string name="stopwatch_running_plain">running</string>
+    <string name="stopwatch_stopped">stopped</string>
+    <string name="stopwatch_start">Press to start.</string>
+    <string name="stopwatch_fastest">fastest</string>
+    <string name="stopwatch_slowest">slowest</string>
+    <string name="stopwatch_hint">Press to start. Hold goes back.</string>
+    <string name="stopwatch_hint_running">Press to stop. A wheel click down marks a lap.</string>
+    <string name="stopwatch_hint_stopped">Press to go on, hold to reset.</string>
 </resources>

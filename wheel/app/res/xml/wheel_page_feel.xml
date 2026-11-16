@@ -18,6 +18,12 @@
             android:entryValues="@array/spin_values"
             android:persistent="false" />
         <ListPreference
+            android:key="wheel_motion"
+            android:title="@string/motion_title"
+            android:entries="@array/motion_entries"
+            android:entryValues="@array/motion_values"
+            android:persistent="false" />
+        <ListPreference
             android:key="wheel_press_guard"
             android:title="@string/guard_title"
             android:entries="@array/guard_entries"

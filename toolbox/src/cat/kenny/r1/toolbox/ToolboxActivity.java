@@ -26,11 +26,18 @@ public final class ToolboxActivity extends ToolActivity {
     private View mLevelRow;
     private View mSoundRow;
     private View mTallyRow;
+    private View mMetronomeRow;
+    private View mTunerRow;
+    private View mToneRow;
+    private View mStopwatchRow;
 
     private final Runnable mShow = new Runnable() {
         @Override
         public void run() {
-            showSound();
+            if (mListening) {
+                showSound();
+            }
+            showStopwatch();
             mHandler.postDelayed(this, 250);
         }
     };
@@ -43,6 +50,12 @@ public final class ToolboxActivity extends ToolActivity {
         mLevelRow = row(rows, R.drawable.ic_level, R.string.level, LevelActivity.class);
         mSoundRow = row(rows, R.drawable.ic_sound, R.string.sound, SoundActivity.class);
         mTallyRow = row(rows, R.drawable.ic_tally, R.string.tally, TallyActivity.class);
+        mMetronomeRow = row(rows, R.drawable.ic_metronome, R.string.metronome,
+                MetronomeActivity.class);
+        mTunerRow = row(rows, R.drawable.ic_tuner, R.string.tuner, TunerActivity.class);
+        mToneRow = row(rows, R.drawable.ic_tone, R.string.tone, ToneActivity.class);
+        mStopwatchRow = row(rows, R.drawable.ic_stopwatch, R.string.stopwatch,
+                StopwatchActivity.class);
         mLevel = new LevelSensor(this, this::showLevel);
         mMeter = SoundActivity.newMeter(this);
         if (state == null) {
@@ -76,6 +89,15 @@ public final class ToolboxActivity extends ToolActivity {
         final Tally tally = Words.tally(this);
         set(mTallyRow, getString(tally.count() == 0 && tally.laps() == 0
                 ? R.string.tally_empty : R.string.tally_counting), String.valueOf(tally.count()));
+        set(mMetronomeRow, getString(R.string.metronome_row),
+                String.valueOf(MetronomeActivity.tempo(this)));
+        final boolean hears = checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+        set(mTunerRow, getString(hears ? R.string.tuner_row : R.string.tuner_row_ask),
+                "A " + TunerActivity.a(this));
+        set(mToneRow, getString(R.string.tone_off), getString(R.string.tone_hz,
+                Math.round(ToneActivity.hz(ToneActivity.semitone(this)))));
+        showStopwatch();
         // Only once it was allowed on its own screen: the list does not ask
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -86,11 +108,10 @@ public final class ToolboxActivity extends ToolActivity {
                 }
             });
         }
-        if (mListening) {
-            mHandler.post(mShow);
-        } else {
+        if (!mListening) {
             set(mSoundRow, getString(R.string.sound_row_ask), "");
         }
+        mHandler.post(mShow);
     }
 
     @Override
@@ -106,6 +127,14 @@ public final class ToolboxActivity extends ToolActivity {
         set(mLevelRow, getString(Words.levelRow(mLevel)), mLevel.lying
                 ? Words.degrees(this, (float) Math.hypot(mLevel.math.tiltX(), mLevel.math.tiltY()))
                 : "");
+    }
+
+    private void showStopwatch() {
+        final cat.kenny.r1.toolbox.engine.StopwatchModel watch = StopwatchActivity.load(this);
+        final long elapsed = watch.elapsed(StopwatchActivity.now());
+        set(mStopwatchRow, getString(watch.running() ? R.string.stopwatch_row_running
+                : elapsed > 0 ? R.string.stopwatch_row_stopped : R.string.stopwatch_ready),
+                cat.kenny.r1.toolbox.engine.StopwatchModel.format(elapsed));
     }
 
     private void showSound() {

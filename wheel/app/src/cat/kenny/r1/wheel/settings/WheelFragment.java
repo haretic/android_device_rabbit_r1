@@ -41,6 +41,7 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_GUIDE_LEGEND, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SCROLL_DISTANCE, 100),
                     Map.entry(LineageSettings.Secure.WHEEL_SPIN, 1),
+                    Map.entry(LineageSettings.Secure.WHEEL_MOTION, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_PRESS_GUARD, 150),
                     Map.entry(LineageSettings.Secure.WHEEL_REVERSE, 0),
                     Map.entry(LineageSettings.Secure.WHEEL_TURN_WITH_SCREEN, 1),

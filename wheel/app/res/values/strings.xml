@@ -222,6 +222,19 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+    <string name="motion_title">How the highlight moves</string>
+    <string-array name="motion_entries">
+        <item>Jumps from row to row</item>
+        <item>Soft, a weighted pull</item>
+        <item>Snappy, quick with a faint settle</item>
+        <item>Bouncy, overshoots and rings</item>
+    </string-array>
+    <string-array name="motion_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
     <string name="guard_title">Press guard</string>
     <string-array name="guard_entries">
         <item>Off, keep every step</item>

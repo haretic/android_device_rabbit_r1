@@ -19,5 +19,13 @@
             android:label="@string/sound" />
         <activity android:name=".TallyActivity" android:exported="false"
             android:label="@string/tally" />
+        <activity android:name=".MetronomeActivity" android:exported="false"
+            android:label="@string/metronome" />
+        <activity android:name=".TunerActivity" android:exported="false"
+            android:label="@string/tuner" />
+        <activity android:name=".ToneActivity" android:exported="false"
+            android:label="@string/tone" />
+        <activity android:name=".StopwatchActivity" android:exported="false"
+            android:label="@string/stopwatch" />
     </application>
 </manifest>
