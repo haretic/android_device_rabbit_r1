@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Toolbox</string>
+
+    <string name="level">Level</string>
+    <string name="level_degrees"><xliff:g id="degrees">%1$s</xliff:g>°</string>
+    <string name="level_flat">flat</string>
+    <string name="level_edge">on edge</string>
+    <string name="level_plumb">plumb</string>
+    <!-- The list's line under Level -->
+    <string name="level_is_flat">flat</string>
+    <string name="level_almost_flat">almost flat</string>
+    <string name="level_tilted">tilted</string>
+    <string name="level_upright">standing up</string>
+    <!-- Under the big angle on the flat level. Either half is left out when it is 0.0 -->
+    <string name="level_detail"><xliff:g id="side">%1$s</xliff:g>, <xliff:g id="front">%2$s</xliff:g></string>
+    <string name="level_right"><xliff:g id="degrees">%1$s</xliff:g>° to the right</string>
+    <string name="level_left"><xliff:g id="degrees">%1$s</xliff:g>° to the left</string>
+    <string name="level_away"><xliff:g id="degrees">%1$s</xliff:g>° away from you</string>
+    <string name="level_toward"><xliff:g id="degrees">%1$s</xliff:g>° towards you</string>
+    <string name="level_dead">Dead level.</string>
+    <string name="level_edge_right">The right end is lower.</string>
+    <string name="level_edge_left">The left end is lower.</string>
+    <string name="level_edge_dead">Dead level along the edge.</string>
+    <string name="level_plumb_off">Off vertical by this much.</string>
+    <string name="level_plumb_dead">Plumb.</string>
+    <string name="level_lay_flat">Lay the r1 on its back for this one.</string>
+    <string name="level_stand_up">Stand the r1 on an edge for this one.</string>
+    <string name="level_hint_zero">Press to call this angle zero.</string>
+    <string name="level_hint_unzero">Zeroed. Press to go back to true level.</string>
+    <string name="level_none">This r1 has no motion sensor to level with.</string>
+
+    <string name="sound">Sound level</string>
+    <string name="sound_db"><xliff:g id="level">%1$d</xliff:g> dB</string>
+    <string name="sound_unit">dB</string>
+    <string name="sound_very_quiet">Very quiet.</string>
+    <string name="sound_quiet_room">A quiet room.</string>
+    <string name="sound_talking">Like people talking.</string>
+    <string name="sound_busy">Like a busy street.</string>
+    <string name="sound_loud">Loud.</string>
+    <string name="sound_harmful">Loud enough to harm your hearing over time.</string>
+    <!-- The list's line under Sound level -->
+    <string name="sound_row_very_quiet">very quiet</string>
+    <string name="sound_row_quiet_room">a quiet room</string>
+    <string name="sound_row_talking">like people talking</string>
+    <string name="sound_row_busy">like a busy street</string>
+    <string name="sound_row_loud">loud</string>
+    <string name="sound_row_harmful">harmfully loud</string>
+    <string name="sound_row_ask">open it to let it listen</string>
+    <string name="sound_ago">1 min ago</string>
+    <string name="sound_now">now</string>
+    <string name="sound_loudest">Loudest <xliff:g id="level">%1$d</xliff:g> dB at <xliff:g id="clock">%2$s</xliff:g>.</string>
+    <string name="sound_average">Average <xliff:g id="level">%1$d</xliff:g> dB.</string>
+    <string name="sound_hint">Press to hold the reading. Not a calibrated meter.</string>
+    <string name="sound_hint_held">Held. Press to listen again.</string>
+    <string name="sound_denied">Sound level listens through the microphone and keeps nothing. Press to allow it.</string>
+    <string name="sound_busy_mic">The microphone is in use by something else.</string>
+
+    <string name="tally">Tally</string>
+    <string name="tally_counting">counting</string>
+    <string name="tally_empty">nothing counted</string>
+    <string name="tally_since">since <xliff:g id="clock">%1$s</xliff:g>, about <xliff:g id="rate">%2$d</xliff:g> a minute</string>
+    <string name="tally_since_only">since <xliff:g id="clock">%1$s</xliff:g></string>
+    <string name="tally_start">Turn the wheel down to count.</string>
+    <string name="tally_lap">Lap <xliff:g id="number">%1$d</xliff:g></string>
+    <string name="tally_hint">One wheel click down counts one. Press for a new lap, hold to clear.</string>
+    <string name="tally_hint_empty">One wheel click down counts one, a click up takes one back.</string>
+    <string name="tally_cleared">Cleared</string>
+</resources>

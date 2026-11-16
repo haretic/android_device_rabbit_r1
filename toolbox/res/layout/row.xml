@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="64dp"
+    android:layout_marginBottom="2dp"
+    android:paddingStart="16dp" android:paddingEnd="18dp"
+    android:gravity="center_vertical" android:background="@drawable/row_bg"
+    android:focusable="true" android:clickable="true"
+    android:defaultFocusHighlightEnabled="false">
+    <ImageView android:id="@+id/icon" android:layout_width="40dp" android:layout_height="40dp"
+        android:padding="9dp" android:background="@drawable/icon_bg"
+        android:importantForAccessibility="no" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+        <TextView android:id="@+id/title" style="@style/Body"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:fontFamily="haretic-text-medium" android:textSize="17sp" />
+        <TextView android:id="@+id/sub" style="@style/Dim"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:maxLines="1" android:ellipsize="end" />
+    </LinearLayout>
+    <TextView android:id="@+id/reading" style="@style/Number"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textSize="19sp" />
+</LinearLayout>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <color name="surface">#1A1A1A</color>
+    <color name="surface_line">#3A3A3A</color>
+    <color name="text">#FFFFFF</color>
+    <color name="text_dim">#B8B8B8</color>
+    <color name="text_faint">#8A8A8A</color>
+    <color name="bar">#5C5C5C</color>
+    <!-- The loud part of the last minute; the yellow of "awake" on the battery pages -->
+    <color name="loud">#F2C230</color>
+    <!-- Added to the microphone's level against full scale to land near dB SPL. A guess for the
+         r1's microphone: the page says it is not a calibrated meter. -->
+    <integer name="sound_offset_db">118</integer>
+</resources>

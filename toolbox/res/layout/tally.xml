@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:fitsSystemWindows="true">
+    <TextView style="@style/Title" android:text="@string/tally" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:gravity="center_vertical">
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginStart="24dp" android:gravity="center_vertical">
+            <TextView android:id="@+id/count" style="@style/Number"
+                android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="3" android:gravity="bottom|start"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="36sp"
+                android:autoSizeMaxTextSize="104sp" />
+            <TextView android:id="@+id/since" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+            <LinearLayout android:id="@+id/laps" android:layout_width="match_parent"
+                android:layout_height="0dp" android:layout_weight="2"
+                android:layout_marginTop="16dp" android:orientation="vertical" />
+        </LinearLayout>
+        <!-- Which way the wheel counts, beside the wheel -->
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginEnd="14dp" android:layout_marginStart="8dp"
+            android:orientation="vertical" android:gravity="center_horizontal">
+            <TextView style="@style/Body" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="−"
+                android:textColor="@color/text_faint" android:textSize="22sp"
+                android:importantForAccessibility="no" />
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:layout_marginBottom="14dp"
+                android:rotation="90" android:src="@drawable/hint_button"
+                android:importantForAccessibility="no" />
+            <TextView style="@style/Body" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="+"
+                android:textColor="?android:attr/colorAccent" android:textSize="22sp"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+    </LinearLayout>
+    <include layout="@layout/hint" />
+</LinearLayout>

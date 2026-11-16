@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:fitsSystemWindows="true">
+    <TextView style="@style/Title" android:text="@string/sound" android:paddingBottom="4dp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:gravity="center_vertical">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginStart="24dp">
+            <LinearLayout android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:baselineAligned="true">
+                <TextView android:id="@+id/level" style="@style/Number"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="68sp" />
+                <TextView style="@style/Number" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginStart="10dp"
+                    android:text="@string/sound_unit" android:textSize="16sp" />
+            </LinearLayout>
+            <TextView android:id="@+id/words" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginStart="16dp" android:layout_marginEnd="24dp">
+            <cat.kenny.r1.toolbox.BarsView android:id="@+id/bars"
+                android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" />
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp">
+                <TextView style="@style/Dim" android:layout_width="0dp"
+                    android:layout_weight="1" android:layout_height="wrap_content"
+                    android:text="@string/sound_ago" android:textSize="12sp" />
+                <TextView style="@style/Dim" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="@string/sound_now"
+                    android:textSize="12sp" />
+            </LinearLayout>
+            <TextView android:id="@+id/loudest" style="@style/Dim"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:textColor="@color/text" />
+            <TextView android:id="@+id/average" style="@style/Dim"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" android:textColor="@color/text" />
+        </LinearLayout>
+    </LinearLayout>
+    <include layout="@layout/hint" />
+</LinearLayout>

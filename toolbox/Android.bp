@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
+// Toolbox: small instruments made of what the r1 already has - a level from the accelerometer,
+// a sound level from the microphone, a tally on the wheel. Wheel first: the wheel turns the
+// thing, the side button acts on it. The side button needs the system-only
+// INPUT_FEATURE_POWER_KEY_SELECTS, hence the platform certificate.
+android_app {
+    name: "R1Toolbox",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

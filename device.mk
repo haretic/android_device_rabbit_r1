@@ -156,6 +156,9 @@ PRODUCT_PACKAGES += \
 # Airplane mode after the screen has been off for a set time (Settings > Battery).
 PRODUCT_PACKAGES += R1RadioSleep
 
+# Toolbox: a level, a sound level and a tally from the r1's own sensors, on the wheel
+PRODUCT_PACKAGES += R1Toolbox
+
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 

@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: Apache-2.0
+package cat.kenny.r1.toolbox;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import cat.kenny.r1.toolbox.engine.LevelMath;
+import cat.kenny.r1.toolbox.engine.Tally;
+
+import java.util.Locale;
+
+/** Readings as the words and numbers the list and the screens share. */
+final class Words {
+
+    private Words() {
+    }
+
+    static CharSequence degrees(Context context, float degrees) {
+        // No "-0.0": a level reads what it is off by
+        final float shown = Math.round(Math.abs(degrees) * 10) / 10f;
+        final String text = context.getString(R.string.level_degrees,
+                String.format(Locale.getDefault(), "%.1f", shown));
+        // The display face has no degree sign and its stand-in sits on the baseline like a
+        // letter o: the sign comes from the text face, where it is one
+        final android.text.SpannableString out = new android.text.SpannableString(text);
+        final int at = text.indexOf('\u00b0');
+        if (at >= 0) {
+            out.setSpan(new android.text.style.TypefaceSpan("haretic-text"), at, at + 1, 0);
+        }
+        return out;
+    }
+
+    static String tenths(float degrees) {
+        return String.format(Locale.getDefault(), "%.1f", Math.round(Math.abs(degrees) * 10) / 10f);
+    }
+
+    static int levelRow(LevelSensor sensor) {
+        if (!sensor.lying) {
+            return R.string.level_upright;
+        }
+        final float tilt = (float) Math.hypot(sensor.math.tiltX(), sensor.math.tiltY());
+        return tilt < 0.15f ? R.string.level_is_flat
+                : tilt < 2f ? R.string.level_almost_flat : R.string.level_tilted;
+    }
+
+    /** 0 very quiet .. 5 harmful. */
+    static int loudness(float db) {
+        return db < 30 ? 0 : db < 45 ? 1 : db < 62 ? 2 : db < 78 ? 3 : db < 90 ? 4 : 5;
+    }
+
+    private static final int[] SOUND = {R.string.sound_very_quiet, R.string.sound_quiet_room,
+            R.string.sound_talking, R.string.sound_busy, R.string.sound_loud,
+            R.string.sound_harmful};
+    private static final int[] SOUND_ROW = {R.string.sound_row_very_quiet,
+            R.string.sound_row_quiet_room, R.string.sound_row_talking, R.string.sound_row_busy,
+            R.string.sound_row_loud, R.string.sound_row_harmful};
+
+    static int sound(float db) {
+        return SOUND[loudness(db)];
+    }
+
+    static int soundRow(float db) {
+        return SOUND_ROW[loudness(db)];
+    }
+
+    static SharedPreferences prefs(Context context) {
+        return context.getSharedPreferences("toolbox", Context.MODE_PRIVATE);
+    }
+
+    static Tally tally(Context context) {
+        return Tally.restore(prefs(context).getString("tally", ""));
+    }
+
+    static void save(Context context, Tally tally) {
+        prefs(context).edit().putString("tally", tally.save()).apply();
+    }
+
+    static int levelMode(Context context) {
+        final int mode = prefs(context).getInt("level_mode", LevelMath.FLAT);
+        return mode < LevelMath.FLAT || mode > LevelMath.PLUMB ? LevelMath.FLAT : mode;
+    }
+}

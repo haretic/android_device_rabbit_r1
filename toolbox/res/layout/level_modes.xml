@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- What the wheel switches between, beside the wheel -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:layout_marginStart="10dp" android:layout_marginEnd="16dp"
+    android:minWidth="64dp" android:orientation="vertical" android:gravity="center_horizontal">
+    <TextView style="@style/Dim" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="▴" android:textColor="@color/text_faint"
+        android:importantForAccessibility="no" />
+    <TextView android:id="@+id/mode_flat" style="@style/Dim" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="@string/level_flat" />
+    <TextView android:id="@+id/mode_edge" style="@style/Dim" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="@string/level_edge" />
+    <TextView android:id="@+id/mode_plumb" style="@style/Dim" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="@string/level_plumb" />
+    <TextView style="@style/Dim" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="▾" android:textColor="@color/text_faint"
+        android:importantForAccessibility="no" />
+</LinearLayout>
