@@ -97,6 +97,8 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         }
     }
 
+    private boolean mLongPress;
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         final int code = event.getKeyCode();
@@ -113,10 +115,17 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         }
         if (code == KeyEvent.KEYCODE_POWER || code == KeyEvent.KEYCODE_DPAD_CENTER
                 || code == KeyEvent.KEYCODE_ENTER) {
-            // The system says which it was: a hold comes flagged. Not told by the times, as a
+            if (down) {
+                mLongPress = event.getRepeatCount() > 0
+                        && (mLongPress || (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0);
+                return true;
+            }
+            // The system says which it was: a hold's repeat comes flagged, and the flag is
+            // kept from there as the release may come without it. Not told by the times: a
             // press arrives only once a second press can no longer follow, a wait that alone
             // made every real press look like a hold
-            final boolean held = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
+            final boolean held = mLongPress
+                    || (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
             if (!down && !event.isCanceled()) {
                 if (held) {
                     // A hold is the way back, as everywhere
