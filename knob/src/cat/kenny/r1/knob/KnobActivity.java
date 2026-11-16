@@ -17,7 +17,6 @@ import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -358,8 +357,10 @@ public class KnobActivity extends Activity implements Hid.Listener {
         if (code == KeyEvent.KEYCODE_POWER || code == KeyEvent.KEYCODE_DPAD_CENTER
                 || code == KeyEvent.KEYCODE_ENTER) {
             if (!down && !event.isCanceled()) {
-                final boolean held = event.getEventTime() - event.getDownTime()
-                        >= ViewConfiguration.getLongPressTimeout();
+                // The system says which it was: a hold comes flagged. Not told by the times, as a
+                // press arrives only once a second press can no longer follow, a wait that alone
+                // made every real press look like a hold
+                final boolean held = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
                 if (dial) {
                     if (held) {
                         show(SHEET);

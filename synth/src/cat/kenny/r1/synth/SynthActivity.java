@@ -113,8 +113,10 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         }
         if (code == KeyEvent.KEYCODE_POWER || code == KeyEvent.KEYCODE_DPAD_CENTER
                 || code == KeyEvent.KEYCODE_ENTER) {
-            final boolean held = event.getEventTime() - event.getDownTime()
-                    >= android.view.ViewConfiguration.getLongPressTimeout();
+            // The system says which it was: a hold comes flagged. Not told by the times, as a
+            // press arrives only once a second press can no longer follow, a wait that alone
+            // made every real press look like a hold
+            final boolean held = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
             if (!down && !event.isCanceled()) {
                 if (held) {
                     // A hold is the way back, as everywhere

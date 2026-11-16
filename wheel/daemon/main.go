@@ -1091,8 +1091,11 @@ func (d *daemon) inject(way, count string) bool {
 	return true
 }
 
+const pressTime = 150 * time.Millisecond
+
 // injectSide presses the side button: a press, a hold of 1.2 s (the long press), or two
-// presses 100 ms apart, the policy's double press.
+// presses 100 ms apart, the policy's double press. A press stays down as long as a finger
+// keeps it, 150 ms: one of no length passed where real presses were taken for holds.
 func (d *daemon) injectSide(how string) bool {
 	if how != "press" && how != "hold" && how != "double" {
 		return false
@@ -1118,13 +1121,13 @@ func (d *daemon) injectSide(how string) bool {
 	}
 	switch how {
 	case "press":
-		press(0)
+		press(pressTime)
 	case "hold":
 		press(1200 * time.Millisecond)
 	case "double":
-		press(0)
+		press(pressTime / 2)
 		time.Sleep(100 * time.Millisecond)
-		press(0)
+		press(pressTime / 2)
 	}
 	return true
 }

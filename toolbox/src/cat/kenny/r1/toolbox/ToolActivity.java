@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
-import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -71,9 +70,10 @@ abstract class ToolActivity extends Activity {
             return true;
         }
         if (code == KeyEvent.KEYCODE_POWER) {
-            // Told by how long it is down: the side button comes without FLAG_LONG_PRESS
-            final boolean held = event.getEventTime() - event.getDownTime()
-                    >= ViewConfiguration.getLongPressTimeout();
+            // The system says which it was: a hold comes flagged. Not told by the times, as a
+            // press arrives only once a second press can no longer follow, a wait that alone
+            // made every real press look like a hold
+            final boolean held = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
             if (down) {
                 if (event.getRepeatCount() == 0) {
                     mHeld = false;
