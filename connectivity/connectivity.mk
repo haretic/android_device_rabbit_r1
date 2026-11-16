@@ -77,3 +77,7 @@ PRODUCT_PACKAGES += \
 # MT6765 CONSYS controller is dual mode, and apps look for this one to scan.
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml
+
+# The hotspot's interface is gen4m's ap0, not a second wlan
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.vendor.wifi.sap.interface=ap0

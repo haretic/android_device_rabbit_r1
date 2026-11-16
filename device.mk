@@ -168,9 +168,8 @@ PRODUCT_PACKAGES += R1Walkie
 # Synth: six pads in the system sounds' vein and the wheel as one knob, a toy
 PRODUCT_PACKAGES += R1Synth
 
-# Travel router (router/, R1Router) is not in the image yet: the Wi-Fi service built for a
-# hotspot beside the Wi-Fi connection (WIFI_HIDL_FEATURE_DUAL_INTERFACE) finds no wlan0 in
-# gen4m's vendor layer and leaves the r1 without Wi-Fi, so there is nothing to pass on.
+# Travel router: a Wi-Fi network passed on under the r1's own name, signed in to once
+PRODUCT_PACKAGES += R1Router
 
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
