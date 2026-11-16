@@ -177,6 +177,9 @@ PRODUCT_PACKAGES += R1Port
 # Phone companion: an iPhone's notifications and music controls over Bluetooth LE
 PRODUCT_PACKAGES += R1Phone
 
+# Knob: the wheel as a Bluetooth knob for a computer, tablet or television
+PRODUCT_PACKAGES += R1Knob
+
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 

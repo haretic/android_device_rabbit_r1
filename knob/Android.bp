@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+// Knob: the wheel as a Bluetooth knob for a computer, tablet or television. The other side sees
+// an ordinary keyboard with a wheel and media keys, so nothing is installed there. The side
+// button needs the system-only INPUT_FEATURE_POWER_KEY_SELECTS, hence the platform certificate.
+android_app {
+    name: "R1Knob",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

@@ -58,6 +58,8 @@
         <item>cat.kenny.r1.port=app</item>
         <!-- The phone page: held, the wheel is the phone's volume -->
         <item>cat.kenny.r1.phone=app</item>
+        <!-- The knob: the wheel's steps go to the other side of the link -->
+        <item>cat.kenny.r1.knob=app</item>
         <!-- The easter egg's falling blocks: the wheel's steps are keys the game takes, up
              rotating and down dropping, or moving the piece sideways -->
         <item>com.yet.tetris.release=app</item>

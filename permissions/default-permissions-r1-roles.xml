@@ -15,6 +15,12 @@
     <exception package="cat.kenny.r1.port">
         <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
     </exception>
+    <!-- The knob is nothing but Bluetooth: opening it is the asking -->
+    <exception package="cat.kenny.r1.knob">
+        <permission name="android.permission.BLUETOOTH_CONNECT" fixed="false" />
+        <permission name="android.permission.BLUETOOTH_SCAN" fixed="false" />
+        <permission name="android.permission.BLUETOOTH_ADVERTISE" fixed="false" />
+    </exception>
     <!-- The phone link is nothing but Bluetooth: turning it on is the asking -->
     <exception package="cat.kenny.r1.phone">
         <permission name="android.permission.BLUETOOTH_CONNECT" fixed="false" />

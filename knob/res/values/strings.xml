@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">Knob</string>
+    <string name="intro_title">Make the r1 a knob for a computer</string>
+    <string name="intro_text">On the computer, tablet or phone, open its Bluetooth settings and pick “%1$s”. It sees a keyboard with a wheel: nothing to install there.</string>
+    <string name="bluetooth_off">Bluetooth is off</string>
+    <string name="bluetooth_off_text">Turn Bluetooth on in the quick settings, then come back.</string>
+    <string name="pair">Pair with something new</string>
+    <string name="pair_sum">findable for two minutes</string>
+    <string name="pair_on">Findable now, as “%1$s”</string>
+    <string name="known_sum">press to connect</string>
+    <string name="connecting">connecting</string>
+    <string name="connected">connected</string>
+    <string name="turns">The wheel turns</string>
+    <string name="turns_on">on %1$s. What it does shows there, not here: the r1 only sends the turns.</string>
+    <string name="hold_hint">Hold to pick what the wheel turns, or to leave.</string>
+    <string name="sheet_title">What the wheel turns</string>
+    <string name="leave">Leave the knob</string>
+    <string name="leave_sum">disconnects from %1$s</string>
+    <string-array name="modes">
+        <item>Volume</item>
+        <item>Scrolling</item>
+        <item>Slides</item>
+        <item>Music</item>
+        <item>Zoom</item>
+    </string-array>
+    <string-array name="mode_sums">
+        <item>press mutes</item>
+        <item>press clicks</item>
+        <item>forward and back, press blanks the screen</item>
+        <item>next and previous, press pauses</item>
+        <item>press goes back to 100%</item>
+    </string-array>
+    <string-array name="mode_hints">
+        <item>Press mutes it.</item>
+        <item>Press clicks.</item>
+        <item>Press blanks the screen.</item>
+        <item>Press pauses or plays.</item>
+        <item>Press goes back to 100%.</item>
+    </string-array>
+</resources>
