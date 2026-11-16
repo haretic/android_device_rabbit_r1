@@ -1,0 +1,327 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>r1 - web desk</title>
+<style>
+@font-face{font-family:"Text";src:url(/font/text);font-weight:200 800}
+@font-face{font-family:"Display";src:url(/font/display)}
+:root{--accent:#EC6A37;--on-accent:#2a1206;--card:#1c1c1c;--card2:#2a2a2a;--fg:#f1f1f1;--sum:#d2d2d2;--dim:#8d8d8d;--ok:#2dc653}
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b0b0b;color:var(--fg);font-family:"Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+button,input,textarea{font:inherit;color:inherit}
+svg{width:22px;height:22px;fill:currentColor;flex:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* pairing */
+.pair{max-width:420px;margin:0 auto;padding:14vh 24px 40px}
+.pair h1,.top b{font:400 17px "Display",sans-serif;letter-spacing:.02em;margin:0}
+.pair p{color:var(--sum);font-size:17px;line-height:1.45;margin:22px 0 14px}
+.code{width:100%;height:76px;border-radius:16px;border:2px solid #444;background:#000;text-align:center;
+  font:400 34px "Display",sans-serif;letter-spacing:.32em;padding-left:.32em}
+.code:focus{border-color:var(--accent);outline:none}
+.pair .msg{min-height:1.5em;color:var(--accent);font-size:16px;margin:14px 0 0}
+.pair .note{color:var(--dim);font-size:15px;margin-top:26px}
+
+/* the desk */
+.top{display:flex;align-items:center;gap:14px;font-size:16px;color:var(--sum);padding:22px 36px 0;flex-wrap:wrap}
+.top i{width:11px;height:11px;border-radius:6px;background:var(--ok);display:inline-block}
+.top i.off{background:#777}
+.top .end{margin-left:auto;display:flex;gap:10px}
+.pill{height:36px;padding:0 16px;border-radius:18px;background:var(--card2);border:0;display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer;text-decoration:none;color:var(--fg)}
+.pill svg{width:19px;height:19px}
+.pill:hover{background:#363636}
+.desk{display:flex;gap:36px;padding:20px 36px 36px;align-items:flex-start;flex-wrap:wrap}
+.r1{flex:none;border-radius:38px;background:var(--accent);padding:22px;width:min(440px,100%)}
+.r1 .row{display:flex;align-items:center;gap:14px}
+.r1 .view{flex:1;min-width:0;border-radius:10px;outline:3px solid #fff;outline-offset:3px;background:#000;
+  aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.r1 .view:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 9px rgba(0,0,0,.35)}
+.r1 img{width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;touch-action:none;cursor:pointer}
+.r1 .view p{position:absolute;margin:0;padding:0 24px;text-align:center;color:var(--sum);font-size:15.5px;line-height:1.4}
+.wheel{width:30px;height:124px;border-radius:15px;background:#c9532a;box-shadow:inset 0 0 0 2px #a8431f;position:relative;border:0;cursor:pointer;padding:0}
+.wheel::after{content:"";position:absolute;left:5px;right:5px;top:8px;bottom:8px;background:repeating-linear-gradient(#a8431f 0 2px,transparent 2px 8px)}
+.wheel.turn::after{background-position-y:4px}
+.cap{font-size:15px;line-height:1.4;color:var(--on-accent);margin:18px 0 0}
+.keys{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.keys button{height:34px;padding:0 14px;border-radius:17px;border:0;background:rgba(42,18,6,.18);color:var(--on-accent);font-weight:620;font-size:14.5px;cursor:pointer}
+.keys button:hover{background:rgba(42,18,6,.3)}
+.col{flex:1;min-width:320px}
+.box{background:var(--card);border-radius:22px;padding:18px 20px;margin-bottom:12px}
+.box h2{margin:0 0 6px;font-size:18px;font-weight:620;display:flex;align-items:center;gap:10px}
+.box h2 svg{color:var(--accent)}
+.box p{margin:0;color:var(--sum);font-size:15.5px;line-height:1.4}
+.box.off h2 svg{color:var(--dim)}
+.type{margin-top:12px;width:100%;height:46px;border-radius:14px;background:#000;border:2px solid #444;padding:0 14px;font-size:17px}
+.type:focus{border-color:var(--accent);outline:none}
+.drop{margin-top:12px;min-height:92px;border-radius:14px;border:2px dashed #555;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:15.5px;gap:10px;padding:10px;text-align:center;flex-wrap:wrap}
+.drop.over{border-color:var(--accent);color:var(--fg);background:#26201d}
+.link{background:none;border:0;padding:0;color:var(--fg);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.files{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.file{flex:1 1 220px;background:#000;border-radius:12px;padding:10px 12px;font-size:14.5px;color:var(--sum);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file.bad{color:var(--accent)}
+.browse{margin-top:12px;background:#000;border-radius:14px;padding:6px;max-height:300px;overflow:auto}
+.browse .path{padding:8px 10px;color:var(--dim);font-size:14.5px}
+.browse a,.browse button{display:flex;width:100%;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:0;background:none;color:var(--fg);text-decoration:none;font-size:15px;text-align:left;cursor:pointer}
+.browse a:hover,.browse button:hover{background:var(--card2)}
+.browse svg{width:19px;height:19px;color:var(--dim)}
+.browse span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.browse small{color:var(--dim);font-size:13.5px}
+.two{display:flex;gap:12px;flex-wrap:wrap}.two .box{flex:1 1 260px;margin-bottom:0}
+.btn{display:inline-flex;height:38px;align-items:center;padding:0 16px;border-radius:19px;border:0;background:var(--card2);color:var(--fg);font-weight:650;font-size:15px;margin-top:12px;margin-right:8px;cursor:pointer;text-decoration:none}
+.btn:hover{background:#363636}
+.clip{margin-top:12px;width:100%;height:84px;border-radius:14px;background:#000;border:2px solid #444;padding:10px 12px;font-size:15px;resize:vertical}
+.clip:focus{border-color:var(--accent);outline:none}
+.gone{max-width:460px;margin:0 auto;padding:18vh 24px;font-size:18px;line-height:1.45;color:var(--sum)}
+.gone b{display:block;font:400 17px "Display",sans-serif;color:var(--fg);margin-bottom:18px}
+</style></head><body>
+<svg hidden><defs>
+<symbol id="i-key" viewBox="0 0 24 24"><path d="M3 6h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zm2 3v2h2V9zm4 0v2h2V9zm4 0v2h2V9zm4 0v2h2V9zM7 14v2h10v-2z"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 5h7l2 2h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h8l5 5v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm7 2v4h4z"/></symbol>
+<symbol id="i-clip" viewBox="0 0 24 24"><path d="M9 2h6v2h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3zM7 6v14h10V6h-2v2H9V6z"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24"><path d="M9 4h6l2 2h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4zm3 5a4 4 0 1 0 .01 0z"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M4 3h9v2H5v14h8v2H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm12 4 5 5-5 5v-4H9v-2h7z"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 3l6 6h-4v7h-4V9H6zM5 18h14v2H5z"/></symbol>
+</defs></svg>
+
+<main class="pair" id="pair" hidden>
+  <h1>r1 web desk</h1>
+  <p>Type the code that the r1 is showing.</p>
+  <input class="code" id="code" inputmode="numeric" autocomplete="off" maxlength="7" aria-label="The six digit code on the r1">
+  <div class="msg" id="pairmsg" role="status"></div>
+  <div class="note">The code changes every time. Nothing is stored on this computer but a pass for this one visit.</div>
+</main>
+
+<main class="gone" id="gone" hidden><b>r1 web desk</b><span id="gonemsg"></span></main>
+
+<div id="desk" hidden>
+  <div class="top"><b>r1 web desk</b><i id="dot"></i><span id="conn"></span>
+    <span class="end">
+      <a class="pill" id="shot" href="/screenshot.png" download><svg><use href="#i-cam"/></svg>Screenshot</a>
+      <button class="pill" id="bye"><svg><use href="#i-out"/></svg>Disconnect</button></span></div>
+  <div class="desk">
+    <div class="r1">
+      <div class="row">
+        <div class="view" id="view" tabindex="0" aria-label="The r1's screen"><img id="screen" alt="" draggable="false"><p id="screenoff" hidden></p></div>
+        <button class="wheel" id="wheel" aria-label="The r1's side button" title="Click: the side button. Scroll: the wheel."></button>
+      </div>
+      <p class="cap">Click and drag on the screen as a finger would. Your mouse wheel is the r1's wheel; the middle button or Enter is the side button.</p>
+      <div class="keys"><button data-k="Escape">Back</button><button data-k="GoHome">Home</button><button data-hold="1">Hold the side button</button></div>
+    </div>
+    <div class="col">
+      <div class="box" id="typebox"><h2><svg><use href="#i-key"/></svg>Type on the r1</h2>
+        <p>Whatever you type here goes into the text field that is open on the r1.</p>
+        <input class="type" id="type" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type on the r1"></div>
+      <div class="box" id="filebox"><h2><svg><use href="#i-folder"/></svg>Files</h2>
+        <p id="filesay">Drop files anywhere on this page to send them to Downloads on the r1.</p>
+        <div id="fileon">
+          <div class="drop" id="drop"><svg><use href="#i-up"/></svg><span>Drop files here,
+            <button class="link" id="pick">choose some</button>, or
+            <button class="link" id="browse">browse the r1's storage</button></span></div>
+          <input type="file" id="picker" multiple hidden>
+          <div class="files" id="sent"></div>
+          <div class="browse" id="browser" hidden></div>
+        </div></div>
+      <div class="two">
+        <div class="box" id="clipbox"><h2><svg><use href="#i-clip"/></svg>Clipboard</h2>
+          <p id="clipsay"></p>
+          <div id="clipon" hidden>
+            <textarea class="clip" id="clip" aria-label="The r1's clipboard"></textarea>
+            <button class="btn" id="clipsend">Put this on the r1</button></div></div>
+        <div class="box" id="shotbox"><h2><svg><use href="#i-cam"/></svg>Screenshots</h2>
+          <p>Saved to this computer, not the r1.</p><a class="btn" href="/screenshot.png" download>Take one</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const post = (path, body) => fetch(path, {method: 'POST', body: body === undefined ? '{}' : JSON.stringify(body),
+    headers: {'Content-Type': 'application/json'}});
+let caps = null, clipSeen = null, gone = false;
+
+function show(which) { for (const id of ['pair', 'gone', 'desk']) $(id).hidden = id !== which; }
+function left(reason) { gone = true; $('screen').removeAttribute('src'); $('gonemsg').textContent = reason; show('gone'); }
+
+// ---- pairing
+$('code').addEventListener('input', async () => {
+  const digits = $('code').value.replace(/\D/g, '').slice(0, 6);
+  $('code').value = digits.length > 3 ? digits.slice(0, 3) + ' ' + digits.slice(3) : digits;
+  if (digits.length < 6) return;
+  $('code').disabled = true;
+  let r, j = {};
+  try { r = await post('/pair', {code: digits}); j = await r.json(); } catch (e) { r = null; }
+  $('code').disabled = false;
+  if (r && r.ok) { start(); return; }
+  $('code').value = ''; $('code').focus();
+  $('pairmsg').textContent = !r ? 'The r1 did not answer. Is web desk still on?'
+      : j.locked ? 'Too many wrong codes. The r1 shows a new one in half a minute.'
+      : j.busy ? 'Another computer is connected. Disconnect it on the r1 first.'
+      : 'That is not the code. Look at the r1 again.';
+});
+
+// ---- state
+async function poll() {
+  if (gone) return;
+  let r;
+  try { r = await fetch('/state'); } catch (e) {
+    $('dot').className = 'off'; $('conn').textContent = 'the r1 is not answering';
+    setTimeout(poll, 3000); return;
+  }
+  if (r.status === 401) { left('Disconnected. To come back, open web desk on the r1 and type its new code here.'); return; }
+  const s = await r.json();
+  $('dot').className = ''; $('conn').textContent = 'connected to ' + location.host;
+  const was = caps; caps = s.caps;
+  if (!was || was.screen !== caps.screen) {
+    $('screen').hidden = !caps.screen; $('screenoff').hidden = caps.screen;
+    $('screenoff').textContent = 'Seeing and controlling the screen is off on the r1.';
+    if (caps.screen) $('screen').src = '/screen?' + Date.now(); else $('screen').removeAttribute('src');
+    $('shot').hidden = !caps.screen; $('shotbox').classList.toggle('off', !caps.screen);
+    $('typebox').classList.toggle('off', !caps.screen); $('type').disabled = !caps.screen;
+  }
+  $('filebox').classList.toggle('off', !caps.files); $('fileon').hidden = !caps.files;
+  $('filesay').textContent = caps.files ? 'Drop files anywhere on this page to send them to Downloads on the r1.'
+      : 'Off on the r1. Turn it on there to send and fetch files.';
+  $('clipbox').classList.toggle('off', !caps.clipboard); $('clipon').hidden = !caps.clipboard;
+  $('clipsay').textContent = caps.clipboard ? 'What the r1 last copied shows here. Change it and put it back, or copy it from here.'
+      : 'Off on the r1. Turn it on there to copy text between the two.';
+  if (caps.clipboard && s.clipboard !== undefined && s.clipboard !== clipSeen && document.activeElement !== $('clip')) {
+    clipSeen = s.clipboard; $('clip').value = s.clipboard;
+  }
+  setTimeout(poll, 2000);
+}
+function start() { show('desk'); caps = null; gone = false; poll(); }
+
+$('bye').onclick = async () => { try { await post('/bye'); } catch (e) {} left('Disconnected. The r1 has a new code for the next visit.'); };
+// The screen's stream ended while the r1 says we are still connected: ask for it again
+$('screen').addEventListener('error', () => { if (!gone && caps && caps.screen) setTimeout(() => { if (!gone && caps && caps.screen) $('screen').src = '/screen?' + Date.now(); }, 1500); });
+
+// ---- the screen: a finger, the wheel, the side button
+let queue = Promise.resolve();
+const input = e => { queue = queue.then(() => post('/input', e)).catch(() => {}); };
+function at(ev) {
+  const img = $('screen'), box = img.getBoundingClientRect();
+  // object-fit: contain leaves bars when the r1 is turned on its side
+  const scale = Math.min(box.width / (img.naturalWidth || 3), box.height / (img.naturalHeight || 4));
+  const w = (img.naturalWidth || 3) * scale, h = (img.naturalHeight || 4) * scale;
+  return {x: (ev.clientX - box.left - (box.width - w) / 2) / w, y: (ev.clientY - box.top - (box.height - h) / 2) / h};
+}
+let down = false, lastMove = 0;
+$('screen').addEventListener('pointerdown', ev => {
+  $('view').focus();
+  if (ev.button === 1) { ev.preventDefault(); input({t: 'press'}); return; }
+  if (ev.button !== 0) return;
+  ev.preventDefault(); $('screen').setPointerCapture(ev.pointerId); down = true; input({t: 'down', ...at(ev)});
+});
+$('screen').addEventListener('pointermove', ev => {
+  if (!down || ev.timeStamp - lastMove < 16) return;
+  lastMove = ev.timeStamp; input({t: 'move', ...at(ev)});
+});
+for (const type of ['pointerup', 'pointercancel']) $('screen').addEventListener(type, ev => {
+  if (!down) return; down = false; input({t: 'up', ...at(ev)});
+});
+$('screen').addEventListener('auxclick', ev => ev.preventDefault());
+$('screen').addEventListener('contextmenu', ev => ev.preventDefault());
+let turned = 0, turnTimer = 0;
+function wheel(ev) {
+  if (!caps || !caps.screen) return;
+  ev.preventDefault();
+  // A notch of a mouse wheel is a step of the r1's; a touchpad's stream of small moves adds up to steps
+  turned += ev.deltaMode === 1 ? ev.deltaY / 3 : ev.deltaMode === 2 ? ev.deltaY : ev.deltaY / 100;
+  if (turnTimer) return;
+  turnTimer = setTimeout(() => {
+    turnTimer = 0; const steps = Math.trunc(turned); turned -= steps;
+    if (steps) { input({t: 'wheel', d: steps}); $('wheel').classList.toggle('turn'); }
+  }, 60);
+}
+$('view').addEventListener('wheel', wheel, {passive: false});
+$('wheel').addEventListener('wheel', wheel, {passive: false});
+$('wheel').onclick = () => input({t: 'press'});
+$('view').addEventListener('keydown', ev => {
+  if (ev.key === 'Enter') { ev.preventDefault(); input({t: 'press'}); }
+  else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') { ev.preventDefault(); input({t: 'wheel', d: ev.key === 'ArrowDown' ? 1 : -1}); }
+  else if (ev.key === 'Escape') { ev.preventDefault(); input({t: 'key', k: 'Escape'}); }
+});
+for (const b of document.querySelectorAll('.keys button')) b.onclick = () => input(b.dataset.hold ? {t: 'hold'} : {t: 'key', k: b.dataset.k});
+
+// ---- typing: what the box gains goes to the r1 as text, what it loses as backspaces
+const type = $('type');
+let typed = '';
+type.addEventListener('keydown', ev => {
+  if (ev.isComposing) return;
+  if (ev.key === 'Enter') { ev.preventDefault(); input({t: 'key', k: 'Enter'}); type.value = typed = ''; }
+  else if (['Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Delete', 'Home', 'End'].includes(ev.key)
+      || ev.key === 'Backspace' && type.value === '') {
+    ev.preventDefault(); input({t: 'key', k: ev.key}); type.value = typed = '';
+  }
+});
+type.addEventListener('input', ev => {
+  if (ev.isComposing) return;
+  const now = type.value;
+  let same = 0;
+  while (same < typed.length && same < now.length && typed[same] === now[same]) same++;
+  for (let i = typed.length; i > same; i--) input({t: 'key', k: 'Backspace'});
+  if (now.length > same) input({t: 'text', s: now.slice(same)});
+  typed = now;
+});
+type.addEventListener('compositionend', () => type.dispatchEvent(new Event('input')));
+
+// ---- files
+const size = n => n < 1000 ? n + ' B' : n < 1e6 ? Math.round(n / 1e3) + ' kB' : n < 1e9 ? (n / 1e6).toFixed(1) + ' MB' : (n / 1e9).toFixed(2) + ' GB';
+function send(file) {
+  const row = document.createElement('div'); row.className = 'file'; $('sent').prepend(row);
+  const say = t => row.textContent = file.name + ', ' + size(file.size) + ', ' + t;
+  say('sending');
+  // XMLHttpRequest for its progress: fetch has none for what it sends
+  const x = new XMLHttpRequest();
+  x.open('POST', '/upload?name=' + encodeURIComponent(file.name));
+  x.upload.onprogress = e => { if (e.lengthComputable) say(Math.floor(100 * e.loaded / e.total) + ' %'); };
+  x.onload = () => { if (x.status === 200) say('sent'); else { row.classList.add('bad'); say(x.status === 403 ? 'files are off on the r1' : 'not sent'); } };
+  x.onerror = () => { row.classList.add('bad'); say('not sent'); };
+  x.send(file);
+}
+const sendAll = files => { if (caps && caps.files) for (const f of files) send(f); };
+let depth = 0;
+addEventListener('dragenter', ev => { if (ev.dataTransfer && ev.dataTransfer.types.includes('Files')) { depth++; $('drop').classList.add('over'); } });
+addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; $('drop').classList.remove('over'); } });
+addEventListener('dragover', ev => ev.preventDefault());
+addEventListener('drop', ev => { ev.preventDefault(); depth = 0; $('drop').classList.remove('over'); sendAll(ev.dataTransfer.files); });
+$('pick').onclick = () => $('picker').click();
+$('picker').onchange = () => { sendAll($('picker').files); $('picker').value = ''; };
+async function browse(path) {
+  const box = $('browser');
+  let j;
+  try { const r = await fetch('/files?path=' + encodeURIComponent(path)); if (!r.ok) return; j = await r.json(); } catch (e) { return; }
+  box.hidden = false; box.textContent = '';
+  const head = document.createElement('div'); head.className = 'path'; head.textContent = 'r1 storage' + (j.path ? ' / ' + j.path.split('/').join(' / ') : ''); box.append(head);
+  const row = (icon, name, note) => {
+    const el = document.createElement(icon === 'i-file' ? 'a' : 'button');
+    el.innerHTML = '<svg><use href="#' + icon + '"/></svg><span></span><small></small>';
+    el.children[1].textContent = name; el.children[2].textContent = note; box.append(el); return el;
+  };
+  if (j.path) row('i-folder', '..', '').onclick = () => browse(j.path.split('/').slice(0, -1).join('/'));
+  for (const e of j.entries) {
+    const full = (j.path ? j.path + '/' : '') + e.name;
+    if (e.dir) row('i-folder', e.name, '').onclick = () => browse(full);
+    else { const a = row('i-file', e.name, size(e.size)); a.href = '/file?path=' + encodeURIComponent(full); a.download = e.name; }
+  }
+  if (!j.entries.length) { const none = document.createElement('div'); none.className = 'path'; none.textContent = 'Nothing in here.'; box.append(none); }
+}
+$('browse').onclick = () => { if ($('browser').hidden) browse(''); else $('browser').hidden = true; };
+
+// ---- clipboard
+$('clipsend').onclick = async () => {
+  const r = await post('/clipboard', {text: $('clip').value}).catch(() => null);
+  clipSeen = $('clip').value; $('clipsend').textContent = r && r.ok ? 'On the r1 now' : 'Not sent';
+  setTimeout(() => $('clipsend').textContent = 'Put this on the r1', 1800);
+};
+
+// ---- which page: the desk when this browser already has its pass
+fetch('/state').then(r => { if (r.ok) start(); else { show('pair'); $('code').focus(); } }, () => { show('pair'); });
+</script>
+</body></html>

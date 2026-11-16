@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fitsSystemWindows="true" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView style="@style/Title" android:text="@string/app_name" />
+
+        <!-- Waiting for a computer: where to go and the code -->
+        <LinearLayout android:id="@+id/waiting" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/open" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginStart="24dp" android:layout_marginEnd="24dp"
+                android:layout_marginTop="6dp" android:text="@string/open"
+                android:textColor="@color/text_dim" />
+            <TextView android:id="@+id/address" style="@style/Number"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="24dp" android:layout_marginTop="8dp"
+                android:textSize="27sp" />
+            <TextView android:id="@+id/address_or" style="@style/Dim"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="24dp" android:layout_marginTop="4dp" />
+            <TextView android:id="@+id/type_code" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginStart="24dp" android:layout_marginEnd="24dp"
+                android:layout_marginTop="18dp" android:text="@string/type_code"
+                android:textColor="@color/text_dim" />
+            <LinearLayout android:id="@+id/code" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginStart="24dp"
+                android:layout_marginTop="8dp" android:layoutDirection="ltr" />
+            <LinearLayout android:id="@+id/caps" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
+                android:layout_marginTop="22dp" />
+        </LinearLayout>
+
+        <!-- A computer is connected: who, what it does, the way out -->
+        <LinearLayout android:id="@+id/connected" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical"
+            android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginStart="24dp"
+                android:layout_marginTop="10dp" android:gravity="center_vertical">
+                <ImageView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:src="@drawable/dot_on"
+                    android:importantForAccessibility="no" />
+                <TextView android:id="@+id/since" style="@style/Body"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp" android:textColor="@color/text_dim" />
+            </LinearLayout>
+            <TextView android:id="@+id/who" style="@style/Number"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginStart="24dp" android:layout_marginEnd="24dp"
+                android:layout_marginTop="12dp" android:maxLines="2" android:textSize="24sp"
+                android:lineSpacingMultiplier="1.15" />
+            <LinearLayout android:id="@+id/did" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
+                android:layout_marginTop="20dp" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginStart="18dp" android:layout_marginTop="10dp">
+            <TextView android:id="@+id/disconnect" android:layout_width="wrap_content"
+                android:layout_height="48dp" android:paddingStart="26dp"
+                android:paddingEnd="26dp" android:gravity="center"
+                android:background="@drawable/button_bg" android:text="@string/disconnect"
+                android:textColor="#2A1206" android:textSize="16sp"
+                android:fontFamily="haretic-text-bold" android:focusable="true"
+                android:clickable="true" android:defaultFocusHighlightEnabled="false"
+                android:layout_marginEnd="10dp" android:visibility="gone" />
+            <TextView android:id="@+id/turn_off" android:layout_width="wrap_content"
+                android:layout_height="48dp" android:paddingStart="26dp"
+                android:paddingEnd="26dp" android:gravity="center"
+                android:background="@drawable/button_quiet_bg" android:text="@string/turn_off"
+                android:textColor="@color/text" android:textSize="16sp"
+                android:fontFamily="haretic-text-medium" android:focusable="true"
+                android:clickable="true" android:defaultFocusHighlightEnabled="false" />
+        </LinearLayout>
+        <Space android:layout_width="0dp" android:layout_height="0dp"
+            android:layout_weight="1" />
+        <TextView android:id="@+id/foot" style="@style/Dim"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginStart="24dp" android:layout_marginEnd="24dp"
+            android:layout_marginTop="14dp" android:layout_marginBottom="14dp"
+            android:textColor="@color/text_faint" />
+    </LinearLayout>
+</ScrollView>

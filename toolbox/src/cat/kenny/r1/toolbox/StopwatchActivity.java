@@ -13,6 +13,7 @@ public final class StopwatchActivity extends OneReading {
     private static final int LAPS_SHOWN = 4;
 
     private StopwatchModel mWatch;
+    private long mLapAt;
 
     static StopwatchModel load(android.content.Context context) {
         return StopwatchModel.restore(Words.prefs(context).getString("stopwatch", ""));
@@ -45,7 +46,10 @@ public final class StopwatchActivity extends OneReading {
 
     @Override
     protected void onTurn(int clicks) {
-        if (clicks > 0 && mWatch.running()) {
+        // One flick of the wheel is several clicks and one lap
+        final long uptime = android.os.SystemClock.uptimeMillis();
+        if (clicks > 0 && mWatch.running() && uptime - mLapAt > 400) {
+            mLapAt = uptime;
             mWatch.lap(now());
             save();
             tick();

@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
+// Web desk: the r1 in a computer's browser - its screen, a real keyboard, files, the clipboard and
+// screenshots - off until started, paired with a code that changes every time. Reading the screen
+// and injecting input are signature permissions, hence the platform certificate.
+android_app {
+    name: "R1WebDesk",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    asset_dirs: ["assets"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Web desk</string>
+    <string name="open">On a computer on this Wi-Fi, open</string>
+    <!-- Under the name, for a computer that cannot find it by name -->
+    <string name="open_or">or <xliff:g id="address">%1$s</xliff:g></string>
+    <string name="type_code">then type this code</string>
+    <string name="no_wifi">Web desk needs Wi-Fi. Connect the r1 to the network your computer is on.</string>
+    <string name="locked">Too many wrong codes. A new code shows in a moment.</string>
+    <string name="cap_screen">See and control the screen</string>
+    <string name="cap_files">Send and fetch files</string>
+    <string name="cap_clipboard">Share the clipboard</string>
+    <string name="foot">The code changes each time. Web desk turns itself off after an hour with no computer.</string>
+    <string name="turn_off">Turn off</string>
+    <string name="connected_since">Connected since <xliff:g id="clock">%1$s</xliff:g></string>
+    <string name="disconnect">Disconnect</string>
+    <string name="foot_connected">While a computer is connected, this dot stays in the status bar.</string>
+    <string name="nothing_yet">Nothing done yet</string>
+    <string name="right_now">right now</string>
+    <!-- What the computer is, from its browser -->
+    <string name="who"><xliff:g id="browser">%1$s</xliff:g>\non <xliff:g id="computer">%2$s</xliff:g></string>
+    <string name="a_browser">A browser</string>
+    <string name="a_computer">a computer</string>
+    <string name="a_mac">a Mac</string>
+    <string name="a_windows">a Windows computer</string>
+    <string name="a_linux">a Linux computer</string>
+    <string name="a_phone">a phone</string>
+    <!-- What the computer did, the list on the connected page -->
+    <string name="did_typing">Typing</string>
+    <string name="did_screen">Using the screen</string>
+    <string name="did_watching">Watching the screen</string>
+    <plurals name="did_received">
+        <item quantity="one">1 file received</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> files received</item>
+    </plurals>
+    <string name="did_received_where">in Downloads</string>
+    <plurals name="did_fetched">
+        <item quantity="one">1 file fetched</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> files fetched</item>
+    </plurals>
+    <string name="did_fetched_where">saved on the computer</string>
+    <string name="did_screenshot">Screenshot taken</string>
+    <string name="did_clipboard_in">Clipboard set from the computer</string>
+    <string name="did_clipboard_out">Clipboard read by the computer</string>
+    <!-- The notification while it runs -->
+    <string name="channel">Web desk</string>
+    <string name="note_waiting">Web desk is on, waiting for a computer</string>
+    <string name="note_connected">A computer is using this r1</string>
+    <string name="note_open">Tap to see what it is doing or to disconnect.</string>
+</resources>

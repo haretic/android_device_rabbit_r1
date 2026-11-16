@@ -159,6 +159,9 @@ PRODUCT_PACKAGES += R1RadioSleep
 # Toolbox: a level, a sound level and a tally from the r1's own sensors, on the wheel
 PRODUCT_PACKAGES += R1Toolbox
 
+# Web desk: the r1 in a computer's browser, off until started and paired with a code
+PRODUCT_PACKAGES += R1WebDesk
+
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 
