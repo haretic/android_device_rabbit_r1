@@ -3,11 +3,13 @@ package cat.kenny.r1.webdesk;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.hardware.display.DisplayManager;
 import android.hardware.input.InputManager;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -112,7 +114,9 @@ final class Input {
             return;
         }
         final Point size = new Point();
-        mContext.getDisplay().getRealSize(size);
+        // The service has no display of its own to ask (Context.getDisplay() throws there)
+        mContext.getSystemService(DisplayManager.class).getDisplay(Display.DEFAULT_DISPLAY)
+                .getRealSize(size);
         final float px = Math.max(0, Math.min(1, x)) * (size.x - 1);
         final float py = Math.max(0, Math.min(1, y)) * (size.y - 1);
         final long now = SystemClock.uptimeMillis();
