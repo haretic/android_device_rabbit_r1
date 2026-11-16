@@ -34,6 +34,15 @@ PRODUCT_VENDOR_PROPERTIES += \
     vendor.audio.mainline.speaker_boost.property=sys.r1.speaker_boost \
     vendor.audio.mainline.speaker_boost.max_db=11
 
+# The speaker's tone correction, from sweeps recorded on the r1's own microphone
+# (work/improvements/speaker): the speaker rings at 1.1 kHz, about 8 dB over what is above it,
+# and gives next to nothing under 300 Hz. Half the ring comes out, the octave under it comes
+# up, what it cannot play is not sent to it, and the level that frees goes back in. Off until
+# Sound settings turns it on (persist.sys.r1.kt.speaker_tone, as sys.r1.speaker_tone).
+PRODUCT_VENDOR_PROPERTIES += \
+    vendor.audio.mainline.speaker_tone.property=sys.r1.speaker_tone \
+    vendor.audio.mainline.speaker_tone.filters=hp:250:0.7,peak:600:4:1.0,peak:1100:-6:2.0,gain:3
+
 # 30 media volume steps rather than 15: the wheel moves one step per detent, and half-size
 # steps let the small speaker settle between loud and quiet. Saved volumes are rescaled.
 PRODUCT_SYSTEM_PROPERTIES += ro.config.media_vol_steps=30

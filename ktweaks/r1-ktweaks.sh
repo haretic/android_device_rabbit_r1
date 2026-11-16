@@ -24,6 +24,8 @@
 #                               codec's line out, up to 14 on the speaker amplifier (measured
 #                               +6.3 dB at its top gain) and the rest by the audio HAL on the
 #                               samples, behind its limiter (sys.r1.speaker_boost, in dB)
+#   persist.sys.r1.kt.speaker_tone 0 | 1, the speaker's tone correction in the audio HAL (off
+#                               by default), in use with the tweaks off too (Settings > Sound)
 #   persist.sys.r1.kt.mic       0..24 in steps of 6, the mic's gain in dB (24 by default)
 #   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
 #   persist.sys.r1.kt.wheel_poll_fast 10 | 16 | 33, ms between the wheel's readings as it turns
@@ -194,6 +196,7 @@ set_audio() {
 	[ $line -gt 18 ] && { boost=$(( line - 18 )); line=18; }
 	[ $boost -gt 6 ] && { soft=$(( boost - 6 )); boost=6; }
 	setprop sys.r1.speaker_boost $soft
+	[ "$(prop speaker_tone)" = 1 ] && setprop sys.r1.speaker_tone 1 || setprop sys.r1.speaker_tone 0
 	tinymix2 -D 0 set "Lineout Volume" $line $line >/dev/null 2>&1 || fail speaker
 	tinymix2 -D 0 set "Speaker Amp AW87390 PA Boost" $boost >/dev/null 2>&1 || fail speaker
 	tinymix2 -D 0 set "Mic Volume" $mic >/dev/null 2>&1 || fail mic

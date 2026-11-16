@@ -43,4 +43,5 @@
     <integer name="config_speaker_gain_min">-6</integer>
     <integer name="config_speaker_gain_max">10</integer>
     <integer name="config_speaker_gain_default">8</integer>
+    <string name="config_speaker_tone_property" translatable="false">persist.sys.r1.kt.speaker_tone</string>
 </resources>
