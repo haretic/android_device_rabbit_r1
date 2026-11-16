@@ -171,6 +171,12 @@ PRODUCT_PACKAGES += R1Synth
 # Travel router: a Wi-Fi network passed on under the r1's own name, signed in to once
 PRODUCT_PACKAGES += R1Router
 
+# USB-C port: a sheet for what was plugged in, power only while the r1 is locked
+PRODUCT_PACKAGES += R1Port
+
+# Phone companion: an iPhone's notifications and music controls over Bluetooth LE
+PRODUCT_PACKAGES += R1Phone
+
 # Home Assistant client for the R1, preinstalled.
 PRODUCT_PACKAGES += R1HA
 

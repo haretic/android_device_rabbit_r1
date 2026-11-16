@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cat.kenny.r1.port">
+    <!-- What the port is to a computer -->
+    <uses-permission android:name="android.permission.MANAGE_USB" />
+    <!-- The r1's internet over the cable -->
+    <uses-permission android:name="android.permission.TETHER_PRIVILEGED" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <!-- The sheet comes up when something is plugged in, the r1 unlocked -->
+    <uses-permission android:name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- While plugged into a computer: watches for the r1 being locked and unlocked -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <!-- A stick's size and name, ejecting it, photos copied onto it -->
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE" />
+    <application android:label="@string/app_name" android:icon="@drawable/ic_usb"
+        android:allowBackup="false" android:supportsRtl="true">
+        <activity android:name=".PortActivity" android:exported="false"
+            android:theme="@style/Sheet" android:launchMode="singleTask"
+            android:excludeFromRecents="true" android:taskAffinity="" />
+        <receiver android:name=".PortReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_STATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_MOUNTED" />
+                <action android:name="android.intent.action.MEDIA_EJECT" />
+                <action android:name="android.intent.action.MEDIA_BAD_REMOVAL" />
+                <action android:name="android.intent.action.MEDIA_UNMOUNTED" />
+                <data android:scheme="file" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".PortService" android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+    </application>
+</manifest>

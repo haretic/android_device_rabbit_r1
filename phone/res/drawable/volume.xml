@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background" android:height="12dp" android:gravity="center_vertical">
+        <shape><solid android:color="#4A4039" /><corners android:radius="6dp" /></shape></item>
+    <item android:id="@android:id/progress" android:height="12dp" android:gravity="center_vertical">
+        <clip><shape><solid android:color="?android:attr/colorAccent" />
+            <corners android:radius="6dp" /></shape></clip></item>
+</layer-list>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">USB-C port</string>
+    <string name="computer">Plugged into a computer</string>
+    <string name="charging_at">Charging at %1$s A</string>
+    <string name="charging">Charging</string>
+    <string name="not_charging">Not charging</string>
+    <string name="on_power">On power, not charging</string>
+    <string name="power_only">Power only</string>
+    <string name="files">Files</string>
+    <string name="files_sum">the computer sees this r1\'s storage</string>
+    <string name="internet">Share internet</string>
+    <string name="internet_sum">the r1\'s Wi-Fi, over the cable</string>
+    <string name="webcam">Webcam</string>
+    <string name="sound_card">Sound card</string>
+    <string name="disk">Disk emulator</string>
+    <string name="disk_sum">be a USB stick or CD drive</string>
+    <string name="lock_hint">Back to power only when you lock the r1.</string>
+    <string name="debug_hint">Back to power only when you lock the r1. USB debugging stays on.</string>
+    <string name="card_title">Power only until you unlock</string>
+    <string name="card_text">The computer can\'t reach this r1 yet.</string>
+    <string name="card_text_debug">Only USB debugging reaches this r1.</string>
+    <string name="note_power">Power only</string>
+    <string name="note_power_text">Tap for what the r1 can be to this computer.</string>
+    <string name="role_on">%1$s is on</string>
+    <string name="role_on_text">Back to power only when you lock the r1.</string>
+    <string name="channel">What the port is to a computer</string>
+    <string name="channel_locked">Plugged in while locked</string>
+    <string name="stick">USB stick</string>
+    <string name="stick_size">%1$s, %2$s</string>
+    <string name="stick_powered">Powered by the r1 - %1$s free</string>
+    <string name="open_files">Open in Files</string>
+    <string name="copy_photos">Copy new photos to it</string>
+    <string name="copy_counting">Looking at the photos</string>
+    <string name="copy_none">Every photo is on it already</string>
+    <plurals name="copy_sum">
+        <item quantity="one">%1$d photo, %2$s</item>
+        <item quantity="other">%1$d photos, %2$s</item>
+    </plurals>
+    <string name="copy_no_room">%1$s needed, %2$s free on it</string>
+    <string name="copy_progress">Copying %1$d of %2$d</string>
+    <plurals name="copy_done">
+        <item quantity="one">%1$d photo copied</item>
+        <item quantity="other">%1$d photos copied</item>
+    </plurals>
+    <string name="copy_failed">Stopped at %1$d of %2$d: the stick took no more</string>
+    <string name="eject">Eject</string>
+    <string name="ejecting">Ejecting</string>
+    <string name="ejected">Safe to unplug</string>
+    <string name="eject_failed">Still in use, not ejected</string>
+</resources>

@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+// USB-C port: one sheet that names what was plugged in and offers what the r1 can be for it,
+// and power only while the r1 is locked. Choosing the port's role, starting USB tethering and
+// ejecting a stick are privileged, hence the platform certificate.
+android_app {
+    name: "R1Port",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

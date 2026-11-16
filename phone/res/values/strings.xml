@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">Phone</string>
+    <string name="intro">Your iPhone\'s notifications and its music\'s controls, here on the r1.</string>
+    <string name="turn_on">Turn on</string>
+    <string name="turn_off">Turn off</string>
+    <string name="waiting">Waiting for the iPhone</string>
+    <string name="waiting_text">On the iPhone, open Settings, then Bluetooth, and pick “%1$s”. Say yes when it asks to pair, and again when it asks to show notifications.</string>
+    <string name="pairing">Pairing</string>
+    <string name="pairing_text">Say yes on the iPhone and here.</string>
+    <string name="no_services">Connected, without notifications</string>
+    <string name="no_services_text">The iPhone shares nothing with this r1 yet. In its Bluetooth settings, open the r1 and turn on Share System Notifications.</string>
+    <string name="bluetooth_off">Bluetooth is off</string>
+    <string name="bluetooth_off_text">Turn Bluetooth on and the r1 looks for the iPhone again.</string>
+    <string name="connected">Connected to %1$s</string>
+    <string name="an_iphone">an iPhone</string>
+    <string name="nothing_playing">Nothing playing</string>
+    <string name="previous">Previous</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="volume">Phone volume</string>
+    <string name="volume_hint">Press, and the wheel is your phone\'s volume.</string>
+    <string name="volume_held">The wheel is your phone\'s volume. Press to let go of it.</string>
+    <string name="no_notifications">No notifications on the phone</string>
+    <string name="channel_link">Phone link</string>
+    <string name="channel_notes">Phone notifications</string>
+    <string name="channel_quiet">Phone notifications from before</string>
+    <string name="channel_calls">Calls on the phone</string>
+    <string name="link_waiting">Waiting for the iPhone</string>
+    <string name="link_on">Showing your phone\'s notifications</string>
+    <string name="calling">%1$s is calling your phone</string>
+    <string name="calling_unknown">Your phone is ringing</string>
+    <string name="calling_text">Answer on the phone.</string>
+    <string name="decline">Decline</string>
+</resources>

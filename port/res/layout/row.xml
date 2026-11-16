@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:minHeight="52dp" android:layout_marginBottom="2dp" android:gravity="center_vertical"
+    android:background="@drawable/row_bg" android:focusable="true" android:clickable="true"
+    android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+    <ImageView android:id="@+id/icon" android:layout_width="23dp" android:layout_height="23dp"
+        android:tint="#D2D2D2" android:importantForAccessibility="no" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical"
+        android:layout_marginStart="16dp">
+        <TextView android:id="@+id/title" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="17sp"
+            android:textStyle="bold" android:textColor="@color/text" android:maxLines="1" />
+        <TextView android:id="@+id/summary" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="14sp"
+            android:textColor="@color/text_sum" android:maxLines="1" android:ellipsize="end"
+            android:fontFeatureSettings="tnum" android:visibility="gone" />
+    </LinearLayout>
+    <View android:id="@+id/radio" android:layout_width="22dp" android:layout_height="22dp"
+        android:background="@drawable/radio" android:visibility="gone" />
+</LinearLayout>

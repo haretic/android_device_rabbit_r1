@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+// Phone companion: an iPhone's notifications and its music's controls on the r1, over
+// Bluetooth LE, through the two services Apple publishes for watches. The protocol is in
+// proto/, plain Java with its own host tests; around it the link, its notes and the page.
+android_app {
+    name: "R1Phone",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}

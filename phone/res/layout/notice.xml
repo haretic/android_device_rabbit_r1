@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:minHeight="62dp" android:layout_marginBottom="3dp" android:gravity="center_vertical"
+    android:background="@drawable/row_bg" android:focusable="true"
+    android:defaultFocusHighlightEnabled="false" android:paddingStart="14dp"
+    android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp">
+    <ImageView android:id="@+id/icon" android:layout_width="24dp" android:layout_height="24dp"
+        android:tint="#D2D2D2" android:importantForAccessibility="no" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical"
+        android:layout_marginStart="14dp">
+        <TextView android:id="@+id/title" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="16sp"
+            android:fontFamily="haretic-text-bold" android:textColor="@color/text"
+            android:maxLines="1" android:ellipsize="end" />
+        <TextView android:id="@+id/text" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="14sp"
+            android:textColor="@color/text_sum" android:maxLines="2" android:ellipsize="end" />
+    </LinearLayout>
+    <TextView android:id="@+id/time" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_marginStart="10dp"
+        android:textSize="13sp" android:textColor="@color/text_dim"
+        android:fontFeatureSettings="tnum" />
+</LinearLayout>
