@@ -358,7 +358,7 @@ public final class RouterActivity extends Activity {
         return row;
     }
 
-    /** What a phone's camera reads to join: the Wi-Fi code's own escaping of \ ; , : and ". */
+    /** What a phone's camera reads to join, special characters escaped as that format asks. */
     private static String join(String ssid, String pass) {
         final boolean open = pass == null || pass.isEmpty();
         return "WIFI:T:" + (open ? "nopass" : "WPA") + ";S:" + escape(ssid) + ";"
@@ -366,7 +366,16 @@ public final class RouterActivity extends Activity {
     }
 
     private static String escape(String text) {
-        return text.replaceAll("([\\\;,:\"])", "\\\\$1");
+        final StringBuilder out = new StringBuilder(text.length() + 8);
+        for (int i = 0; i < text.length(); i++) {
+            final char c = text.charAt(i);
+            if (c == 92 || c == ';' || c == ',' || c == ':' || c == '"') {
+                // 92 is the backslash, which escapes these five
+                out.append((char) 92);
+            }
+            out.append(c);
+        }
+        return out.toString();
     }
 
     private int accent() {
