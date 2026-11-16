@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The app's own picture, in its own colours: drawn on 100 x 100 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="100dp"
+    android:height="100dp" android:viewportWidth="100" android:viewportHeight="100">
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M10,56Q22,12 34,56Q40,76 47,62" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M53,42h10v26h11V32h14" />
+    <path android:fillColor="#FFD23F"
+        android:pathData="M42,22h13v7h-13z" />
+</vector>

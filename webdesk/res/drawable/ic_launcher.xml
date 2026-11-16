@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background><color android:color="#EC6A37" /></background>
-    <foreground><inset android:drawable="@drawable/ic_launcher_fg" android:inset="27%" /></foreground>
+    <background><color android:color="#2F6BFF" /></background>
+    <foreground><inset android:drawable="@drawable/ic_app" android:inset="25%" /></foreground>
 </adaptive-icon>

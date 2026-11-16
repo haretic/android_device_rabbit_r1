@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources>
-    <string name="app_name">Phone</string>
+    <string name="app_name">Phone companion</string>
     <string name="intro">Your iPhone\'s notifications and its music\'s controls, here on the r1.</string>
     <string name="turn_on">Turn on</string>
     <string name="turn_off">Turn off</string>
