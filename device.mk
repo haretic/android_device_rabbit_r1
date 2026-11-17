@@ -40,7 +40,9 @@ TARGET_GRAPHICS_ALLOCATOR_HAL := none
 # The stock driver's Vulkan 1.1 (DDK 1.13), declared to the apps that look for it. Apps and
 # the system UI draw with it (Skia on Vulkan): scrolling Settings, a frame took 11 ms where
 # GLES took 12 to 13 (TARGET_USES_VULKAN in BoardConfig.mk, the build's own switch for
-# ro.hwui.use_vulkan). SurfaceFlinger stays on GLES.
+# ro.hwui.use_vulkan). SurfaceFlinger composes with it too, over r1-pvr.mk's GLES default: it
+# missed as many frames as on GLES over the same scrolling (76 and 52 against 74 and 69).
+PRODUCT_VENDOR_PROPERTIES += debug.renderengine.backend=skiavkthreaded
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.vulkan.version-1_1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version.xml \
     frameworks/native/data/etc/android.hardware.vulkan.level-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.level.xml \
