@@ -112,6 +112,19 @@ public class KnobActivity extends Activity implements Hid.Listener {
                     // No such dialog on this system: the notification is still there
                 }
                 return;
+            } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(intent.getAction())
+                    && intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, 0)
+                            == BluetoothDevice.BOND_BONDED && mFindable) {
+                // Paired from this page. A computer opens the link itself; a phone pairs and
+                // then waits for the keyboard to come to it, so the r1 goes to it
+                final BluetoothDevice paired =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                mRoot.postDelayed(() -> {
+                    if (paired != null && mHid.host() == null && mComing == null
+                            && !isDestroyed()) {
+                        mHid.connect(paired);
+                    }
+                }, 4000);
             } else if (BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(intent.getAction())) {
                 mFindable = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, 0)
                         == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
@@ -220,6 +233,15 @@ public class KnobActivity extends Activity implements Hid.Listener {
                         list.addView(row(device.getAddress(), name(device),
                                 getString(device.equals(mComing) ? R.string.connecting
                                         : R.string.known_sum), v -> mHid.connect(device)));
+                    }
+                }
+                // Paired some other way, never yet a knob's other side: worth a try
+                for (BluetoothDevice device : adapter.getBondedDevices()) {
+                    if (!known.contains(device.getAddress())
+                            && device.getType() != BluetoothDevice.DEVICE_TYPE_LE) {
+                        list.addView(row(device.getAddress(), name(device),
+                                getString(device.equals(mComing) ? R.string.connecting
+                                        : R.string.paired_sum), v -> mHid.connect(device)));
                     }
                 }
             }

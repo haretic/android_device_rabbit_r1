@@ -10,6 +10,7 @@
     <string name="pair_sum">findable for two minutes</string>
     <string name="pair_on">Findable now, as “%1$s”</string>
     <string name="known_sum">press to connect</string>
+    <string name="paired_sum">paired, press to try it as a knob</string>
     <string name="connecting">connecting</string>
     <string name="connected">connected</string>
     <string name="turns">The wheel turns</string>
