@@ -48,12 +48,14 @@ final class TouchWheel implements View.OnTouchListener {
                 InputDevice.SOURCE_TOUCHSCREEN));
     }
 
-    private final Runnable mHold = () -> {
+    private final Runnable mHold = this::hold;
+
+    private void hold() {
         mHeld = true;
         key(mPress, KeyEvent.ACTION_DOWN, 0, 0);
         key(mPress, KeyEvent.ACTION_DOWN, 1, KeyEvent.FLAG_LONG_PRESS);
         key(mPress, KeyEvent.ACTION_UP, 0, KeyEvent.FLAG_LONG_PRESS);
-    };
+    }
 
     @Override
     public boolean onTouch(View view, MotionEvent event) {
