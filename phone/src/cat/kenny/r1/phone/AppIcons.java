@@ -114,6 +114,7 @@ final class AppIcons {
             });
         } catch (Exception e) {
             // No network now: asked again when the service next starts
+            android.util.Log.i("R1Phone", "no icon yet for an app: " + e);
         }
     }
 

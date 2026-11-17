@@ -56,6 +56,13 @@ public final class ToolboxActivity extends ToolActivity {
         mToneRow = row(rows, R.drawable.ic_tone, R.string.tone, ToneActivity.class);
         mStopwatchRow = row(rows, R.drawable.ic_stopwatch, R.string.stopwatch,
                 StopwatchActivity.class);
+        // Tools that are apps of their own, opened from here
+        app(rows, R.drawable.ic_synth, R.string.synth, R.string.synth_row,
+                "cat.kenny.r1.synth", ".SynthActivity");
+        app(rows, R.drawable.ic_knob, R.string.knob, R.string.knob_row,
+                "cat.kenny.r1.knob", ".KnobActivity");
+        app(rows, R.drawable.ic_webdesk, R.string.webdesk, R.string.webdesk_row,
+                "cat.kenny.r1.webdesk", ".WebDeskActivity");
         mLevel = new LevelSensor(this, this::showLevel);
         mMeter = SoundActivity.newMeter(this);
         if (state == null) {
@@ -70,6 +77,21 @@ public final class ToolboxActivity extends ToolActivity {
         row.setOnClickListener(v -> startActivity(new Intent(this, tool)));
         rows.addView(row);
         return row;
+    }
+
+    /** A row for a tool that is its own package; none where the package is not there. */
+    private void app(ViewGroup rows, int icon, int title, int sub, String pkg, String activity) {
+        final Intent open = new Intent(Intent.ACTION_MAIN)
+                .setClassName(pkg, pkg + activity);
+        if (getPackageManager().resolveActivity(open, 0) == null) {
+            return;
+        }
+        final View row = getLayoutInflater().inflate(R.layout.row, rows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(icon);
+        ((TextView) row.findViewById(R.id.title)).setText(title);
+        set(row, getString(sub), "");
+        row.setOnClickListener(v -> startActivity(open));
+        rows.addView(row);
     }
 
     private static void set(View row, CharSequence sub, CharSequence reading) {

@@ -4,6 +4,13 @@
     <string name="app_name">Toolbox</string>
 
     <string name="level">Level</string>
+    <!-- Tools that are apps of their own -->
+    <string name="synth">Synth</string>
+    <string name="synth_row">pads and a knob to play</string>
+    <string name="knob">Knob</string>
+    <string name="knob_row">the wheel for a computer or phone</string>
+    <string name="webdesk">Web desk</string>
+    <string name="webdesk_row">the r1 from a computer\'s browser</string>
     <string name="level_degrees"><xliff:g id="degrees">%1$s</xliff:g>°</string>
     <string name="level_flat">flat</string>
     <string name="level_edge">on edge</string>
