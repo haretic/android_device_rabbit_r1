@@ -23,8 +23,8 @@
     <string name="nobody">Nobody else is on this channel yet.</string>
     <string name="no_wifi">Walkie-talkie needs Wi-Fi. It reaches the r1s on the same network.</string>
     <string name="hear_again">Hear <xliff:g id="name">%1$s</xliff:g> again</string>
-    <string name="hint">Hold the side button and talk. Turn the wheel to change channel.</string>
-    <string name="hint_replay">Hold the side button and talk. Press to hear the last message again.</string>
+    <string name="hint">Hold the side button, or keep a finger on the screen, and talk. Turn the wheel or slide to change channel.</string>
+    <string name="hint_replay">Hold the side button, or keep a finger on the screen, and talk. Press to hear the last message again.</string>
     <string name="hint_speaking">Hold the side button to answer. While someone speaks, the wheel is the volume.</string>
     <string name="hint_mic">Walkie-talkie needs the microphone to talk. Press to allow it.</string>
     <string name="talking">Talking</string>
