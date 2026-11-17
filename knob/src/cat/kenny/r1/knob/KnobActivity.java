@@ -187,6 +187,15 @@ public class KnobActivity extends Activity implements Hid.Listener {
         return alias == null || alias.isEmpty() ? device.getAddress() : alias;
     }
 
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration config) {
+        super.onConfigurationChanged(config);
+        mDp = getResources().getDisplayMetrics().density;
+        if (mFace >= 0) {
+            show(mFace);
+        }
+    }
+
     // ------------------------------------------------------------------ faces
 
     private void show(int face) {
