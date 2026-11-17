@@ -59,7 +59,7 @@ public class KnobActivity extends Activity implements Hid.Listener {
         getTheme().resolveAttribute(android.R.attr.colorAccent, accent, true);
         mAccent = accent.data;
         mPrefs = getSharedPreferences("knob", 0);
-        mMode = Math.max(0, Math.min(Hid.ZOOM, mPrefs.getInt("mode", Hid.VOLUME)));
+        mMode = Math.max(0, Math.min(Hid.ZOOM, mPrefs.getInt("mode", Hid.SCROLL)));
         mRoot = new FrameLayout(this);
         setContentView(mRoot);
         mHid = new Hid(this, this);
