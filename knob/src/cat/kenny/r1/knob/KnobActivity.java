@@ -245,6 +245,8 @@ public class KnobActivity extends Activity implements Hid.Listener {
         final BluetoothDevice host = mHid.host();
         mDial = new DialView(this, mAccent, WHEEL_CENTRE);
         mRoot.addView(mDial, new FrameLayout.LayoutParams(-1, -1));
+        // By finger too: slide to turn, tap to press, keep it still for the choice of what turns
+        new TouchWheel(this, mDial, KeyEvent.KEYCODE_DPAD_CENTER, TouchWheel.TAP);
         final LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.VERTICAL);
         top.setPadding(dp(18), 0, dp(18), 0);

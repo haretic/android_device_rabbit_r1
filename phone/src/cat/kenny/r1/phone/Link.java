@@ -2,6 +2,7 @@
 package cat.kenny.r1.phone;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -31,7 +32,11 @@ import cat.kenny.r1.phone.proto.Ancs;
 import cat.kenny.r1.phone.proto.Inbox;
 import cat.kenny.r1.phone.proto.Uuids;
 
+import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -107,6 +112,11 @@ final class Link {
     private Op mRunning;
     private int mState = BLUETOOTH_OFF;
     private boolean mStarted;
+    /** Paired phones the r1 reaches for itself, each until one answers. */
+    private final List<BluetoothGatt> mReaching = new ArrayList<>();
+    /** Paired devices that turned out to share no notifications: not reached for again. */
+    private final Set<String> mNotPhones = new HashSet<>();
+    private boolean mFindable;
 
     Link(Context context, Runnable changed) {
         mContext = context;
@@ -128,12 +138,15 @@ final class Link {
         mStarted = true;
         final IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
         mContext.registerReceiver(mBluetooth, filter);
+        mNotPhones.clear();
         open();
     }
 
     void stop() {
         mStarted = false;
+        findable(false);
         mContext.unregisterReceiver(mBluetooth);
         close();
     }
@@ -158,6 +171,81 @@ final class Link {
         }
         advertise(adapter);
         set(WAITING);
+        reach(adapter);
+    }
+
+    /**
+     * While the page waits for a phone, the r1 can be found the way an iPhone looks for it:
+     * in its Bluetooth settings an iPhone lists the r1 as it does a speaker, found by the old
+     * Bluetooth's search, which the r1 answers only while asked to. Two minutes, asked again
+     * while the page stays up.
+     */
+    void findable(boolean on) {
+        final BluetoothAdapter adapter = mManager.getAdapter();
+        if (on == mFindable || adapter == null || !adapter.isEnabled()) {
+            return;
+        }
+        mHandler.removeCallbacks(mStayFindable);
+        try {
+            if (on) {
+                adapter.setDiscoverableTimeout(Duration.ofSeconds(120));
+                mHandler.postDelayed(mStayFindable, 110_000);
+            }
+            adapter.setScanMode(on ? BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
+                    : BluetoothAdapter.SCAN_MODE_CONNECTABLE);
+            mFindable = on;
+        } catch (RuntimeException e) {
+            // Bluetooth went away under it
+            mFindable = false;
+        }
+    }
+
+    private final Runnable mStayFindable = () -> {
+        if (mFindable) {
+            mFindable = false;
+            findable(true);
+        }
+    };
+
+    /**
+     * Reaches for the phones paired with the r1, however they were paired: from the phone's
+     * list after this page asked, or in the r1's own Bluetooth settings. A paired iPhone does
+     * not come by itself; asked, it answers whenever it is near, now or days later.
+     */
+    private void reach(BluetoothAdapter adapter) {
+        if (mGatt != null || !mStarted) {
+            return;
+        }
+        final Set<BluetoothDevice> bonded;
+        try {
+            bonded = adapter.getBondedDevices();
+        } catch (RuntimeException e) {
+            return;
+        }
+        for (BluetoothDevice device : bonded) {
+            final BluetoothClass kind = device.getBluetoothClass();
+            final int major = kind == null ? BluetoothClass.Device.Major.UNCATEGORIZED
+                    : kind.getMajorDeviceClass();
+            if ((major != BluetoothClass.Device.Major.PHONE
+                    && major != BluetoothClass.Device.Major.UNCATEGORIZED)
+                    || device.getType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
+                    || mNotPhones.contains(device.getAddress())
+                    || mReaching.stream().anyMatch(gatt -> gatt.getDevice().equals(device))) {
+                continue;
+            }
+            Log.i(TAG, "reaching for a paired phone");
+            mReaching.add(device.connectGatt(mContext, true, mCallback,
+                    BluetoothDevice.TRANSPORT_LE, BluetoothDevice.PHY_LE_1M_MASK, mHandler));
+        }
+    }
+
+    private void stopReaching(BluetoothGatt but) {
+        for (BluetoothGatt gatt : mReaching) {
+            if (gatt != but) {
+                gatt.close();
+            }
+        }
+        mReaching.clear();
     }
 
     private void advertise(BluetoothAdapter adapter) {
@@ -177,6 +265,7 @@ final class Link {
 
     private void close() {
         mHandler.removeCallbacksAndMessages(null);
+        stopReaching(null);
         if (mAdvertiser != null) {
             try {
                 mAdvertiser.stopAdvertising(mAdvertising);
@@ -226,12 +315,36 @@ final class Link {
                 }
                 return;
             }
-            final BluetoothDevice device = intent.getParcelableExtra(
-                    BluetoothDevice.EXTRA_DEVICE, BluetoothDevice.class);
-            if (mGatt == null || !mGatt.getDevice().equals(device)) {
+            if (BluetoothDevice.ACTION_PAIRING_REQUEST.equals(intent.getAction())) {
+                if (mFindable) {
+                    // The phone asked to pair while this page invited it: the system's
+                    // question goes on top now, where it would wait among the notifications
+                    try {
+                        mContext.startActivity(new Intent(intent).setComponent(null)
+                                .setPackage(null).setClassName("com.android.settings",
+                                        "com.android.settings.bluetooth.BluetoothPairingDialog")
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    } catch (RuntimeException e) {
+                        // No such dialog on this system: the notification is still there
+                    }
+                }
                 return;
             }
+            final BluetoothDevice device = intent.getParcelableExtra(
+                    BluetoothDevice.EXTRA_DEVICE, BluetoothDevice.class);
             final int bond = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, 0);
+            if (mGatt == null) {
+                if (bond == BluetoothDevice.BOND_BONDED && mStarted
+                        && mManager.getAdapter() != null) {
+                    // Newly paired, wherever that was done: maybe the phone
+                    mNotPhones.remove(device.getAddress());
+                    reach(mManager.getAdapter());
+                }
+                return;
+            }
+            if (!mGatt.getDevice().equals(device)) {
+                return;
+            }
             if (bond == BluetoothDevice.BOND_BONDED) {
                 // The phone shows its services to a paired accessory only
                 mGatt.discoverServices();
@@ -246,7 +359,9 @@ final class Link {
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int state) {
             mHandler.post(() -> {
-                if (state == BluetoothProfile.STATE_CONNECTED && mGatt == null && mStarted) {
+                if (state == BluetoothProfile.STATE_CONNECTED && mGatt == null && mStarted
+                        && mReaching.stream().noneMatch(
+                                gatt -> gatt.getDevice().equals(device))) {
                     // The same connection, now from the reading side
                     mGatt = device.connectGatt(mContext, false, mCallback,
                             BluetoothDevice.TRANSPORT_LE, BluetoothDevice.PHY_LE_1M_MASK,
@@ -260,7 +375,14 @@ final class Link {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int state) {
             if (gatt != mGatt) {
-                return;
+                if (mGatt != null || !mReaching.contains(gatt)
+                        || state != BluetoothProfile.STATE_CONNECTED) {
+                    // One reached for that is not there yet keeps being reached for
+                    return;
+                }
+                // The first paired phone to answer is the one
+                mGatt = gatt;
+                stopReaching(gatt);
             }
             if (state == BluetoothProfile.STATE_CONNECTED) {
                 if (mAdvertiser != null) {
@@ -378,6 +500,15 @@ final class Link {
             } else if (mGatt.getDevice().getBondState() == BluetoothDevice.BOND_BONDED) {
                 // Paired, and not allowed to see notifications: the phone tells of a change
                 set(NO_SERVICES);
+                final BluetoothGatt gatt = mGatt;
+                mHandler.postDelayed(() -> {
+                    if (gatt == mGatt && mState == NO_SERVICES
+                            && mManager.getAdapter().getBondedDevices().size() > 1) {
+                        // Not an iPhone, or one that will not share: the others get their turn
+                        mNotPhones.add(gatt.getDevice().getAddress());
+                        gatt.disconnect();
+                    }
+                }, 20_000);
             }
             return;
         }

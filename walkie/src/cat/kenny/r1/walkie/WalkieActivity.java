@@ -57,6 +57,9 @@ public final class WalkieActivity extends Activity {
         mDrum = findViewById(R.id.drum);
         mWave = findViewById(R.id.wave);
         mTalk = findViewById(R.id.talking);
+        // By finger too: slide for the channel or the volume, keep a finger down to talk
+        new TouchWheel(this, findViewById(android.R.id.content), KeyEvent.KEYCODE_DPAD_CENTER,
+                TouchWheel.LIVE);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 

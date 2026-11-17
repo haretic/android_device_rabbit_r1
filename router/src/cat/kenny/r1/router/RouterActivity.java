@@ -126,6 +126,7 @@ public final class RouterActivity extends Activity {
             mStarting = false;
             show();
         });
+        findViewById(R.id.own).setOnClickListener(v -> change());
         findViewById(R.id.vpn).setOnClickListener(v -> {
             Settings.Secure.putInt(getContentResolver(), VPN_UPSTREAMS, throughVpn() ? 0 : 1);
             show();
@@ -144,6 +145,67 @@ public final class RouterActivity extends Activity {
             mWifi.setSoftApConfiguration(new SoftApConfiguration.Builder(config)
                     .setSsid("burrow_" + ssid.substring("AndroidAP_".length())).build());
         }
+    }
+
+    /** The name and password of the r1's own network, the user's to choose. */
+    private void change() {
+        final SoftApConfiguration config = mWifi.getSoftApConfiguration();
+        final String ssid = config.getWifiSsid() == null ? ""
+                : config.getWifiSsid().toString().replaceAll("^\"|\"$", "");
+        final float dp = getResources().getDisplayMetrics().density;
+        final android.widget.LinearLayout fields = new android.widget.LinearLayout(this);
+        fields.setOrientation(android.widget.LinearLayout.VERTICAL);
+        fields.setPadding((int) (22 * dp), (int) (6 * dp), (int) (22 * dp), 0);
+        final android.widget.EditText name = new android.widget.EditText(this);
+        name.setHint(R.string.change_name);
+        name.setSingleLine(true);
+        name.setText(ssid);
+        name.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        fields.addView(name);
+        final android.widget.EditText password = new android.widget.EditText(this);
+        password.setHint(R.string.change_password);
+        password.setSingleLine(true);
+        password.setText(config.getPassphrase());
+        // Shown, as it is on this page anyway for those who join
+        password.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        fields.addView(password);
+        final android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.change_title).setView(fields)
+                .setPositiveButton(R.string.change_save, null)
+                .setNegativeButton(R.string.change_cancel, null).create();
+        dialog.setOnShowListener(d -> dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(v -> {
+                    final String newName = name.getText().toString().trim();
+                    final String newPassword = password.getText().toString();
+                    final int bytes = newName.getBytes(
+                            java.nio.charset.StandardCharsets.UTF_8).length;
+                    if (bytes < 1 || bytes > 32) {
+                        name.setError(getString(R.string.change_name_bad));
+                        return;
+                    }
+                    if (newPassword.length() < 8 || newPassword.length() > 63
+                            || !newPassword.chars().allMatch(c -> c >= 32 && c < 127)) {
+                        password.setError(getString(R.string.change_password_bad));
+                        return;
+                    }
+                    final boolean on = mInterface != null;
+                    mWifi.setSoftApConfiguration(new SoftApConfiguration.Builder(config)
+                            .setSsid(newName).setPassphrase(newPassword,
+                                    config.getSecurityType()
+                                            == SoftApConfiguration.SECURITY_TYPE_OPEN
+                                    ? SoftApConfiguration.SECURITY_TYPE_WPA2_PSK
+                                    : config.getSecurityType()).build());
+                    dialog.dismiss();
+                    if (on) {
+                        // A running network takes its new name on a fresh start
+                        mTethering.stopTethering(TetheringManager.TETHERING_WIFI);
+                        mMain.postDelayed(this::start, 1500);
+                    }
+                    show();
+                }));
+        dialog.show();
     }
 
     private void start() {

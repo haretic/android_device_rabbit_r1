@@ -24,6 +24,7 @@
     <!-- The phone link is nothing but Bluetooth: turning it on is the asking -->
     <exception package="cat.kenny.r1.phone">
         <permission name="android.permission.BLUETOOTH_CONNECT" fixed="false" />
+        <permission name="android.permission.BLUETOOTH_SCAN" fixed="false" />
         <permission name="android.permission.BLUETOOTH_ADVERTISE" fixed="false" />
         <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
     </exception>

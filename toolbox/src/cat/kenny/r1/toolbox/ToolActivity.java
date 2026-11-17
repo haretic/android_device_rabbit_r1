@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 /**
  * A screen worked with the wheel and the side button. The wheel arrives as D-pad up and down,
- * one key per click. The side button arrives as the power key once the window asks for it:
+ * one key per click. The side button arrives as the select key once the window asks for it:
  * a press acts, a hold goes back unless the screen has a use for it.
  */
 abstract class ToolActivity extends Activity {
@@ -23,6 +23,16 @@ abstract class ToolActivity extends Activity {
         final WindowManager.LayoutParams lp = getWindow().getAttributes();
         lp.inputFeatures |= WindowManager.LayoutParams.INPUT_FEATURE_POWER_KEY_SELECTS;
         getWindow().setAttributes(lp);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        if (usesWheel()) {
+            // By finger too: slide to turn, tap to press, keep it still for what a hold does
+            new TouchWheel(this, findViewById(android.R.id.content), KeyEvent.KEYCODE_POWER,
+                    TouchWheel.TAP);
+        }
     }
 
     /** Whether the wheel turns something here, instead of moving the focus. */
@@ -69,39 +79,31 @@ abstract class ToolActivity extends Activity {
             }
             return true;
         }
-        if (code == KeyEvent.KEYCODE_POWER) {
+        // The side button comes as the select key, which a keyboard's Enter is too
+        if (code == KeyEvent.KEYCODE_POWER || code == KeyEvent.KEYCODE_DPAD_CENTER
+                || code == KeyEvent.KEYCODE_ENTER) {
             // The system says which it was: a hold comes flagged. Not told by the times, as a
             // press arrives only once a second press can no longer follow, a wait that alone
             // made every real press look like a hold
             final boolean held = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
+            final boolean touch =
+                    event.getSource() == android.view.InputDevice.SOURCE_TOUCHSCREEN;
             if (down) {
                 if (event.getRepeatCount() == 0) {
                     mHeld = false;
                 } else if (held && !mHeld) {
-                    hold();
+                    hold(touch);
                 }
             } else if (!mHeld && !event.isCanceled()) {
                 if (held) {
-                    hold();
+                    hold(touch);
                 } else {
                     press();
                 }
             }
             return true;
         }
-        if ((code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER)
-                && onPressKey(event)) {
-            return true;
-        }
         return super.dispatchKeyEvent(event);
-    }
-
-    /** A keyboard's or remote's centre key does what the side button does. */
-    private boolean onPressKey(KeyEvent event) {
-        if (event.getAction() != KeyEvent.ACTION_UP) {
-            return getCurrentFocus() == null;
-        }
-        return onPress();
     }
 
     private void press() {
@@ -117,9 +119,11 @@ abstract class ToolActivity extends Activity {
         }
     }
 
-    private void hold() {
+    private void hold(boolean touch) {
         mHeld = true;
-        if (!onHold()) {
+        // The button's hold goes back where the screen has no use for it; a resting finger
+        // does not, the way back by touch is the system's
+        if (!onHold() && !touch) {
             finish();
         }
     }

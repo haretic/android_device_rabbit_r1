@@ -42,6 +42,8 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         mKnobs = getResources().getStringArray(R.array.knobs);
         mPads = findViewById(R.id.pads);
         mKnob = findViewById(R.id.knob);
+        // By finger too: slide along the knob to turn it, tap it for the next one
+        new TouchWheel(this, mKnob, KeyEvent.KEYCODE_DPAD_CENTER, TouchWheel.TAP_ONLY);
         mPads.set(getResources().getStringArray(R.array.pads), (pad, down) -> {
             if (down) {
                 mEngine.padDown(pad);

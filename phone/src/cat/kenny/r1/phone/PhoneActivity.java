@@ -31,7 +31,8 @@ import java.util.List;
  */
 public final class PhoneActivity extends Activity {
     private static final String[] PERMISSIONS = {Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_ADVERTISE, Manifest.permission.POST_NOTIFICATIONS};
+            Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_ADVERTISE,
+            Manifest.permission.POST_NOTIFICATIONS};
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private ViewGroup mNotices;
@@ -66,6 +67,7 @@ public final class PhoneActivity extends Activity {
         findViewById(R.id.next).setOnClickListener(v -> press(Ams.NEXT));
         findViewById(R.id.toggle).setOnClickListener(v -> press(Ams.TOGGLE));
         findViewById(R.id.volume_row).setOnClickListener(v -> hold(!mHeld));
+        findViewById(R.id.volume_row).setOnTouchListener(this::slide);
     }
 
     private boolean allowed() {
@@ -100,6 +102,9 @@ public final class PhoneActivity extends Activity {
         PhoneService.sListener = null;
         mHandler.removeCallbacksAndMessages(null);
         hold(false);
+        if (link() != null) {
+            link().findable(false);
+        }
         super.onPause();
     }
 
@@ -111,6 +116,50 @@ public final class PhoneActivity extends Activity {
         final Link link = link();
         if (link != null) {
             link.press(command);
+        }
+    }
+
+    /** Where the finger last moved the phone's volume a step, or NaN while it only rests. */
+    private float mSlideAt = Float.NaN, mSlideFrom;
+
+    /**
+     * A finger slid along the volume bar: the phone takes its volume in steps, sixteen from
+     * silent to full, so a sixteenth of the bar is one step, louder to the right. A tap stays
+     * a tap, which hands the volume to the wheel.
+     */
+    private boolean slide(View row, android.view.MotionEvent event) {
+        final View bar = findViewById(R.id.volume);
+        final float step = Math.max(1, bar.getWidth() / 16f);
+        switch (event.getActionMasked()) {
+            case android.view.MotionEvent.ACTION_DOWN:
+                mSlideFrom = event.getX();
+                mSlideAt = Float.NaN;
+                return false;
+            case android.view.MotionEvent.ACTION_MOVE:
+                if (Float.isNaN(mSlideAt)) {
+                    if (Math.abs(event.getX() - mSlideFrom)
+                            < android.view.ViewConfiguration.get(this).getScaledTouchSlop()) {
+                        return false;
+                    }
+                    // A slide from here on: not the tap, and the list under it stays put
+                    mSlideAt = mSlideFrom;
+                    row.setPressed(false);
+                    row.getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                final boolean rtl = row.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+                while (Math.abs(event.getX() - mSlideAt) >= step) {
+                    final boolean right = event.getX() > mSlideAt;
+                    mSlideAt += right ? step : -step;
+                    press(right != rtl ? Ams.VOLUME_UP : Ams.VOLUME_DOWN);
+                }
+                return true;
+            case android.view.MotionEvent.ACTION_UP:
+            case android.view.MotionEvent.ACTION_CANCEL:
+                final boolean slid = !Float.isNaN(mSlideAt);
+                mSlideAt = Float.NaN;
+                return slid;
+            default:
+                return false;
         }
     }
 
@@ -154,6 +203,10 @@ public final class PhoneActivity extends Activity {
         final Link link = link();
         final int state = link == null ? -1 : link.state();
         final boolean on = state == Link.ON;
+        if (link != null) {
+            // While this page waits for a phone, the phone can find the r1
+            link.findable(isResumed() && (state == Link.WAITING || state == Link.PAIRING));
+        }
         ((TextView) findViewById(R.id.link)).setText(link == null ? R.string.turn_on
                 : R.string.turn_off);
         findViewById(R.id.setup).setVisibility(on ? View.GONE : View.VISIBLE);

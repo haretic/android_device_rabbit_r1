@@ -37,7 +37,9 @@
                         android:layout_marginEnd="18dp" android:textColor="@color/text_sum" />
                 </LinearLayout>
                 <LinearLayout android:id="@+id/own" style="@style/Stop"
-                    android:minHeight="112dp" android:gravity="top">
+                    android:minHeight="112dp" android:gravity="top"
+                    android:background="@drawable/stop_bg" android:focusable="true"
+                    android:clickable="true">
                     <ImageView android:id="@+id/own_icon" style="@style/StopIcon"
                         android:layout_marginTop="4dp" android:src="@drawable/ic_router" />
                     <LinearLayout style="@style/StopText" android:layout_marginTop="6dp">
@@ -52,6 +54,11 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/text_faint" />
+                        <TextView android:id="@+id/own_change" style="@style/Dim"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_faint"
+                            android:text="@string/own_change" />
                     </LinearLayout>
                     <cat.kenny.r1.router.QrView android:id="@+id/qr"
                         android:layout_width="104dp" android:layout_height="104dp"

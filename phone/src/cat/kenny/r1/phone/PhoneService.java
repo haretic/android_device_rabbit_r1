@@ -30,6 +30,7 @@ public final class PhoneService extends Service {
     private static final String ACTION_NO = "cat.kenny.r1.phone.NO";
     private static final String EXTRA_UID = "uid";
     private static final String LINK = "link", NOTES = "notes", QUIET = "quiet", CALLS = "calls";
+    private static final String MUSIC = "music";
     private static final int NOTE_LINK = 1;
     private static final String TAG_NOTE = "n", TAG_CALL = "call";
 
@@ -40,6 +41,7 @@ public final class PhoneService extends Service {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Map<Long, String> mShown = new HashMap<>();
     private NotificationManager mNotes;
+    private PhoneMedia mMedia;
     private long mCall = -1;
     private int mNotedState = -1;
 
@@ -65,6 +67,8 @@ public final class PhoneService extends Service {
         channel(NOTES, R.string.channel_notes, NotificationManager.IMPORTANCE_DEFAULT);
         channel(QUIET, R.string.channel_quiet, NotificationManager.IMPORTANCE_LOW);
         channel(CALLS, R.string.channel_calls, NotificationManager.IMPORTANCE_HIGH);
+        channel(MUSIC, R.string.channel_music, NotificationManager.IMPORTANCE_LOW);
+        mMedia = new PhoneMedia(this, MUSIC, page());
         startForeground(NOTE_LINK, linkNote(Link.WAITING),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
         link = new Link(this, () -> {
@@ -100,6 +104,7 @@ public final class PhoneService extends Service {
             mNotes.cancel(TAG_NOTE, (int) uid);
         }
         mNotes.cancel(TAG_CALL, 0);
+        mMedia.hide();
         sService = null;
         if (sListener != null) {
             sListener.run();
@@ -137,6 +142,7 @@ public final class PhoneService extends Service {
             mNotedState = link.state();
             mNotes.notify(NOTE_LINK, linkNote(mNotedState));
         }
+        mMedia.show(link);
         final Set<Long> gone = new HashSet<>(mShown.keySet());
         long call = -1;
         for (Inbox.Notice notice : link.inbox.notifications()) {

@@ -21,13 +21,14 @@
     <string name="pause">Pause</string>
     <string name="next">Next</string>
     <string name="volume">Phone volume</string>
-    <string name="volume_hint">Press, and the wheel is your phone\'s volume.</string>
-    <string name="volume_held">The wheel is your phone\'s volume. Press to let go of it.</string>
+    <string name="volume_hint">Slide it, or press and turn the wheel.</string>
+    <string name="volume_held">The wheel is your phone\'s volume. Press to let go of it, or slide.</string>
     <string name="no_notifications">No notifications on the phone</string>
     <string name="channel_link">Phone link</string>
     <string name="channel_notes">Phone notifications</string>
     <string name="channel_quiet">Phone notifications from before</string>
     <string name="channel_calls">Calls on the phone</string>
+    <string name="channel_music">Music on the phone</string>
     <string name="link_waiting">Waiting for the iPhone</string>
     <string name="link_on">Showing your phone\'s notifications</string>
     <string name="calling">%1$s is calling your phone</string>

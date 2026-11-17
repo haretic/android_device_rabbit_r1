@@ -5,6 +5,9 @@
     <!-- Being found by the phone, and the link to it -->
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- To be found by the phone while the page waits for it, as in Bluetooth settings -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- The link stays while the page is closed -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
