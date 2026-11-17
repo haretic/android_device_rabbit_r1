@@ -61,6 +61,7 @@ final class Hid {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private BluetoothHidDevice mHid;
     private BluetoothDevice mHost;
+    private boolean mRehearsed;
     private boolean mRegistered;
     private BluetoothDevice mWanted;
 
@@ -107,8 +108,27 @@ final class Hid {
         }
     }
 
+    /**
+     * The dial's page as with {@code device} linked, with nothing sent anywhere: for the self
+     * test, which has no computer to link to (am start --ez rehearse true). Leaving ends it.
+     */
+    void rehearse(BluetoothDevice device) {
+        mRehearsed = true;
+        mHost = device;
+    }
+
+    boolean rehearsed() {
+        return mRehearsed;
+    }
+
     void leave() {
         mWanted = null;
+        if (mRehearsed) {
+            mRehearsed = false;
+            mHost = null;
+            mListener.onLink(null, false);
+            return;
+        }
         if (mHid != null && mHost != null) {
             mHid.disconnect(mHost);
         }
@@ -151,7 +171,7 @@ final class Hid {
     }
 
     private void send(int id, byte[] data) {
-        if (mHid != null && mHost != null) {
+        if (mHid != null && mHost != null && !mRehearsed) {
             mHid.sendReport(mHost, id, data);
         }
     }
@@ -187,7 +207,11 @@ final class Hid {
         @Override
         public void onConnectionStateChanged(BluetoothDevice device, int state) {
             Log.i(TAG, "link state " + state);
+            if (mRehearsed && state != BluetoothProfile.STATE_CONNECTED) {
+                return;
+            }
             if (state == BluetoothProfile.STATE_CONNECTED) {
+                mRehearsed = false;
                 mHost = device;
                 mListener.onLink(device, false);
             } else if (state == BluetoothProfile.STATE_CONNECTING) {

@@ -82,6 +82,20 @@ public class KnobActivity extends Activity implements Hid.Listener {
         registerReceiver(mBluetooth, filter);
         mHid.start();
         show(LIST);
+        if (getIntent().getBooleanExtra("rehearse", false)) {
+            // The self test's look at the dial's page: the first computer the r1 knows
+            final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            final Set<String> known = mPrefs.getStringSet("hosts", new HashSet<>());
+            if (adapter != null && adapter.isEnabled()) {
+                for (BluetoothDevice device : adapter.getBondedDevices()) {
+                    if (known.contains(device.getAddress())) {
+                        mHid.rehearse(device);
+                        show(DIAL);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @Override
