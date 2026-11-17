@@ -584,6 +584,9 @@ public final class DeskService extends Service implements HttpServer.Handler {
             caps.put(cap, allowed(this, cap));
         }
         out.put("caps", caps);
+        // How the r1 is turned, in quarter turns: the page turns its drawing of it the same way
+        out.put("turn", getSystemService(android.hardware.display.DisplayManager.class)
+                .getDisplay(android.view.Display.DEFAULT_DISPLAY).getRotation());
         if (allowed(this, CAP_CLIPBOARD)) {
             final String text = clipboard();
             if (text != null) {

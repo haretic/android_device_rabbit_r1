@@ -34,20 +34,36 @@ svg{width:22px;height:22px;fill:currentColor;flex:none}
 .pill svg{width:19px;height:19px}
 .pill:hover{background:#363636}
 .desk{display:flex;gap:36px;padding:20px 36px 36px;align-items:flex-start;flex-wrap:wrap}
-.r1{flex:none;border-radius:38px;background:var(--accent);padding:22px;width:min(440px,100%)}
-.r1 .row{display:flex;align-items:center;gap:14px}
-.r1 .view{flex:1;min-width:0;border-radius:10px;outline:3px solid #fff;outline-offset:3px;background:#000;
-  aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.r1 .view:focus-visible{outline:3px solid #fff;box-shadow:0 0 0 9px rgba(0,0,0,.35)}
+.unit{flex:none;width:min(440px,100%)}
+/* The r1 as measured off photos, in fractions of its square body: the black panel with the display
+   on the left; on the right the camera block, the wheel below it, the side button on the edge */
+.r1{position:relative;aspect-ratio:1;border-radius:8.5%;background:var(--accent);transition:transform .35s ease}
+.r1.t1{transform:rotate(-90deg)}.r1.t2{transform:rotate(180deg)}.r1.t3{transform:rotate(90deg)}
+.r1 .panel{position:absolute;left:2%;top:2.7%;width:69%;height:93.9%;border-radius:9% / 6.6%;background:#080808}
+.r1 .view{position:absolute;left:8.5%;top:11%;width:56%;height:74.5%;border-radius:6px;background:#000;overflow:hidden;
+  display:flex;align-items:center;justify-content:center}
+.r1 .view:focus-visible{outline:2px solid #fff;outline-offset:3px}
+/* The picture stays upright while the body turns under it */
+.r1 .up{flex:none;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:transform .35s ease}
+.r1.t1 .up{transform:rotate(90deg);width:133.04%;height:75.17%}
+.r1.t3 .up{transform:rotate(-90deg);width:133.04%;height:75.17%}
+.r1.t2 .up{transform:rotate(180deg)}
 .r1 img{width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;touch-action:none;cursor:pointer}
-.r1 .view p{position:absolute;margin:0;padding:0 24px;text-align:center;color:var(--sum);font-size:15.5px;line-height:1.4}
-.wheel{width:30px;height:124px;border-radius:15px;background:#c9532a;box-shadow:inset 0 0 0 2px #a8431f;position:relative;border:0;cursor:pointer;padding:0}
-.wheel::after{content:"";position:absolute;left:5px;right:5px;top:8px;bottom:8px;background:repeating-linear-gradient(#a8431f 0 2px,transparent 2px 8px)}
-.wheel.turn::after{background-position-y:4px}
-.cap{font-size:15px;line-height:1.4;color:var(--on-accent);margin:18px 0 0}
+.r1 .view p{position:absolute;margin:0;padding:0 16px;text-align:center;color:var(--sum);font-size:14.5px;line-height:1.4}
+.r1 .cam{position:absolute;left:75.4%;top:4.2%;width:19.7%;height:19.5%;border-radius:22%;background:#5c1d12}
+.r1 .cam::before{content:"";position:absolute;inset:14%;border-radius:20%;background:linear-gradient(#6e2a14,#e2642f 45%)}
+.r1 .cam::after{content:"";position:absolute;left:50%;top:57%;width:20%;height:20%;margin:-10% 0 0 -10%;border-radius:50%;background:#1a1a1a}
+.wheel{position:absolute;left:75%;top:31%;width:19.8%;height:21%;border-radius:12%;background:#3a1a10;border:0;padding:0;cursor:ns-resize}
+.wheel::before{content:"";position:absolute;inset:6%;border-radius:10%;background:linear-gradient(#8a3a1c,#f08050 50%,#8a3a1c)}
+.wheel::after{content:"";position:absolute;inset:6%;border-radius:10%;background:repeating-linear-gradient(rgba(58,26,16,.55) 0 1.5px,transparent 1.5px 7px)}
+.wheel.turn::after{background-position-y:3.5px}
+.side{position:absolute;left:98.6%;top:36%;width:3%;height:11%;border-radius:0 4px 4px 0;background:#b8b8b8;border:0;padding:0;cursor:pointer}
+.side:hover{background:#dcdcdc}
+.wheel:focus-visible,.side:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.cap{font-size:15px;line-height:1.4;color:var(--sum);margin:18px 0 0}
 .keys{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-.keys button{height:34px;padding:0 14px;border-radius:17px;border:0;background:rgba(42,18,6,.18);color:var(--on-accent);font-weight:620;font-size:14.5px;cursor:pointer}
-.keys button:hover{background:rgba(42,18,6,.3)}
+.keys button{height:34px;padding:0 14px;border-radius:17px;border:0;background:var(--card2);color:var(--fg);font-weight:620;font-size:14.5px;cursor:pointer}
+.keys button:hover{background:#363636}
 .col{flex:1;min-width:320px}
 .box{background:var(--card);border-radius:22px;padding:18px 20px;margin-bottom:12px}
 .box h2{margin:0 0 6px;font-size:18px;font-weight:620;display:flex;align-items:center;gap:10px}
@@ -103,10 +119,13 @@ svg{width:22px;height:22px;fill:currentColor;flex:none}
       <a class="pill" id="shot" href="/screenshot.png" download><svg><use href="#i-cam"/></svg>Screenshot</a>
       <button class="pill" id="bye"><svg><use href="#i-out"/></svg>Disconnect</button></span></div>
   <div class="desk">
-    <div class="r1">
-      <div class="row">
-        <div class="view" id="view" tabindex="0" aria-label="The r1's screen"><img id="screen" alt="" draggable="false"><p id="screenoff" hidden></p></div>
-        <button class="wheel" id="wheel" aria-label="The r1's side button" title="Click: the side button. Scroll: the wheel."></button>
+    <div class="unit">
+      <div class="r1" id="r1">
+        <div class="panel"></div>
+        <div class="view" id="view" tabindex="0" aria-label="The r1's screen"><div class="up"><img id="screen" alt="" draggable="false"></div><p id="screenoff" hidden></p></div>
+        <div class="cam"></div>
+        <button class="wheel" id="wheel" aria-label="The r1's wheel" title="Scroll here or over the screen: the wheel. Click: the side button."></button>
+        <button class="side" id="side" aria-label="The r1's side button" title="The side button"></button>
       </div>
       <p class="cap">Click and drag on the screen as a finger would. Your mouse wheel is the r1's wheel; the middle button or Enter is the side button.</p>
       <div class="keys"><button data-k="Escape">Back</button><button data-k="GoHome">Home</button><button data-hold="1">Hold the side button</button></div>
@@ -177,6 +196,7 @@ async function poll() {
   const s = await r.json();
   $('dot').className = ''; $('conn').textContent = 'connected to ' + location.host;
   const was = caps; caps = s.caps;
+  $('r1').className = 'r1' + (s.turn ? ' t' + s.turn : '');
   if (!was || was.screen !== caps.screen) {
     $('screen').hidden = !caps.screen; $('screenoff').hidden = caps.screen;
     $('screenoff').textContent = 'Seeing and controlling the screen is off on the r1.';
@@ -242,6 +262,7 @@ function wheel(ev) {
 $('view').addEventListener('wheel', wheel, {passive: false});
 $('wheel').addEventListener('wheel', wheel, {passive: false});
 $('wheel').onclick = () => input({t: 'press'});
+$('side').onclick = () => input({t: 'press'});
 $('view').addEventListener('keydown', ev => {
   if (ev.key === 'Enter') { ev.preventDefault(); input({t: 'press'}); }
   else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') { ev.preventDefault(); input({t: 'wheel', d: ev.key === 'ArrowDown' ? 1 : -1}); }
