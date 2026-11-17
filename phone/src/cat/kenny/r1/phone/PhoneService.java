@@ -108,7 +108,11 @@ public final class PhoneService extends Service {
                 link.act(uid, false);
             }
         }
-        if (intent != null && ACTION_REHEARSE.equals(intent.getAction())) {
+        if (intent != null && ACTION_REHEARSE.equals(intent.getAction())
+                && intent.hasExtra("player")) {
+            link.rehearseMusic(intent.getStringExtra("player"), intent.getStringExtra("title"),
+                    intent.getStringExtra("artist"));
+        } else if (intent != null && ACTION_REHEARSE.equals(intent.getAction())) {
             link.rehearse(intent.getLongExtra(EXTRA_UID, 0xf0000000L),
                     intent.getIntExtra("category", 0), intent.getStringExtra("app"),
                     intent.getStringExtra("name"), intent.getStringExtra("title"),

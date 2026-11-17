@@ -59,6 +59,8 @@ final class Link {
         Ams.PlaybackInfo info;
         long infoAt;
         Set<Integer> commands = Set.of();
+        /** Made up for the self test: its keys are answered here, none goes to a phone. */
+        boolean rehearsed;
 
         boolean playing() {
             return info != null && info.state() == Ams.PLAYING;
@@ -80,6 +82,7 @@ final class Link {
             duration = volume = null;
             info = null;
             commands = Set.of();
+            rehearsed = false;
         }
     }
 
@@ -709,6 +712,24 @@ final class Link {
         });
     }
 
+    /** A track as the phone's player would tell of it, for the self test. */
+    void rehearseMusic(String player, String title, String artist) {
+        mHandler.post(() -> {
+            music.rehearsed = true;
+            music.player = player;
+            music.title = title;
+            music.artist = artist;
+            music.album = "";
+            music.duration = 200f;
+            music.volume = 0.5f;
+            music.info = new Ams.PlaybackInfo(Ams.PLAYING, 1, 30);
+            music.infoAt = SystemClock.elapsedRealtime();
+            music.commands = Set.of(Ams.PLAY, Ams.PAUSE, Ams.TOGGLE, Ams.NEXT, Ams.PREVIOUS,
+                    Ams.VOLUME_UP, Ams.VOLUME_DOWN);
+            mChanged.run();
+        });
+    }
+
     private static void attribute(java.io.ByteArrayOutputStream out, int id, String value) {
         final byte[] bytes = value.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         out.write(id);
@@ -771,6 +792,30 @@ final class Link {
 
     /** A key of the phone's player, if it has that key now. */
     boolean press(int command) {
+        if (music.rehearsed) {
+            if (!music.commands.contains(command)) {
+                return false;
+            }
+            // As the phone would answer the key
+            Log.i(TAG, "rehearsed key " + command);
+            final double at = music.elapsed();
+            final boolean playing = command == Ams.PLAY || (command != Ams.PAUSE
+                    && (command == Ams.TOGGLE ? !music.playing() : music.playing()));
+            if (command == Ams.VOLUME_UP || command == Ams.VOLUME_DOWN) {
+                music.volume = Math.max(0f, Math.min(1f, (music.volume == null ? 0.5f
+                        : music.volume) + (command == Ams.VOLUME_UP ? 1 : -1) / 16f));
+            } else if (command == Ams.NEXT || command == Ams.PREVIOUS) {
+                music.title = command == Ams.NEXT ? "The track after" : "The track before";
+                music.info = new Ams.PlaybackInfo(music.playing() ? Ams.PLAYING : Ams.PAUSED,
+                        1, 0);
+                music.infoAt = SystemClock.elapsedRealtime();
+            } else {
+                music.info = new Ams.PlaybackInfo(playing ? Ams.PLAYING : Ams.PAUSED, 1, at);
+                music.infoAt = SystemClock.elapsedRealtime();
+            }
+            mChanged.run();
+            return true;
+        }
         if (mState != ON || mRemote == null || !music.commands.contains(command)) {
             return false;
         }
