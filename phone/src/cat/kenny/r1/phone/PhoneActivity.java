@@ -310,7 +310,9 @@ public final class PhoneActivity extends Activity {
         final StringBuilder listed = new StringBuilder();
         for (Inbox.Notice notice : notices) {
             listed.append(notice.uid()).append(notice.title()).append(notice.message())
-                    .append(notice.appName()).append('\n');
+                    .append(notice.appName()).append(PhoneService.sService != null
+                            && PhoneService.sService.icons.get(notice.appId()) != null)
+                    .append('\n');
         }
         if (listed.toString().equals(mListed)) {
             return;
@@ -326,8 +328,15 @@ public final class PhoneActivity extends Activity {
                 continue;
             }
             final View row = getLayoutInflater().inflate(R.layout.notice, mNotices, false);
-            ((ImageView) row.findViewById(R.id.icon)).setImageResource(
-                    PhoneService.icon(notice.category()));
+            final ImageView icon = row.findViewById(R.id.icon);
+            final android.graphics.Bitmap app = PhoneService.sService == null ? null
+                    : PhoneService.sService.icons.get(notice.appId());
+            if (app != null) {
+                icon.setImageTintList(null);
+                icon.setImageBitmap(app);
+            } else {
+                icon.setImageResource(PhoneService.icon(notice.category()));
+            }
             ((TextView) row.findViewById(R.id.title)).setText(notice.title().isEmpty()
                     ? notice.appName() : notice.title());
             ((TextView) row.findViewById(R.id.text)).setText(PhoneService.text(notice));

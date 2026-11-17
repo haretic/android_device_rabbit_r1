@@ -32,7 +32,9 @@ public final class PhoneService extends Service {
     private static final String LINK = "link", NOTES = "notes", QUIET = "quiet", CALLS = "calls";
     private static final String MUSIC = "music";
     private static final int NOTE_LINK = 1;
-    private static final String TAG_NOTE = "n", TAG_CALL = "call";
+    private static final String TAG_NOTE = "n", TAG_CALL = "call", TAG_APP = "app";
+    /** The phone's apps as channels of their own, each to be silenced by itself. */
+    private static final String APPS = "apps", APP = "app:";
 
     static PhoneService sService;
     static Runnable sListener;
@@ -42,6 +44,9 @@ public final class PhoneService extends Service {
     private final Map<Long, String> mShown = new HashMap<>();
     private NotificationManager mNotes;
     private PhoneMedia mMedia;
+    AppIcons icons;
+    private final Map<String, Integer> mStacks = new HashMap<>();
+    private final Set<String> mChannels = new HashSet<>();
     private long mCall = -1;
     private int mNotedState = -1;
 
@@ -68,7 +73,15 @@ public final class PhoneService extends Service {
         channel(QUIET, R.string.channel_quiet, NotificationManager.IMPORTANCE_LOW);
         channel(CALLS, R.string.channel_calls, NotificationManager.IMPORTANCE_HIGH);
         channel(MUSIC, R.string.channel_music, NotificationManager.IMPORTANCE_LOW);
+        mNotes.createNotificationChannelGroup(new android.app.NotificationChannelGroup(APPS,
+                getString(R.string.channel_apps)));
         mMedia = new PhoneMedia(this, MUSIC, page());
+        icons = new AppIcons(this, () -> {
+            // Shown once more, now with their icons; none of them sounds again
+            mShown.clear();
+            mHandler.removeCallbacks(mShow);
+            mHandler.post(mShow);
+        });
         startForeground(NOTE_LINK, linkNote(Link.WAITING),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
         link = new Link(this, () -> {
@@ -103,8 +116,12 @@ public final class PhoneService extends Service {
         for (long uid : mShown.keySet()) {
             mNotes.cancel(TAG_NOTE, (int) uid);
         }
+        for (String app : mStacks.keySet()) {
+            mNotes.cancel(TAG_APP, app.hashCode());
+        }
         mNotes.cancel(TAG_CALL, 0);
         mMedia.hide();
+        icons.close();
         sService = null;
         if (sListener != null) {
             sListener.run();
@@ -144,6 +161,8 @@ public final class PhoneService extends Service {
         }
         mMedia.show(link);
         final Set<Long> gone = new HashSet<>(mShown.keySet());
+        final Map<String, Integer> stacks = new HashMap<>();
+        final Map<String, Inbox.Notice> newest = new HashMap<>();
         long call = -1;
         for (Inbox.Notice notice : link.inbox.notifications()) {
             if (notice.title().isEmpty() && notice.message().isEmpty()) {
@@ -156,6 +175,8 @@ public final class PhoneService extends Service {
                 continue;
             }
             gone.remove(notice.uid());
+            stacks.merge(notice.appId(), 1, Integer::sum);
+            newest.putIfAbsent(notice.appId(), notice);
             final String now = notice.appName() + '\n' + notice.title() + '\n'
                     + notice.subtitle() + '\n' + notice.message();
             if (!now.equals(mShown.put(notice.uid(), now))) {
@@ -166,6 +187,19 @@ public final class PhoneService extends Service {
             mShown.remove(uid);
             mNotes.cancel(TAG_NOTE, (int) uid);
         }
+        // Each of the phone's apps is a stack of its own, as the r1's own apps are
+        for (Map.Entry<String, Integer> stack : stacks.entrySet()) {
+            if (!stack.getValue().equals(mStacks.get(stack.getKey()))) {
+                showStack(newest.get(stack.getKey()));
+            }
+        }
+        for (String app : mStacks.keySet()) {
+            if (!stacks.containsKey(app)) {
+                mNotes.cancel(TAG_APP, app.hashCode());
+            }
+        }
+        mStacks.clear();
+        mStacks.putAll(stacks);
         if (call < 0 && mCall >= 0) {
             mNotes.cancel(TAG_CALL, 0);
         }
@@ -196,16 +230,52 @@ public final class PhoneService extends Service {
                 : notice.subtitle() + "\n" + notice.message();
     }
 
+    /** The channel of one of the phone's apps, made when the app first shows something. */
+    private String channel(Inbox.Notice notice) {
+        if (notice.appId().isEmpty() || notice.appName().isEmpty()) {
+            return NOTES;
+        }
+        final String id = APP + notice.appId();
+        if (mChannels.add(id)) {
+            final NotificationChannel channel = new NotificationChannel(id, notice.appName(),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setGroup(APPS);
+            mNotes.createNotificationChannel(channel);
+        }
+        return id;
+    }
+
+    /** Named and pictured as the phone's app, where the r1's shade names the app. */
+    private Notification.Builder asApp(Notification.Builder note, Inbox.Notice notice) {
+        if (!notice.appName().isEmpty()) {
+            final android.os.Bundle extras = new android.os.Bundle();
+            extras.putString(Notification.EXTRA_SUBSTITUTE_APP_NAME, notice.appName());
+            note.addExtras(extras);
+        }
+        final android.graphics.Bitmap icon = icons.get(notice.appId());
+        if (icon != null) {
+            note.setLargeIcon(icon);
+        }
+        return note.setGroup(APP + notice.appId());
+    }
+
+    private void showStack(Inbox.Notice notice) {
+        mNotes.notify(TAG_APP, notice.appId().hashCode(), asApp(new Notification.Builder(this,
+                QUIET).setSmallIcon(icon(notice.category())).setGroupSummary(true)
+                .setGroupAlertBehavior(Notification.GROUP_ALERT_CHILDREN)
+                .setContentIntent(page()), notice).build());
+    }
+
     private void showNote(Inbox.Notice notice) {
         // What was on the phone before the r1 came by, or came in silently there, makes no
         // sound here either
         final boolean quiet = notice.preExisting() || notice.silent();
         final String text = text(notice);
-        final Notification.Builder note = new Notification.Builder(this, quiet ? QUIET : NOTES)
+        final Notification.Builder note = asApp(new Notification.Builder(this,
+                quiet ? QUIET : channel(notice))
                 .setSmallIcon(icon(notice.category())).setContentTitle(notice.title())
                 .setContentText(text).setStyle(new Notification.BigTextStyle().bigText(text))
-                .setSubText(notice.appName().isEmpty() ? null : notice.appName())
-                .setOnlyAlertOnce(true).setContentIntent(page()).setAutoCancel(false);
+                .setOnlyAlertOnce(true).setContentIntent(page()).setAutoCancel(false), notice);
         if (notice.date() != null) {
             note.setShowWhen(true).setWhen(notice.date().atZone(ZoneId.systemDefault())
                     .toInstant().toEpochMilli());

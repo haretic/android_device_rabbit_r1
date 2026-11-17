@@ -25,6 +25,7 @@
     <string name="volume_held">The wheel is your phone\'s volume. Press to let go of it, or slide.</string>
     <string name="no_notifications">No notifications on the phone</string>
     <string name="clear_all">Clear all</string>
+    <string name="channel_apps">Apps on the phone</string>
     <string name="clear_one">Clear</string>
     <string name="channel_link">Phone link</string>
     <string name="channel_notes">Phone notifications</string>
