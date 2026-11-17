@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Settings > Battery -->
-    <string name="details_title">Battery details</string>
+    <string name="details_title">Battery Details</string>
     <string name="details_summary">Level over 24 hours, voltage, current and charging</string>
 
     <!-- The top of the page -->

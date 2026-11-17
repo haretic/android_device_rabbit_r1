@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="wheel_title">Taskbar and wheel</string>
+    <string name="wheel_title">Taskbar and Wheel</string>
     <string name="wheel_summary">Taskbar, wheel modes and the side button</string>
     <string name="wheel_ui">Use the wheel UI</string>
     <string name="wheel_about">The wheel opens the taskbar at the edge of the screen: home, all apps, your pinned and running apps, notifications, the wheel mode of the app in front and these settings. The wheel moves, the side button picks, a double press of the side button brings the taskbar back from any app.\n\nSwitched off, the r1 looks and works like stock Android.</string>

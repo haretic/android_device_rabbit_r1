@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources>
-    <string name="app_name">USB-C port</string>
+    <string name="app_name">USB-C Port</string>
     <string name="computer">Plugged into a computer</string>
     <string name="charging_at">Charging at %1$s A</string>
     <string name="charging">Charging</string>

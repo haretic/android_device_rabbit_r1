@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Settings > System > Problem report -->
-    <string name="report_title">Problem report</string>
+    <string name="report_title">Problem Report</string>
     <string name="report_summary">Save logs for a bug report</string>
 
     <string name="intro">Saves the system logs from now and from the last start, crash reports and a description of this r1 as one .zip in Download/haretic-reports. Takes about a minute.</string>

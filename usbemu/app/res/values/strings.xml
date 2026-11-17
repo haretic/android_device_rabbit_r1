@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0. Text follows the approved R1 mockups. -->
 <resources>
-    <string name="app_name">USB devices</string>
+    <string name="app_name">USB Devices</string>
     <string name="settings_summary">Share a drive, sound card, keyboard or mouse with a PC</string>
     <string name="service_subtype">Maintain a USB device session, bridge its audio and prepare drive images</string>
     <string name="back">Back</string>
@@ -140,7 +140,7 @@
     <string name="tile_running">USB - %1$s</string>
     <string name="tile_stop">Click to stop</string>
     <string name="tile_choose">Click to choose a USB device</string>
-    <string name="problem">USB devices needs attention</string>
+    <string name="problem">USB Devices needs attention</string>
     <string name="dismiss">Dismiss</string>
     <string name="provider_error">Please choose a writable folder in Internal storage. USB sharing needs a local image file, so cloud storage and SD cards cannot be used.</string>
     <string name="folder_error">Please choose your image folder again. Its saved access may have changed.</string>

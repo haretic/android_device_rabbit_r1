@@ -5,7 +5,7 @@
 -->
 <resources>
     <!-- Name of the live wallpaper in the wallpaper picker [CHAR LIMIT=30] -->
-    <string name="wallpaper_name">Living hares</string>
+    <string name="wallpaper_name">Living Hares</string>
     <!-- What the live wallpaper does, shown with its preview [CHAR LIMIT=120] -->
     <string name="wallpaper_description">The hares stir when the wheel turns, lean with a tilt, sleep at night and droop when the battery is low.</string>
     <string name="wallpaper_author" translatable="false">haretic</string>

@@ -10,7 +10,7 @@
     <string name="knob">Bluetooth Wheel</string>
     <string name="knob_row">the wheel for a computer or phone</string>
     <string name="webdesk">Remote Control</string>
-    <string name="walkie">Walkie-talkie</string>
+    <string name="walkie">Walkie-Talkie</string>
     <string name="walkie_row">talk to the r1s on this Wi-Fi</string>
     <string name="webdesk_row">the r1 from a computer\'s browser</string>
     <string name="level_degrees"><xliff:g id="degrees">%1$s</xliff:g>°</string>
@@ -40,7 +40,7 @@
     <string name="level_hint_unzero">Zeroed. Press to go back to true level.</string>
     <string name="level_none">This r1 has no motion sensor to level with.</string>
 
-    <string name="sound">Sound level</string>
+    <string name="sound">Sound Level</string>
     <string name="sound_db"><xliff:g id="level">%1$d</xliff:g> dB</string>
     <string name="sound_unit">dB</string>
     <string name="sound_very_quiet">Very quiet.</string>
@@ -63,7 +63,7 @@
     <string name="sound_average">Average <xliff:g id="level">%1$d</xliff:g> dB.</string>
     <string name="sound_hint">Press to hold the reading. Not a calibrated meter.</string>
     <string name="sound_hint_held">Held. Press to listen again.</string>
-    <string name="sound_denied">Sound level listens through the microphone and keeps nothing. Press to allow it.</string>
+    <string name="sound_denied">Sound Level listens through the microphone and keeps nothing. Press to allow it.</string>
     <string name="sound_busy_mic">The microphone is in use by something else.</string>
 
     <string name="tally">Tally</string>
