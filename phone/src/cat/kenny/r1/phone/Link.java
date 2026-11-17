@@ -513,11 +513,13 @@ final class Link {
         if (update.entity() == Ams.PLAYER) {
             if (update.attribute() == Ams.PLAYER_NAME) {
                 music.player = value;
+                Log.i(TAG, "the phone has " + (value.isEmpty() ? "no player" : "a player"));
             } else if (update.attribute() == Ams.PLAYBACK_INFO) {
                 music.info = Ams.parsePlaybackInfo(value);
                 music.infoAt = SystemClock.elapsedRealtime();
             } else if (update.attribute() == Ams.VOLUME) {
                 music.volume = Ams.parseVolume(value);
+                Log.i(TAG, "the phone's volume is " + music.volume);
             }
         } else if (update.entity() == Ams.TRACK) {
             if (update.attribute() == Ams.TITLE) {
