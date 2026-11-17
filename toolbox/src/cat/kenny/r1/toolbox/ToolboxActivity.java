@@ -61,6 +61,8 @@ public final class ToolboxActivity extends ToolActivity {
                 "cat.kenny.r1.synth", ".SynthActivity");
         app(rows, R.drawable.ic_knob, R.string.knob, R.string.knob_row,
                 "cat.kenny.r1.knob", ".KnobActivity");
+        app(rows, R.drawable.ic_walkie, R.string.walkie, R.string.walkie_row,
+                "cat.kenny.r1.walkie", ".WalkieActivity");
         app(rows, R.drawable.ic_webdesk, R.string.webdesk, R.string.webdesk_row,
                 "cat.kenny.r1.webdesk", ".WebDeskActivity");
         mLevel = new LevelSensor(this, this::showLevel);

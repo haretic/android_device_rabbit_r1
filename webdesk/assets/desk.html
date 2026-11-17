@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>r1 - web desk</title>
+<title>r1 - Remote Control</title>
 <style>
 @font-face{font-family:"Text";src:url(/font/text);font-weight:200 800}
 @font-face{font-family:"Display";src:url(/font/display)}
@@ -104,17 +104,17 @@ svg{width:22px;height:22px;fill:currentColor;flex:none}
 </defs></svg>
 
 <main class="pair" id="pair" hidden>
-  <h1>r1 web desk</h1>
+  <h1>r1 Remote Control</h1>
   <p>Type the code that the r1 is showing.</p>
   <input class="code" id="code" inputmode="numeric" autocomplete="off" maxlength="7" aria-label="The six digit code on the r1">
   <div class="msg" id="pairmsg" role="status"></div>
   <div class="note">The code changes every time. Nothing is stored on this computer but a pass for this one visit.</div>
 </main>
 
-<main class="gone" id="gone" hidden><b>r1 web desk</b><span id="gonemsg"></span></main>
+<main class="gone" id="gone" hidden><b>r1 Remote Control</b><span id="gonemsg"></span></main>
 
 <div id="desk" hidden>
-  <div class="top"><b>r1 web desk</b><i id="dot"></i><span id="conn"></span>
+  <div class="top"><b>r1 Remote Control</b><i id="dot"></i><span id="conn"></span>
     <span class="end">
       <a class="pill" id="shot" href="/screenshot.png" download><svg><use href="#i-cam"/></svg>Screenshot</a>
       <button class="pill" id="bye"><svg><use href="#i-out"/></svg>Disconnect</button></span></div>
@@ -178,7 +178,7 @@ $('code').addEventListener('input', async () => {
   $('code').disabled = false;
   if (r && r.ok) { start(); return; }
   $('code').value = ''; $('code').focus();
-  $('pairmsg').textContent = !r ? 'The r1 did not answer. Is web desk still on?'
+  $('pairmsg').textContent = !r ? 'The r1 did not answer. Is Remote Control still on?'
       : j.locked ? 'Too many wrong codes. The r1 shows a new one in half a minute.'
       : j.busy ? 'Another computer is connected. Disconnect it on the r1 first.'
       : 'That is not the code. Look at the r1 again.';
@@ -192,7 +192,7 @@ async function poll() {
     $('dot').className = 'off'; $('conn').textContent = 'the r1 is not answering';
     setTimeout(poll, 3000); return;
   }
-  if (r.status === 401) { left('Disconnected. To come back, open web desk on the r1 and type its new code here.'); return; }
+  if (r.status === 401) { left('Disconnected. To come back, open Remote Control on the r1 and type its new code here.'); return; }
   const s = await r.json();
   $('dot').className = ''; $('conn').textContent = 'connected to ' + location.host;
   const was = caps; caps = s.caps;

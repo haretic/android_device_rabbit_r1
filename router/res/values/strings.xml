@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources>
-    <string name="app_name">Travel router</string>
+    <string name="app_name">Travel Router</string>
     <!-- The network the r1 is on -->
     <string name="up_none">Not on a network</string>
     <string name="up_none_sub">Join a Wi-Fi network first, in Settings.</string>

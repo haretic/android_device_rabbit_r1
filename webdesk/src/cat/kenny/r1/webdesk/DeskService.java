@@ -375,7 +375,7 @@ public final class DeskService extends Service implements HttpServer.Handler {
         }
         try {
             final NsdServiceInfo info = new NsdServiceInfo();
-            info.setServiceName("r1 web desk");
+            info.setServiceName("r1 Remote Control");
             info.setServiceType("_http._tcp");
             info.setPort(mPort);
             info.setHostname(HOST);
@@ -512,7 +512,7 @@ public final class DeskService extends Service implements HttpServer.Handler {
                 mMain.post(() -> {
                     if (active(request, CAP_CLIPBOARD)) {
                         getSystemService(ClipboardManager.class)
-                                .setPrimaryClip(ClipData.newPlainText("Web desk", s));
+                                .setPrimaryClip(ClipData.newPlainText("Remote Control", s));
                     }
                 });
                 did("clipboard_in", null);

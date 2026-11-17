@@ -23,7 +23,8 @@
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- Opened from the Toolbox, and from its note in the shade while it is on: no entry of its own among the apps -->
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <service android:name=".WalkieService" android:exported="false"

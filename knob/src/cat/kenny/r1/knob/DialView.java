@@ -13,6 +13,9 @@ import android.view.View;
  */
 final class DialView extends View {
     private static final int TICKS = 24;
+    /** The arc's radius, and how far left of the screen's right edge it reaches. */
+    private static final int RADIUS_DP = 140;
+    static final int REACH_DP = 90;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int mAccent;
     private float mAt = TICKS / 2f, mShown = TICKS / 2f;
@@ -39,8 +42,10 @@ final class DialView extends View {
         final float d = getResources().getDisplayMetrics().density;
         final int[] at = new int[2];
         getLocationOnScreen(at);
-        final float w = getWidth(), r = 250 * d;
-        final float cx = w + 40 * d;
+        // Against the right edge, where the wheel is: a short arc that leaves the page to
+        // the words beside it
+        final float w = getWidth(), r = RADIUS_DP * d;
+        final float cx = w + (RADIUS_DP - REACH_DP) * d;
         final float cy = getRootView().getHeight() * mCentre - at[1];
         mShown += (mAt - mShown) * 0.35f;
         if (Math.abs(mAt - mShown) > 0.01f) {

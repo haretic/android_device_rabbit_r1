@@ -61,6 +61,13 @@ public class KnobActivity extends Activity implements Hid.Listener {
         mPrefs = getSharedPreferences("knob", 0);
         mMode = Math.max(0, Math.min(Hid.ZOOM, mPrefs.getInt("mode", Hid.SCROLL)));
         mRoot = new FrameLayout(this);
+        // Below the status bar: the window reaches under it
+        mRoot.setOnApplyWindowInsetsListener((view, insets) -> {
+            final android.graphics.Insets bars =
+                    insets.getInsets(android.view.WindowInsets.Type.systemBars());
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
         setContentView(mRoot);
         mHid = new Hid(this, this);
     }
@@ -288,12 +295,14 @@ public class KnobActivity extends Activity implements Hid.Listener {
         final TextView on = text(getString(R.string.turns_on, name(host)), 14, 0xFF8D8D8D);
         on.setPadding(0, dp(6), 0, 0);
         mid.addView(on);
-        // Beside the dial, level with the wheel, and clear of the arc
-        final FrameLayout.LayoutParams at = new FrameLayout.LayoutParams(dp(196), -2,
+        // Beside the dial, level with the wheel, and clear of the arc: as wide as the room
+        // left of it, whatever the text's size
+        final android.util.DisplayMetrics screen = getResources().getDisplayMetrics();
+        final FrameLayout.LayoutParams at = new FrameLayout.LayoutParams(
+                screen.widthPixels - dp(DialView.REACH_DP + 24 + 14), -2,
                 Gravity.TOP | Gravity.START);
         at.leftMargin = dp(24);
-        at.topMargin = Math.round(getResources().getDisplayMetrics().heightPixels
-                * WHEEL_CENTRE) - dp(84);
+        at.topMargin = Math.round(screen.heightPixels * WHEEL_CENTRE) - dp(84);
         mRoot.addView(mid, at);
         final LinearLayout foot = new LinearLayout(this);
         foot.setOrientation(LinearLayout.VERTICAL);
@@ -321,7 +330,7 @@ public class KnobActivity extends Activity implements Hid.Listener {
     private TextView title(String s) {
         final TextView view = text(s, 19, 0xFFFFFFFF);
         view.setTypeface(Typeface.create("haretic-display", Typeface.NORMAL));
-        view.setPadding(dp(6), dp(14), 0, dp(14));
+        view.setPadding(dp(6), dp(10), 0, dp(10));
         return view;
     }
 
