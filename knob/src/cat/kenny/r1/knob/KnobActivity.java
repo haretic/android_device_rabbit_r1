@@ -318,7 +318,7 @@ public class KnobActivity extends Activity implements Hid.Listener {
         final int below = top.getMeasuredHeight() + dp(12);
         at.topMargin = Math.max(below, Math.round(screen.heightPixels * WHEEL_CENTRE)
                 - mRoot.getPaddingTop() - dp(64));
-        mDial.setTop(mRoot.getPaddingTop() + below);
+        mDial.setHead(mRoot.getPaddingTop() + below);
         mRoot.addView(mid, at);
         final LinearLayout foot = new LinearLayout(this);
         foot.setOrientation(LinearLayout.VERTICAL);

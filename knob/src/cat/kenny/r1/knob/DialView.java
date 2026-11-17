@@ -31,7 +31,7 @@ final class DialView extends View {
     private int mTop;
 
     /** The arc stays below this height of the screen, where the page's head ends. */
-    void setTop(int top) {
+    void setHead(int top) {
         mTop = top;
         invalidate();
     }
