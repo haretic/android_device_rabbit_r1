@@ -385,6 +385,7 @@ final class Link {
                 stopReaching(gatt);
             }
             if (state == BluetoothProfile.STATE_CONNECTED) {
+                mRefreshed = false;
                 if (mAdvertiser != null) {
                     mAdvertiser.stopAdvertising(mAdvertising);
                 }
@@ -571,6 +572,9 @@ final class Link {
         }
     }
 
+    /** Whether this link already had the phone's services read afresh, see done(). */
+    private boolean mRefreshed;
+
     private void done(int status) {
         final Op op = mRunning;
         mRunning = null;
@@ -583,6 +587,21 @@ final class Link {
                 mOps.clear();
                 set(PAIRING);
                 mGatt.getDevice().createBond(BluetoothDevice.TRANSPORT_LE);
+                return;
+            }
+            if (!mRefreshed && mGatt.getDevice().getBondState() == BluetoothDevice.BOND_BONDED) {
+                // The phone's services are remembered from an earlier link and it has moved
+                // them since, or its link was not yet encrypted when they were read: forgotten
+                // and read afresh, once a link
+                mRefreshed = true;
+                mOps.clear();
+                final BluetoothGatt gatt = mGatt;
+                gatt.refresh();
+                mHandler.postDelayed(() -> {
+                    if (gatt == mGatt) {
+                        gatt.discoverServices();
+                    }
+                }, 1500);
                 return;
             }
             if (op != null && op.question) {
