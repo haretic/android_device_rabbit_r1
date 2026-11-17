@@ -1347,7 +1347,77 @@ t_scrollsight() {
 	key 4; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight wheeltune}
+# The texts on the screen, a line each
+texts() { ui $1; xnodes $1 | cut -f7 | grep -v '^$'; }
+
+# The tools take the side button's hold themselves: on a stopped stopwatch it resets, and only
+# with nothing on it does it go back. Without the window feature's permission the system kept
+# the hold as its Back and "hold to reset" left the tool.
+t_toolhold() {
+	key 224
+	sh "am start -W -n cat.kenny.r1.toolbox/.StopwatchActivity"; sleep 1.5
+	# From whatever it was left in: stopped with time on it
+	texts toolhold-0 | grep -qx 'running.*' && { side_press; sleep 1; }
+	texts toolhold-0 | grep -q '^0:00.0$' && { side_press; sleep 1.5; side_press; sleep 1.5; }
+	if texts toolhold-1 | grep -q 'hold to reset'; then ok "stopwatch stopped with time on it"
+	else bad "stopwatch not stopped with time on it"; fi
+	side_hold; sleep 2.5
+	if focus_win | grep -q StopwatchActivity && texts toolhold-2 | grep -q '^0:00.0$'; then
+		ok "a hold resets the stopwatch and stays in it"
+	else bad "a hold did not reset the stopwatch: $(focus_win)"; fi
+	side_hold; sleep 2.5
+	if focus_win | grep -q StopwatchActivity; then bad "a hold with nothing on it did not go back"
+	else ok "a hold with nothing on it goes back"; fi
+	key 3
+}
+
+# The wheel's tools by finger: a slide turns, a tap presses, a resting finger holds
+t_tooltouch() {
+	key 224
+	sh "am start -W -n cat.kenny.r1.toolbox/.MetronomeActivity"; sleep 1.5
+	local a b
+	a=$(texts tooltouch-0 | grep -m1 -E '^[0-9]+$')
+	sh "input swipe 200 300 200 420 300"; sleep 1
+	b=$(texts tooltouch-1 | grep -m1 -E '^[0-9]+$')
+	if [ -n "$a" ] && [ "$a" != "$b" ]; then ok "a slide turns the metronome ($a to $b)"
+	else bad "a slide did not turn the metronome ($a, $b)"; fi
+	sh "input swipe 200 420 200 300 300"; sleep 1
+	b=$(texts tooltouch-2 | grep -m1 -E '^[0-9]+$')
+	[ -n "$a" ] && [ "$a" = "$b" ] && ok "sliding back gives the same tempo" || echo "tempo now $b, was $a"
+	key 3
+	sh "am start -W -n cat.kenny.r1.toolbox/.StopwatchActivity"; sleep 1.5
+	texts tooltouch-3 | grep -q '^0:00.0$' || { sh "input swipe 200 300 200 300 900"; sleep 1.5; }
+	sh "input tap 200 300"; sleep 1.5; sh "input tap 200 300"; sleep 1.5
+	if texts tooltouch-4 | grep -q 'hold to reset'; then ok "taps start and stop the stopwatch"
+	else bad "taps did not start and stop the stopwatch"; fi
+	sh "input swipe 200 300 200 300 900"; sleep 1.5
+	if focus_win | grep -q StopwatchActivity && texts tooltouch-5 | grep -q '^0:00.0$'; then
+		ok "a resting finger resets the stopwatch"
+	else bad "a resting finger did not reset the stopwatch"; fi
+	sh "input swipe 200 300 200 300 900"; sleep 1.5
+	if focus_win | grep -q StopwatchActivity; then ok "a resting finger never leaves the tool"
+	else bad "a resting finger left the tool"; fi
+	key 3
+}
+
+# The travel router's own network: its row opens the name and password, both filled in
+t_routername() {
+	key 224
+	sh "am start -W -n cat.kenny.r1.router/.RouterActivity"; sleep 2
+	ui routername-0
+	local b
+	b=$(xnodes routername-0 | awk -F'\t' '$5 ~ /id\/own$/ {print $6; exit}')
+	if [ -z "$b" ]; then bad "no row for the r1's own network"; key 3; return; fi
+	sh "input tap $(echo $b | awk '{print int(($1 + $3) / 2), int(($2 + $4) / 2)}')"; sleep 2
+	ui routername-1; shot routername
+	local n
+	n=$(xnodes routername-1 | awk -F'\t' '$4 ~ /EditText/ && length($7) > 0' | wc -l)
+	if [ "$n" -ge 2 ]; then ok "the network's name and password open, filled in"
+	else bad "name and password dialog missing or empty ($n fields)"; fi
+	key 4; sleep 1; key 3
+}
+
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight wheeltune}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
