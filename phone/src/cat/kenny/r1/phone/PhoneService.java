@@ -28,6 +28,8 @@ import java.util.Set;
  */
 public final class PhoneService extends Service {
     private static final String ACTION_NO = "cat.kenny.r1.phone.NO";
+    /** The self test's: a notification made up here, shown as the phone's are. */
+    private static final String ACTION_REHEARSE = "cat.kenny.r1.phone.REHEARSE";
     private static final String EXTRA_UID = "uid";
     private static final String LINK = "link", NOTES = "notes", QUIET = "quiet", CALLS = "calls";
     private static final String MUSIC = "music";
@@ -105,6 +107,12 @@ public final class PhoneService extends Service {
             if (uid >= 0 && uid <= 0xffffffffL) {
                 link.act(uid, false);
             }
+        }
+        if (intent != null && ACTION_REHEARSE.equals(intent.getAction())) {
+            link.rehearse(intent.getLongExtra(EXTRA_UID, 0xf0000000L),
+                    intent.getIntExtra("category", 0), intent.getStringExtra("app"),
+                    intent.getStringExtra("name"), intent.getStringExtra("title"),
+                    intent.getStringExtra("message"), intent.getStringExtra("date"));
         }
         return START_STICKY;
     }

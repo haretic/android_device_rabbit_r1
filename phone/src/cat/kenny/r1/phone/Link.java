@@ -665,6 +665,58 @@ final class Link {
         ask();
     }
 
+    /**
+     * A notification as the phone would send it, without a phone: the event, then the answers
+     * to what the inbox asks about it, made up here from the question itself. For the self
+     * test (only the system and a root shell can start the service with it); it offers no
+     * button of the phone's, so clearing it writes nothing to a phone that is linked.
+     */
+    void rehearse(long uid, int category, String app, String name, String title,
+            String message, String date) {
+        mHandler.post(() -> {
+            final long now = SystemClock.elapsedRealtime();
+            inbox.onEvent(Ancs.parseEvent(new byte[] {Ancs.ADDED, 0, (byte) category, 1,
+                    (byte) uid, (byte) (uid >> 8), (byte) (uid >> 16), (byte) (uid >> 24)}));
+            for (int i = 0; i < 4; i++) {
+                final byte[] asked = inbox.nextCommand(now, ANSWER_MS);
+                if (asked == null) {
+                    break;
+                }
+                final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                if (asked[0] == 0) {
+                    out.write(asked, 0, 5);
+                    for (int at = 5; at < asked.length; at++) {
+                        final int id = asked[at];
+                        if (id == Ancs.TITLE || id == Ancs.SUBTITLE || id == Ancs.MESSAGE) {
+                            at += 2;
+                        }
+                        attribute(out, id, id == Ancs.APP_IDENTIFIER ? app
+                                : id == Ancs.TITLE ? title : id == Ancs.MESSAGE ? message
+                                : id == Ancs.DATE ? date : "");
+                    }
+                } else {
+                    // The app's name: the question up to the end of the app's id, then it
+                    int end = 1;
+                    while (asked[end] != 0) {
+                        end++;
+                    }
+                    out.write(asked, 0, end + 1);
+                    attribute(out, Ancs.DISPLAY_NAME, name);
+                }
+                inbox.onData(out.toByteArray(), now);
+            }
+            mChanged.run();
+        });
+    }
+
+    private static void attribute(java.io.ByteArrayOutputStream out, int id, String value) {
+        final byte[] bytes = value.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        out.write(id);
+        out.write(bytes.length);
+        out.write(bytes.length >> 8);
+        out.write(bytes, 0, bytes.length);
+    }
+
     /** Sends the next question the inbox has about a notification, one at a time. */
     private void ask() {
         if (mState != ON || mControl == null || mGatt == null) {
