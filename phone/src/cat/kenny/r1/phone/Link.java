@@ -114,6 +114,8 @@ final class Link {
     private boolean mStarted;
     /** Paired phones the r1 reaches for itself, each until one answers. */
     private final List<BluetoothGatt> mReaching = new ArrayList<>();
+    /** Those reached for that have answered while another device had the link. */
+    private final List<BluetoothGatt> mAnswered = new ArrayList<>();
     /** Paired devices that turned out to share no notifications: not reached for again. */
     private final Set<String> mNotPhones = new HashSet<>();
     private boolean mFindable;
@@ -246,6 +248,27 @@ final class Link {
             }
         }
         mReaching.clear();
+        mAnswered.clear();
+    }
+
+    /**
+     * Takes one that was reached for and is connected as the link, in place of what there was:
+     * a paired device that is no phone may connect first and has nothing to show.
+     */
+    private void adopt(BluetoothGatt gatt) {
+        if (mGatt != null && mGatt != gatt) {
+            mNotPhones.add(mGatt.getDevice().getAddress());
+            mHandler.removeCallbacks(mTick);
+            drop();
+        }
+        mGatt = gatt;
+        mReaching.remove(gatt);
+        mAnswered.remove(gatt);
+        mRefreshed = false;
+        set(WAITING);
+        if (!gatt.requestMtu(247)) {
+            gatt.discoverServices();
+        }
     }
 
     private void advertise(BluetoothAdapter adapter) {
@@ -375,14 +398,29 @@ final class Link {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int state) {
             if (gatt != mGatt) {
-                if (mGatt != null || !mReaching.contains(gatt)
-                        || state != BluetoothProfile.STATE_CONNECTED) {
-                    // One reached for that is not there yet keeps being reached for
+                if (!mReaching.contains(gatt)) {
                     return;
                 }
-                // The first paired phone to answer is the one
-                mGatt = gatt;
-                stopReaching(gatt);
+                if (state != BluetoothProfile.STATE_CONNECTED) {
+                    // One reached for that is not there keeps being reached for
+                    mAnswered.remove(gatt);
+                    return;
+                }
+                if (mGatt != null && mState != NO_SERVICES) {
+                    // Another device has the link: this one waits, should that one have
+                    // nothing to show
+                    if (!mAnswered.contains(gatt)) {
+                        mAnswered.add(gatt);
+                    }
+                    return;
+                }
+                // The first paired phone to answer is the one, also over a device that
+                // connected before it and is no phone
+                if (mAdvertiser != null) {
+                    mAdvertiser.stopAdvertising(mAdvertising);
+                }
+                adopt(gatt);
+                return;
             }
             if (state == BluetoothProfile.STATE_CONNECTED) {
                 mRefreshed = false;
@@ -396,7 +434,10 @@ final class Link {
             } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
                 mHandler.removeCallbacks(mTick);
                 drop();
-                if (mStarted) {
+                if (mStarted && !mAnswered.isEmpty()) {
+                    // A paired phone answered while this one had the link
+                    adopt(mAnswered.get(0));
+                } else if (mStarted) {
                     open();
                 }
             }
@@ -499,6 +540,11 @@ final class Link {
                 set(PAIRING);
                 mGatt.getDevice().createBond(BluetoothDevice.TRANSPORT_LE);
             } else if (mGatt.getDevice().getBondState() == BluetoothDevice.BOND_BONDED) {
+                if (!mAnswered.isEmpty()) {
+                    // No phone, and a paired phone has answered meanwhile: that one, then
+                    adopt(mAnswered.get(0));
+                    return;
+                }
                 // Paired, and not allowed to see notifications: the phone tells of a change
                 set(NO_SERVICES);
                 final BluetoothGatt gatt = mGatt;
@@ -545,6 +591,8 @@ final class Link {
             }
         }
         set(ON);
+        // This is the phone: the others are let be
+        stopReaching(mGatt);
         mHandler.removeCallbacks(mTick);
         mHandler.postDelayed(mTick, 1000);
         next();
