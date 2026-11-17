@@ -596,7 +596,12 @@ final class Link {
                 mRefreshed = true;
                 mOps.clear();
                 final BluetoothGatt gatt = mGatt;
-                gatt.refresh();
+                try {
+                    // Not in the Bluetooth module's public surface; open to a platform app
+                    BluetoothGatt.class.getMethod("refresh").invoke(gatt);
+                } catch (ReflectiveOperationException e) {
+                    Log.w(TAG, "could not forget the remembered services", e);
+                }
                 mHandler.postDelayed(() -> {
                     if (gatt == mGatt) {
                         gatt.discoverServices();
