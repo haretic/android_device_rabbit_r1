@@ -134,3 +134,6 @@ TARGET_VENDOR_PROP += $(DEVICE_PATH)/vendor.prop
 TARGET_BOOTANIMATION_MODULE := :bootanimation-r1
 # haretic's font family names (fonts/Android.bp), the source of fonts_customization.xml.
 TARGET_FONTS_CUSTOMIZATION_MODULE := :fonts-customization-r1
+
+# Apps and the system UI draw with Vulkan (ro.hwui.use_vulkan), see device.mk
+TARGET_USES_VULKAN := true
