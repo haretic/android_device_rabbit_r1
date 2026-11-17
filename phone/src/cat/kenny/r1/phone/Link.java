@@ -627,6 +627,16 @@ final class Link {
     };
 
     /** Presses a notification's own button on the phone: its yes or its no. */
+    /** Clears a notification: on the phone where it offers that, and from the list here. */
+    void clear(Inbox.Notice notice) {
+        if (notice.negativeAction()) {
+            act(notice.uid(), false);
+        }
+        inbox.dismiss(notice.uid());
+        // The r1's own copy of it in the shade goes with it
+        mChanged.run();
+    }
+
     void act(long uid, boolean positive) {
         if (mState == ON && mControl != null) {
             mOps.add(new Op(mControl, Ancs.action(uid, positive ? Ancs.ACTION_POSITIVE

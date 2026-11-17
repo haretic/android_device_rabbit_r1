@@ -174,6 +174,11 @@ public final class Inbox {
                 <= Ancs.MAX_APP_ID_BYTES;
     }
 
+    /** Taken off the list here; the phone is told separately, where it lets itself be told. */
+    public void dismiss(long uid) {
+        entries.remove(uid);
+    }
+
     public List<Notice> notifications() {
         List<Notice> snapshot = new ArrayList<>();
         for (Entry entry : entries.values()) {

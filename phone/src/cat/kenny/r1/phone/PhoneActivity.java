@@ -229,6 +229,7 @@ public final class PhoneActivity extends Activity {
         }
         if (!on) {
             findViewById(R.id.empty).setVisibility(View.GONE);
+            findViewById(R.id.clear_all).setVisibility(View.GONE);
             mListed = "";
             mNotices.removeAllViews();
             hold(false);
@@ -281,7 +282,31 @@ public final class PhoneActivity extends Activity {
                 ? DateUtils.formatElapsedTime(music.duration.longValue()) : "");
     }
 
-    private void notices(List<Inbox.Notice> notices) {
+    /** Newest first by the phone's own time; what has no time yet has only just come in. */
+    private static List<Inbox.Notice> newestFirst(List<Inbox.Notice> notices) {
+        final List<Inbox.Notice> sorted = new java.util.ArrayList<>(notices);
+        sorted.sort((a, b) -> a.date() == null ? (b.date() == null ? 0 : -1)
+                : b.date() == null ? 1 : b.date().compareTo(a.date()));
+        return sorted;
+    }
+
+    private void clear(List<Inbox.Notice> notices) {
+        final Link link = link();
+        if (link == null) {
+            return;
+        }
+        for (Inbox.Notice notice : notices) {
+            if (notice.category() != Ancs.INCOMING_CALL) {
+                link.clear(notice);
+            }
+        }
+        getWindow().getDecorView().performHapticFeedback(
+                android.view.HapticFeedbackConstants.CONFIRM);
+        render();
+    }
+
+    private void notices(List<Inbox.Notice> unsorted) {
+        final List<Inbox.Notice> notices = newestFirst(unsorted);
         final StringBuilder listed = new StringBuilder();
         for (Inbox.Notice notice : notices) {
             listed.append(notice.uid()).append(notice.title()).append(notice.message())
@@ -311,7 +336,15 @@ public final class PhoneActivity extends Activity {
                         DateTimeFormatter.ofPattern(notice.date().toLocalDate().equals(today)
                                 ? "HH:mm" : "d MMM")));
             }
+            row.findViewById(R.id.clear).setOnClickListener(v -> clear(List.of(notice)));
             mNotices.addView(row);
+        }
+        final View clearAll = findViewById(R.id.clear_all);
+        final boolean hadFocus = clearAll.isFocused();
+        clearAll.setVisibility(mNotices.getChildCount() == 0 ? View.GONE : View.VISIBLE);
+        clearAll.setOnClickListener(v -> clear(notices));
+        if (hadFocus && mNotices.getChildCount() == 0) {
+            findViewById(R.id.link).requestFocus();
         }
         findViewById(R.id.empty).setVisibility(mNotices.getChildCount() == 0 ? View.VISIBLE
                 : View.GONE);
