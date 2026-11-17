@@ -311,7 +311,14 @@ public class KnobActivity extends Activity implements Hid.Listener {
                 screen.widthPixels - dp(DialView.REACH_DP + 24 + 14), -2,
                 Gravity.TOP | Gravity.START);
         at.leftMargin = dp(24);
-        at.topMargin = Math.round(screen.heightPixels * WHEEL_CENTRE) - dp(84);
+        // Level with the wheel where the page is tall enough, and never under the name and
+        // the link above it, as when the r1 is turned and the page is short
+        top.measure(View.MeasureSpec.makeMeasureSpec(screen.widthPixels,
+                View.MeasureSpec.AT_MOST), View.MeasureSpec.UNSPECIFIED);
+        final int below = top.getMeasuredHeight() + dp(12);
+        at.topMargin = Math.max(below, Math.round(screen.heightPixels * WHEEL_CENTRE)
+                - mRoot.getPaddingTop() - dp(64));
+        mDial.setTop(mRoot.getPaddingTop() + below);
         mRoot.addView(mid, at);
         final LinearLayout foot = new LinearLayout(this);
         foot.setOrientation(LinearLayout.VERTICAL);

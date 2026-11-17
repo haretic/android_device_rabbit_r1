@@ -28,6 +28,14 @@ final class DialView extends View {
         mPaint.setStrokeCap(Paint.Cap.ROUND);
     }
 
+    private int mTop;
+
+    /** The arc stays below this height of the screen, where the page's head ends. */
+    void setTop(int top) {
+        mTop = top;
+        invalidate();
+    }
+
     void step(boolean up) {
         // Running off an end comes back in at the other: the dial has no ends
         mAt = (mAt + (up ? -1 : 1) + TICKS + 1) % (TICKS + 1);
@@ -46,7 +54,10 @@ final class DialView extends View {
         // the words beside it
         final float w = getWidth(), r = RADIUS_DP * d;
         final float cx = w + (RADIUS_DP - REACH_DP) * d;
-        final float cy = getRootView().getHeight() * mCentre - at[1];
+        // Level with the wheel, or as near to it as the head of the page leaves room for:
+        // the arc's ends are half its radius above and below its middle
+        final float cy = Math.max(getRootView().getHeight() * mCentre, mTop + r / 2 + 6 * d)
+                - at[1];
         mShown += (mAt - mShown) * 0.35f;
         if (Math.abs(mAt - mShown) > 0.01f) {
             postInvalidateOnAnimation();
