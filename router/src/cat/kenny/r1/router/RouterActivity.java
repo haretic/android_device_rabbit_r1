@@ -147,6 +147,16 @@ public final class RouterActivity extends Activity {
         }
     }
 
+    private TextView label(int text) {
+        final TextView label = new TextView(this);
+        label.setText(text);
+        label.setTextSize(13);
+        label.setTextColor(getColor(R.color.text_faint));
+        label.setPadding((int) (4 * getResources().getDisplayMetrics().density),
+                (int) (8 * getResources().getDisplayMetrics().density), 0, 0);
+        return label;
+    }
+
     /** The name and password of the r1's own network, the user's to choose. */
     private void change() {
         final SoftApConfiguration config = mWifi.getSoftApConfiguration();
@@ -156,6 +166,8 @@ public final class RouterActivity extends Activity {
         final android.widget.LinearLayout fields = new android.widget.LinearLayout(this);
         fields.setOrientation(android.widget.LinearLayout.VERTICAL);
         fields.setPadding((int) (22 * dp), (int) (6 * dp), (int) (22 * dp), 0);
+        // Named above them: a field that is filled in shows no hint
+        fields.addView(label(R.string.change_name));
         final android.widget.EditText name = new android.widget.EditText(this);
         name.setHint(R.string.change_name);
         name.setSingleLine(true);
@@ -163,6 +175,7 @@ public final class RouterActivity extends Activity {
         name.setInputType(android.text.InputType.TYPE_CLASS_TEXT
                 | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         fields.addView(name);
+        fields.addView(label(R.string.change_password));
         final android.widget.EditText password = new android.widget.EditText(this);
         password.setHint(R.string.change_password);
         password.setSingleLine(true);
