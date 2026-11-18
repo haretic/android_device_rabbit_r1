@@ -37,9 +37,84 @@ public class TourActivity extends Activity {
     /** Settings.Secure: 1 once the tour was shown, so home opens it only the first time. */
     public static final String KEY_DONE = "r1_wheel_tour_done";
 
-    private static final int WELCOME = 0, TURN = 1, PRESS = 2, HOLD = 3, TASKBAR = 4,
-            SLIDER = 5, BACK = 6, POWER = 7, SLEEP = 8, HELP = 9, DONE = 10;
+    // In parts, each with its pages together: the wheel and the button, the taskbar, the
+    // screen, help. The line of marks along the top shows them and how far the tour is
+    private static final int WELCOME = 0, TURN = 1, PRESS = 2, HOLD = 3, SLIDER = 4,
+            TASKBAR = 5, BACK = 6, POWER = 7, SLEEP = 8, HELP = 9, DONE = 10;
     private static final int PAGES = DONE + 1;
+    /** Each part's first page, and past the last. */
+    private static final int[] PARTS = {WELCOME, TASKBAR, SLEEP, HELP, PAGES};
+    private static final int[] PART_NAMES = {R.string.tour_part_basics, R.string.tour_part_taskbar,
+            R.string.tour_part_screen, R.string.tour_part_help};
+
+    private static int part(int page) {
+        int part = 0;
+        while (part < PART_NAMES.length - 1 && page >= PARTS[part + 1]) {
+            part++;
+        }
+        return part;
+    }
+
+    /**
+     * A page's text for reading at a glance: each line a short paragraph of its own, what the
+     * hand does, between asterisks, in the title's weight and white.
+     */
+    private CharSequence styled(int text) {
+        final android.text.SpannableStringBuilder out = new android.text.SpannableStringBuilder();
+        boolean bold = false;
+        int from = 0;
+        for (char c : getString(text).toCharArray()) {
+            if (c == '*') {
+                if (bold) {
+                    out.setSpan(new android.text.style.ForegroundColorSpan(mText), from,
+                            out.length(), 0);
+                    out.setSpan(new android.text.style.TypefaceSpan(
+                            Typeface.create("haretic-text-medium", Typeface.NORMAL)), from,
+                            out.length(), 0);
+                }
+                bold = !bold;
+                from = out.length();
+            } else if (c == '\n') {
+                // A gap of half a line between the paragraphs
+                out.append("\n\n");
+                out.setSpan(new android.text.style.RelativeSizeSpan(0.45f), out.length() - 1,
+                        out.length(), 0);
+            } else {
+                out.append(c);
+            }
+        }
+        return out;
+    }
+
+    /** The marks along the top: one a page, a wider gap between the parts, lit up to here. */
+    private final class Marks extends View {
+        private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF mMark = new RectF();
+
+        Marks(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            final float gap = dp(3), partGap = dp(9);
+            final float width = (getWidth() - gap * (PAGES - 1)
+                    - (partGap - gap) * (PART_NAMES.length - 1)) / PAGES;
+            float x = 0;
+            for (int i = 0; i < PAGES; i++) {
+                if (i > 0) {
+                    x += part(i) != part(i - 1) ? partGap : gap;
+                }
+                mPaint.setColor(i <= mPage ? mAccent : mSurface);
+                mPaint.setAlpha(i < mPage ? 140 : 255);
+                mMark.set(x, 0, x + width, getHeight());
+                canvas.drawRoundRect(mMark, getHeight() / 2f, getHeight() / 2f, mPaint);
+                x += width;
+            }
+        }
+    }
+
+    private Marks mMarks;
     /** The gadget's full height. */
     private static final int GADGET_DP = 150;
     private static final int TURNS_NEEDED = 4;
@@ -147,6 +222,10 @@ public class TourActivity extends Activity {
         skip.setOnClickListener(v -> finish());
         top.addView(skip, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
         root.addView(top, new LinearLayout.LayoutParams(-1, -2));
+        mMarks = new Marks(this);
+        final LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(-1, dp(4));
+        mlp.topMargin = dp(2);
+        root.addView(mMarks, mlp);
 
         mGadget = new Gadget(this, dp(GADGET_DP));
         mGadgetParams = new LinearLayout.LayoutParams(-1, 0, 1);
@@ -158,7 +237,7 @@ public class TourActivity extends Activity {
         tlp.topMargin = dp(16);
         root.addView(mTitle, tlp);
         mBody = text(15, mTextDim, false);
-        mBody.setLineSpacing(0, 1.15f);
+        mBody.setLineSpacing(0, 1.12f);
         final LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-1, -2);
         blp.topMargin = dp(6);
         root.addView(mBody, blp);
@@ -224,7 +303,15 @@ public class TourActivity extends Activity {
     private void show(int page) {
         mHint.removeCallbacks(mAdvance);
         mPage = page;
-        mStep.setText(getString(R.string.tour_step, page + 1, PAGES));
+        // The part the page is in, then where the tour is
+        final String partName = getString(PART_NAMES[part(page)]);
+        final android.text.SpannableString step = new android.text.SpannableString(
+                partName + "   " + getString(R.string.tour_step, page + 1, PAGES));
+        step.setSpan(new android.text.style.ForegroundColorSpan(mAccent), 0, partName.length(), 0);
+        step.setSpan(new android.text.style.TypefaceSpan(
+                Typeface.create("haretic-text-medium", Typeface.NORMAL)), 0, partName.length(), 0);
+        mStep.setText(step);
+        mMarks.invalidate();
         mTurns = 0;
         mLongPress = false;
         mTaskbarSeen = false;
@@ -237,8 +324,8 @@ public class TourActivity extends Activity {
                 {R.string.tour_turn_title, R.string.tour_turn_body, R.string.tour_turn_hint},
                 {R.string.tour_press_title, R.string.tour_press_body, R.string.tour_press_hint},
                 {R.string.tour_hold_title, R.string.tour_hold_body, R.string.tour_hold_hint},
-                {R.string.tour_taskbar_title, R.string.tour_taskbar_body, R.string.tour_taskbar_hint},
                 {R.string.tour_slider_title, R.string.tour_slider_body, R.string.tour_slider_hint},
+                {R.string.tour_taskbar_title, R.string.tour_taskbar_body, R.string.tour_taskbar_hint},
                 {R.string.tour_back_title, R.string.tour_back_body, R.string.tour_back_hint},
                 {R.string.tour_power_title, R.string.tour_power_body, R.string.tour_power_hint},
                 {R.string.tour_sleep_title, R.string.tour_sleep_body, R.string.tour_sleep_hint},
@@ -246,7 +333,7 @@ public class TourActivity extends Activity {
                 {R.string.tour_done_title, R.string.tour_done_body, R.string.tour_done_hint},
         };
         mTitle.setText(texts[page][0]);
-        mBody.setText(texts[page][1]);
+        mBody.setText(styled(texts[page][1]));
         mHint.setText(texts[page][2]);
         mNext.setText(page == DONE ? R.string.tour_finish
                 : page == HELP ? R.string.tour_help_open : R.string.tour_next);

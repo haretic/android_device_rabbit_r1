@@ -635,7 +635,7 @@ tap_text() {
 asleep() { dev "dumpsys power" | grep -qE 'mWakefulness=(Asleep|Dozing)'; }
 
 t_triple() {
-	# Three presses of the side button turn the screen off, as set by default
+	# Three presses of the side button turn the screen off, once set to
 	local saved; saved=$(lget wheel_side_button_triple)
 	lset wheel_side_button_triple 7
 	key 224; sh "wm dismiss-keyguard"; key 3; sleep 1.5
@@ -648,7 +648,7 @@ t_triple() {
 	side_triple; sleep 1.5
 	asleep && bad "a triple press set to nothing turned the screen off" || ok "a triple press set to nothing does nothing"
 	key 224; sh "wm dismiss-keyguard"; key 4; key 3
-	lset wheel_side_button_triple "${saved:-7}"
+	lset wheel_side_button_triple "${saved:-0}"
 }
 
 t_wakedouble() {
@@ -706,15 +706,15 @@ t_tour() {
 	wheel down 4; sleep 1.5; shot tour-3
 	side_press; sleep 1.8; shot tour-4
 	side_hold; sleep 1.8; shot tour-5
-	focus_win | grep -q TourActivity && ok "tour still up at the taskbar page" || bad "hold left the tour"
+	focus_win | grep -q TourActivity && ok "tour still up at the slider page" || bad "hold left the tour"
+	# The slider: a press grabs it, a turn sets it, a press lets go
+	side_press; sleep 0.8; wheel down 2; sleep 0.5; side_press; sleep 1.8; shot tour-6
 	# The double press opens the taskbar; the hold shuts it, the tour moves on
 	side_double; sleep 1; focus_win | grep -q WheelTaskbar && tb=1 || tb=0; shot tour-taskbar
 	[ $tb = 1 ] && ok "double press opens the taskbar over the tour" || bad "no taskbar ($(focus_win))"
 	# A second double press shuts it
-	side_double; sleep 2; shot tour-6
+	side_double; sleep 2; shot tour-7
 	focus_win | grep -q WheelTaskbar && bad "second double press left the taskbar open" || ok "second double press shuts the taskbar"
-	# The slider: a press grabs it, a turn sets it, a press lets go
-	side_press; sleep 0.8; wheel down 2; sleep 0.5; side_press; sleep 1.8; shot tour-7
 	# Back: the taskbar opened and shut, then Back
 	side_double; sleep 1; side_double; sleep 1; key 4; sleep 1.8; shot tour-8
 	# Power options told of, the status bar's double tap for sleep told of, the help page opened
