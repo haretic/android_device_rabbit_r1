@@ -668,7 +668,8 @@ t_openwith() {
 	id=$(dev "content query --uri content://media/external/downloads --projection _id:_display_name" | grep 'r1-smoke-open.apk' | sed -n 's/.*_id=\([0-9]*\).*/\1/p' | tail -1)
 	[ -n "$id" ] || { bad "no media id for the test APK"; return; }
 	key 224; sh "wm dismiss-keyguard; am start -a android.intent.action.VIEW -t application/vnd.android.package-archive -d content://media/external/downloads/$id >/dev/null"; sleep 2.5
-	focus_win | grep -q ResolverActivity || { bad "no Open with ($(focus_win))"; sh "rm -f /sdcard/Download/r1-smoke-open.apk"; key 3; return; }
+	# With one app to open it, the installer, there is no question to ask
+	focus_win | grep -q ResolverActivity || { echo "SKIP $cur: one app opens an APK, no Open with"; sh "rm -f /sdcard/Download/r1-smoke-open.apk"; key 4; key 3; return; }
 	# Where it starts: nothing after a touch, Just once after keys
 	ui openwith0; f0=$(grep -o 'resource-id="[^"]*"[^>]*focused="true"' $SHOTS/smoke-openwith0.xml | head -1 | cut -d'"' -f2)
 	wheel down 1 >/dev/null; sleep 0.8; ui openwith1; f1=$(grep -o 'resource-id="[^"]*"[^>]*focused="true"' $SHOTS/smoke-openwith1.xml | head -1 | cut -d'"' -f2)
@@ -824,7 +825,9 @@ t_landpower() {
 	turn 1; sleep 1
 	key 224; sh "wm dismiss-keyguard; am start -W -S -a android.settings.DISPLAY_SETTINGS >/dev/null"; sleep 2
 	sh "service call window 119 >/dev/null"; sleep 2; ui landpower; shot landpower
-	grep -q 'Recovery' $SHOTS/smoke-landpower.xml && ok "turned power menu is the list" \
+	# The list's actions stand one under the other; the grid's lie side by side
+	[ -n "$(xnodes landpower | awk -F '\t' '$7 == "Power off" { split($6, a, " ") } $7 == "Restart" { split($6, b, " ") } END { if (a[1] != "" && a[1] == b[1] && b[2] > a[2]) print "list" }')" ] \
+		&& ok "turned power menu is the list" \
 		|| bad "turned power menu is the grid"
 	key 4; sleep 1
 	rotation_back "${user:-0}" "${auto:-1}"
@@ -949,6 +952,14 @@ t_plaintext() {
 }
 
 t_timepicker() {
+	# In the image's own wheel mode for the app, whatever this r1's owner picked for it
+	local modes; modes=$(lget wheel_app_modes)
+	lset wheel_app_modes "cat.kenny.r1.smoke=app"; sleep 0.5
+	timepicker_in_stock_mode
+	lset wheel_app_modes "$modes"
+}
+
+timepicker_in_stock_mode() {
 	# The alarm's time picker: the side button grabs the hour and the wheel sets it, the hour
 	# kept when the focus moves on, where the wheel only stepped past the touch clock face
 	local i h0 h1 at
@@ -1001,6 +1012,14 @@ t_offcamera() {
 }
 
 t_readorder() {
+	# In the image's own wheel mode for the app, whatever this r1's owner picked for it
+	local modes; modes=$(lget wheel_app_modes)
+	lset wheel_app_modes "cat.kenny.r1.smoke=app"; sleep 0.5
+	readorder_in_stock_mode
+	lset wheel_app_modes "$modes"
+}
+
+readorder_in_stock_mode() {
 	# The wheel goes as text reads: on the clock's timer keypad a step goes along the row of
 	# digits, not down the first column only
 	key 3; sleep 1; wheel down 1 >/dev/null; sleep 0.4
@@ -1114,6 +1133,14 @@ t_applist() {
 }
 
 t_overlist() {
+	# In the image's own wheel mode for the app, whatever this r1's owner picked for it
+	local modes; modes=$(lget wheel_app_modes)
+	lset wheel_app_modes "cat.kenny.r1.smoke=app"; sleep 0.5
+	overlist_in_stock_mode
+	lset wheel_app_modes "$modes"
+}
+
+overlist_in_stock_mode() {
 	# An empty list with the focus, as the music player's: the step goes onto the button
 	# floating over it, not past it to the tabs below
 	key 3; sleep 1; wheel down 1 >/dev/null; sleep 0.4
@@ -1214,7 +1241,7 @@ t_folder() {
 		was="$from $to"
 	done
 	if [ -z "$from" ] || [ -z "$to" ]; then
-		bad "the grid home has no Messaging and Telephone to make a folder of"
+		echo "SKIP $cur: this grid home has no Messaging and Telephone to make a folder of"
 	else
 		# Picked up past the long press's menu, then dropped on Telephone
 		local x=${from% *} y=${from#* }
