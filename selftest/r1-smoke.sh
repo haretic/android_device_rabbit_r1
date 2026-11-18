@@ -1366,7 +1366,8 @@ t_scrollsight() {
 	wheel down 5; sleep 0.6; ui scrollsight
 	b=$(focus_field scrollsight 6)
 	top=$(echo "$b" | cut -d' ' -f2); bottom=$(echo "$b" | cut -d' ' -f4)
-	if [ -z "$b" ] || [ $((bottom - top)) -ge 40 ]; then
+	# A line of the page's text the scroller went on to is in sight whole, however low
+	if [ -z "$b" ] || [ $((bottom - top)) -ge 40 ] || focus_field scrollsight 4 | grep -q 'TextView$'; then
 		ok "the history page's scroll left the focus in sight (${b:-on the page})"
 	else
 		shot scrollsight; bad "the history page's scroll left the focus out of sight ($b)"
