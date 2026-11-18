@@ -17,6 +17,18 @@
             android:entries="@array/side_button_action_entries"
             android:entryValues="@array/side_button_action_values"
             android:persistent="false" />
+        <ListPreference
+            android:key="wheel_side_button_triple"
+            android:title="@string/side_button_triple"
+            android:entries="@array/side_button_action_entries"
+            android:entryValues="@array/side_button_action_values"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
+            android:key="wheel_side_button_wake_double"
+            android:title="@string/wake_double_title"
+            android:summaryOn="@string/wake_double_summary_on"
+            android:summaryOff="@string/wake_double_summary_off"
+            android:persistent="false" />
     </PreferenceCategory>
 
     <!-- What the double press and a press do besides: a note, not a greyed-out row that reads

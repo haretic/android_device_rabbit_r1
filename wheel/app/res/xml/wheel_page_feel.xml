@@ -35,6 +35,11 @@
             android:summary="@string/reverse_summary"
             android:persistent="false" />
         <SwitchPreferenceCompat
+            android:key="wheel_scroll_natural"
+            android:title="@string/natural_title"
+            android:summary="@string/natural_summary"
+            android:persistent="false" />
+        <SwitchPreferenceCompat
             android:key="wheel_turn_with_screen"
             android:title="@string/turn_title"
             android:summaryOn="@string/turn_summary_on"

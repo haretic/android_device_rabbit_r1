@@ -44,11 +44,13 @@
 //	guard     how long after the side button is let go its nudges are dropped, in ms (0 to 500);
 //	          0 keeps every step, while the button is held too
 //	reverse   1 turns the wheel's direction round
+//	natural   1 has scroll mode drag the page the way the wheel turns, as a finger does
+//	divide    how many clicks of the wheel make a step, 1 to 4: a calmer wheel for an app
 //
 // The self test (selftest/, as the shell user) turns the wheel over the socket too,
 // "inject <up|down> <steps>": each step goes the way a turn of the wheel's own does, the
 // mode's, as the shell may not write the wheel's input device. "inject side <press|hold|
-// double>" presses the side button through r1-side, a uinput device made for it at the
+// double|triple>" presses the side button through r1-side, a uinput device made for it at the
 // first, its KEY_POWER as the side button's own (Generic.kl). "r1-wheeld inject down 3"
 // sends a line.
 
@@ -310,6 +312,9 @@ type daemon struct {
 	// The side button: held, or when it was let go
 	button         bool
 	buttonReleased time.Time
+	// Clicks towards the next step where it takes several (tuning.divide), and their way
+	clicks   int
+	clicksUp bool
 	// SystemUI's connections, told of each step an app gets so the wheel ticks there too
 	clients map[net.Conn]bool
 	tuning  tuning
@@ -335,9 +340,11 @@ type tuning struct {
 	spin     int     // 0 none, 1 the default, 2 strong
 	guard    time.Duration
 	reverse  bool
+	natural  bool
+	divide   int
 }
 
-var defaultTuning = tuning{distance: 1, spin: 1, guard: buttonSettle}
+var defaultTuning = tuning{distance: 1, spin: 1, guard: buttonSettle, divide: 1}
 
 // tune sets one of the user's tunings; whether it knew the name and value.
 func (d *daemon) tune(name, value string) bool {
@@ -356,6 +363,11 @@ func (d *daemon) tune(name, value string) bool {
 		d.tuning.guard = time.Duration(max(0, min(500, n))) * time.Millisecond
 	case "reverse":
 		d.tuning.reverse = n != 0
+	case "natural":
+		d.tuning.natural = n != 0
+	case "divide":
+		d.tuning.divide = max(1, min(4, n))
+		d.clicks = 0
 	default:
 		return false
 	}
@@ -746,6 +758,17 @@ func (d *daemon) step(code uint16, value int32) {
 		return
 	}
 	up := (code == keyUp) != d.tuning.reverse
+	if d.tuning.divide > 1 {
+		// A turn back starts the count again, so the first step back is not a click early
+		if up != d.clicksUp {
+			d.clicks, d.clicksUp = 0, up
+		}
+		d.clicks++
+		if d.clicks < d.tuning.divide {
+			return
+		}
+		d.clicks = 0
+	}
 	if d.mode != modeTaskbar {
 		d.notify(up)
 	}
@@ -778,7 +801,9 @@ func (d *daemon) step(code uint16, value int32) {
 			// A pinch's fingers are still down, as just after the mode changed
 			return
 		}
-		if up {
+		// A turn up shows what is further up; the natural way it drags the page up, as a
+		// finger moving up does, and shows what is further down
+		if up != d.tuning.natural {
 			d.scrollStep(1)
 		} else {
 			d.scrollStep(-1)
@@ -1094,10 +1119,10 @@ func (d *daemon) inject(way, count string) bool {
 const pressTime = 150 * time.Millisecond
 
 // injectSide presses the side button: a press, a hold of 1.2 s (the long press), or two
-// presses 100 ms apart, the policy's double press. A press stays down as long as a finger
+// or three presses 100 ms apart, the policy's double and triple press. A press stays down as long as a finger
 // keeps it, 150 ms: one of no length passed where real presses were taken for holds.
 func (d *daemon) injectSide(how string) bool {
-	if how != "press" && how != "hold" && how != "double" {
+	if how != "press" && how != "hold" && how != "double" && how != "triple" {
 		return false
 	}
 	if d.side == nil {
@@ -1128,18 +1153,25 @@ func (d *daemon) injectSide(how string) bool {
 		press(pressTime / 2)
 		time.Sleep(100 * time.Millisecond)
 		press(pressTime / 2)
+	case "triple":
+		for i := 0; i < 3; i++ {
+			if i > 0 {
+				time.Sleep(100 * time.Millisecond)
+			}
+			press(pressTime / 2)
+		}
 	}
 	return true
 }
 
 // injectClient is "r1-wheeld inject <up|down> [steps]" or "r1-wheeld inject side
-// <press|hold|double>": it asks the running daemon and waits until it is done.
+// <press|hold|double|triple>": it asks the running daemon and waits until it is done.
 func injectClient(args []string) {
 	if len(args) == 1 {
 		args = append(args, "1")
 	}
 	if len(args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: r1-wheeld inject <up|down> [steps] | side <press|hold|double>")
+		fmt.Fprintln(os.Stderr, "usage: r1-wheeld inject <up|down> [steps] | side <press|hold|double|triple>")
 		os.Exit(2)
 	}
 	conn, err := net.Dial("unix", "/dev/socket/"+outName)

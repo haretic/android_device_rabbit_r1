@@ -533,6 +533,7 @@ if [ -n "${R1_ONDEVICE:-}" ]; then
 	side_press() { timeout 10 r1-wheeld inject side press; }
 	side_hold() { timeout 10 r1-wheeld inject side hold; }
 	side_double() { timeout 10 r1-wheeld inject side double; }
+	side_triple() { timeout 10 r1-wheeld inject side triple; }
 else
 	side_press() { sh "sendevent /dev/input/event0 1 116 1; sendevent /dev/input/event0 0 0 0; sendevent /dev/input/event0 1 116 0; sendevent /dev/input/event0 0 0 0"; }
 	side_hold() { sh "sendevent /dev/input/event0 1 116 1; sendevent /dev/input/event0 0 0 0; sleep 1.2; sendevent /dev/input/event0 1 116 0; sendevent /dev/input/event0 0 0 0"; }
@@ -540,8 +541,131 @@ else
 	# a double press only if the second down comes within 300 ms of the first
 	SIDE_TAP=AAAAAAAAAAAAAAAAAAAAAAEAdAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 	side_double() { sh "t=/data/local/tmp/side-tap.bin; [ -s \$t ] || echo $SIDE_TAP | base64 -d > \$t; cat \$t > /dev/input/event0; sleep 0.1; cat \$t > /dev/input/event0"; }
+	side_triple() { sh "t=/data/local/tmp/side-tap.bin; [ -s \$t ] || echo $SIDE_TAP | base64 -d > \$t; cat \$t > /dev/input/event0; sleep 0.1; cat \$t > /dev/input/event0; sleep 0.1; cat \$t > /dev/input/event0"; }
 fi
 focus_win() { dev "dumpsys window | grep -m1 mCurrentFocus"; }
+t_apptune() {
+	# An app's own wheel feel (the taskbar's Wheel mode, This app's wheel) is that app's alone:
+	# Settings scrolls the natural way while the general setting is off, and its rows are there
+	local modes tuning natural a b
+	modes=$(lget wheel_app_modes); tuning=$(lget wheel_app_tuning); natural=$(lget wheel_scroll_natural)
+	lset wheel_app_modes com.android.settings=scroll; lset wheel_scroll_natural 0
+	lset wheel_app_tuning com.android.settings=natural:1
+	key 224; sh "wm dismiss-keyguard"
+	sh "am start -W -S -n com.android.settings/.Settings >/dev/null"; sleep 2.5
+	a=$(scroll_drag)
+	lset wheel_app_tuning com.android.settings=divide:2; sleep 1
+	# Two clicks a step: one click drags nothing
+	b=$(scroll_drag)
+	[ "$a" = down ] && ok "an app's natural scrolling is its own (a step down drags $a)" \
+		|| bad "an app's natural scrolling did not reach the wheel (a step down drags $a)"
+	[ "$b" = none ] && ok "with two clicks a step, one click is no step" \
+		|| bad "with two clicks a step, one click still dragged ($b)"
+	wheel down 1 >/dev/null; sleep 1
+	# The rows, in the taskbar's Wheel mode list
+	local timeout i d; timeout=$(lget wheel_taskbar_timeout); lset wheel_taskbar_timeout 0
+	side_double; sleep 1.2
+	for i in $(seq 1 12); do
+		ui apptune; d=$(focus_field apptune 8)
+		[ "$d" = "Wheel mode" ] && break
+		wheel down 1; sleep 0.5
+	done
+	side_press; sleep 1.2
+	# Down the modes to the row under them: the focus is on it when its bounds hold its title's
+	local on=""
+	for i in $(seq 1 20); do
+		ui apptune-list
+		on=$(awk -v q="This app(.|&apos;)s wheel" '
+			{ n = split($0, nodes, "<node ")
+			  for (i = 2; i <= n; i++) {
+				if (!match(nodes[i], /bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"/)) continue
+				b = substr(nodes[i], RSTART + 9, RLENGTH - 11); gsub(/\]\[/, ",", b); split(b, c, ",")
+				if (nodes[i] ~ /focused="true"/) { top = c[2]; bottom = c[4] }
+				if (nodes[i] ~ ("text=\"" q "\"")) y = c[2]
+			  } }
+			END { if (y != "" && top != "" && y >= top && y <= bottom) print "yes" }' $SHOTS/smoke-apptune-list.xml)
+		[ -n "$on" ] && break
+		wheel down 1; sleep 0.4
+	done
+	if [ -n "$on" ]; then
+		side_press; sleep 1; ui apptune-open; shot apptune-open
+		grep -q 'text="Clicks per step"' $SHOTS/smoke-apptune-open.xml \
+			&& ok "This app's wheel opens its rows" || bad "This app's wheel opened no rows"
+		grep -q 'Every 2nd click, this app only' $SHOTS/smoke-apptune-open.xml \
+			&& ok "the app's own value is said to be its own" || bad "the app's own value is not shown"
+	else
+		shot apptune-list; bad "Wheel mode has no row for this app's wheel (focus: $d)"
+	fi
+	lset wheel_taskbar_timeout "$timeout"
+	lset wheel_app_tuning "$tuning"; lset wheel_app_modes "$modes"; lset wheel_scroll_natural "${natural:-0}"
+	key 4; key 4; key 3
+}
+
+asleep() { dev "dumpsys power" | grep -qE 'mWakefulness=(Asleep|Dozing)'; }
+
+t_triple() {
+	# Three presses of the side button turn the screen off, as set by default
+	local saved; saved=$(lget wheel_side_button_triple)
+	lset wheel_side_button_triple 7
+	key 224; sh "wm dismiss-keyguard"; key 3; sleep 1.5
+	side_triple; sleep 2
+	asleep && ok "a triple press turns the screen off" || { shot triple; bad "a triple press left the screen on"; }
+	key 224; sh "wm dismiss-keyguard"; sleep 1
+	# With no use for a third press the double press acts at once: the bar is open within the
+	# interval a third press would have been waited for
+	lset wheel_side_button_triple 0; sleep 0.5
+	side_triple; sleep 1.5
+	asleep && bad "a triple press set to nothing turned the screen off" || ok "a triple press set to nothing does nothing"
+	key 224; sh "wm dismiss-keyguard"; key 4; key 3
+	lset wheel_side_button_triple "${saved:-7}"
+}
+
+t_wakedouble() {
+	# Double press to wake: one press leaves the screen off, two wake it
+	local saved; saved=$(lget wheel_side_button_wake_double)
+	lset wheel_side_button_wake_double 1
+	key 224; sh "wm dismiss-keyguard"; key 3; sleep 1; key 223; sleep 2.5
+	side_press; sleep 1.5
+	asleep && ok "one press leaves the screen off where two wake it" || bad "one press woke the screen where it takes two"
+	key 223; sleep 2
+	side_double; sleep 2
+	asleep && bad "a double press left the screen off" || ok "a double press wakes the screen"
+	lset wheel_side_button_wake_double "${saved:-0}"
+	key 224; sh "wm dismiss-keyguard"; sleep 1
+	dev "dumpsys window" | grep -m1 mCurrentFocus | grep -qi camera && { key 4; bad "the waking double press opened the camera"; }
+	key 3
+}
+
+# The way one wheel step down drags the page in scroll mode: up, down or none, by the first and
+# the last height of r1-wheel-touch's finger
+scroll_drag() {
+	sh "getevent -c 60 /dev/input/event6 > /sdcard/drag.txt 2>&1 & sleep 0.5; $(step_cmd down); sleep 1.5; kill %1 2>/dev/null"
+	local a b
+	a=$(dev "cat /sdcard/drag.txt" | awk '$2 == "0036" { print $3; exit }')
+	b=$(dev "cat /sdcard/drag.txt" | awk '$2 == "0036" { v = $3 } END { print v }')
+	if [ -z "$a" ] || [ "$a" = "$b" ]; then echo none
+	elif [ $((16#$b)) -lt $((16#$a)) ]; then echo up
+	else echo down; fi
+}
+
+t_natural() {
+	# Natural scrolling turns scroll mode's drag round: the page moves the way the wheel turns
+	local modes natural a b
+	modes=$(lget wheel_app_modes); natural=$(lget wheel_scroll_natural)
+	lset wheel_app_modes com.android.settings=scroll; lset wheel_scroll_natural 0
+	key 224; sh "wm dismiss-keyguard"
+	sh "am start -W -S -n com.android.settings/.Settings >/dev/null"; sleep 2.5
+	a=$(scroll_drag)
+	lset wheel_scroll_natural 1; sleep 1
+	b=$(scroll_drag)
+	lset wheel_scroll_natural "${natural:-0}"; lset wheel_app_modes "$modes"
+	if [ "$a" = up ] && [ "$b" = down ]; then
+		ok "natural scrolling drags the page the wheel's way (a step down: $a, then $b)"
+	else
+		bad "natural scrolling did not turn the drag round (a step down: $a, then $b)"
+	fi
+	key 4; key 3
+}
 t_tour() {
 	# Home opens the tour the first time; each page waits for its control
 	sh "settings delete secure r1_wheel_tour_done >/dev/null; am force-stop com.android.launcher3; input keyevent 224; wm dismiss-keyguard; input keyevent 3"; sleep 3
@@ -1447,7 +1571,7 @@ t_routername() {
 	key 4; sleep 1; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight wheeltune}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight triple wakedouble natural apptune wheeltune}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")

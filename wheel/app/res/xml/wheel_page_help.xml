@@ -40,7 +40,9 @@
         android:key="help_sleep"
         android:title="@string/help_sleep_title"
         android:summary="@string/help_sleep_summary"
-        android:selectable="false" />
+        android:fragment="cat.kenny.r1.wheel.settings.WheelFragment">
+        <extra android:name="page" android:value="side_button" />
+    </Preference>
 
     <Preference
         android:key="help_back"
