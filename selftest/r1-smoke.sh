@@ -975,7 +975,8 @@ timepicker_in_stock_mode() {
 	esac
 	side_press; sleep 2; ui timepicker
 	h0=$(focus_field timepicker 7); at=$(focus_field timepicker 5)
-	side_press; wheel down 1 >/dev/null; sleep 0.8; side_press; wheel down 1 >/dev/null; sleep 0.8
+	# A press is the window's only once no second press can follow it: the turn waits for it
+	side_press; sleep 0.6; wheel down 1 >/dev/null; sleep 0.8; side_press; sleep 0.6; wheel down 1 >/dev/null; sleep 0.8
 	ui timepicker; shot timepicker
 	h1=$(xnodes timepicker | awk -F '\t' '$5 ~ /:id\/hours$/ { print $7; exit }')
 	case "$h0" in ''|*[!0-9]*) h0=x ;; esac
