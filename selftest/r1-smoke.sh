@@ -601,6 +601,37 @@ t_apptune() {
 	key 4; key 4; key 3
 }
 
+# The text of the row a dialog's list has selected, or of the button with the focus
+picked() { ui $1; grep -oE '<node[^>]*(selected|focused)="true"[^>]*>' $SHOTS/smoke-$1.xml | grep -oE ' text="[^"&]+' | tail -1 | cut -c8-; }
+
+t_shortlist() {
+	# A dialog's short list over its buttons, as an app's own wheel feel in Taskbar and wheel:
+	# opened by touch, the wheel's first step is in the list, and from the buttons it goes back up
+	local tuning a b c
+	tuning=$(lget wheel_app_tuning); lset wheel_app_tuning com.android.calculator2=divide:2
+	key 224; sh "wm dismiss-keyguard"
+	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null 2>&1"; sleep 2.5
+	ui shortlist; tap_text shortlist "The wheel in each app"; sleep 2.5; ui shortlist
+	tap_text shortlist "Calculator"; sleep 2; ui shortlist; tap_text shortlist "This app[^\"]*s wheel"; sleep 1.5
+	wheel down 1 >/dev/null; sleep 0.7; a=$(picked shortlist-a)
+	wheel down 4 >/dev/null; sleep 1; b=$(picked shortlist-b)
+	wheel up 2 >/dev/null; sleep 0.8; c=$(picked shortlist-c)
+	case "$a" in "Reverse direction"|"Clicks per step") ok "the first step is in the dialog's short list ($a)" ;;
+	*) shot shortlist-a; bad "the first step left the dialog's short list (on: ${a:-nothing})" ;; esac
+	case "$b" in Done|Reset) case "$c" in Done|Reset|"") shot shortlist-c; bad "no way back up from the dialog's buttons (on: ${c:-nothing})" ;;
+		*) ok "from the buttons the wheel goes back up into the list ($c)" ;; esac ;;
+	*) bad "the wheel did not reach the dialog's buttons (on: ${b:-nothing})" ;; esac
+	key 4; sleep 0.5; key 4; key 4; key 3
+	lset wheel_app_tuning "$tuning"
+}
+
+# Taps the middle of the first node whose text is $2 in the dump smoke-$1.xml
+tap_text() {
+	local at
+	at=$(grep -oE "text=\"$2\"[^>]*bounds=\"\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]" $SHOTS/smoke-$1.xml | head -1 | grep -oE '[0-9]+' | tail -4 | tr '\n' ' ' | awk '{ print int(($1 + $3) / 2), int(($2 + $4) / 2) }')
+	[ -n "$at" ] && sh "input tap $at"
+}
+
 asleep() { dev "dumpsys power" | grep -qE 'mWakefulness=(Asleep|Dozing)'; }
 
 t_triple() {
@@ -1571,7 +1602,7 @@ t_routername() {
 	key 4; sleep 1; key 3
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight triple wakedouble natural apptune wheeltune}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")

@@ -62,6 +62,7 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
                 .compareToIgnoreCase(b.loadLabel(pm).toString()));
         final Map<String, String> modes = read(requireContext());
         final Map<String, String> defaults = defaults(requireContext());
+        final Map<String, Map<String, Integer>> tuning = readTuning();
         final List<String> done = new java.util.ArrayList<>();
         for (ResolveInfo app : apps) {
             final String pkg = app.activityInfo.packageName;
@@ -74,7 +75,8 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
             preference.setTitle(app.loadLabel(pm));
             preference.setIcon(app.loadIcon(pm));
             final String mode = modes.getOrDefault(pkg, defaults.getOrDefault(pkg, "taskbar"));
-            preference.setSummary(label(mode));
+            preference.setSummary(tuning.containsKey(pkg)
+                    ? getString(R.string.app_modes_tuned, label(mode)) : label(mode));
             preference.setOnPreferenceClickListener(p -> {
                 pick(pkg, app.loadLabel(pm), mode);
                 return true;
@@ -110,7 +112,149 @@ public class AppModesFragment extends SettingsBasePreferenceFragment {
                     write(requireContext(), modes);
                     fill();
                 })
+                .setNeutralButton(R.string.app_tune_title, (dialog, which) ->
+                        tune(pkg, app, "scroll".equals(mode(current))))
                 .show());
+    }
+
+    /** The tunings an app may have of its own, as SystemUI's WheelTaskbarSettings names them. */
+    private static final String[] TUNES = {"distance", "spin", "natural", "reverse", "divide",
+            "guard"};
+    private static final int[][] TUNE_VALUES = {{50, 75, 100, 150, 200}, {0, 1, 2}, {0, 1},
+            {0, 1}, {1, 2, 3, 4}, {0, 100, 150, 250, 400}};
+    private static final int[] TUNE_TITLES = {R.string.distance_title, R.string.spin_title,
+            R.string.natural_title, R.string.reverse_title, R.string.divide_title,
+            R.string.guard_title};
+    private static final int[] TUNE_NAMES = {R.array.distance_entries, R.array.spin_entries,
+            R.array.switch_entries, R.array.switch_entries, R.array.divide_entries,
+            R.array.guard_entries};
+    private static final String[] TUNE_KEYS = {LineageSettings.Secure.WHEEL_SCROLL_DISTANCE,
+            LineageSettings.Secure.WHEEL_SPIN, LineageSettings.Secure.WHEEL_SCROLL_NATURAL,
+            LineageSettings.Secure.WHEEL_REVERSE, null,
+            LineageSettings.Secure.WHEEL_PRESS_GUARD};
+
+    private int general(int tune) {
+        return TUNE_KEYS[tune] == null ? 1 : LineageSettings.Secure.getIntForUser(
+                requireContext().getContentResolver(), TUNE_KEYS[tune],
+                WheelFragment.DEFAULTS.get(TUNE_KEYS[tune]), UserHandle.myUserId());
+    }
+
+    /**
+     * The wheel's feel in one app, as the taskbar's Wheel mode list has it under This app's
+     * wheel: a row steps its value on, kept for the app where it is not the general setting.
+     * Scroll distance, spin and natural scrolling are Smooth scroll's, and only shown with it.
+     */
+    private void tune(String pkg, CharSequence app, boolean scrolls) {
+        final Map<String, Map<String, Integer>> all = readTuning();
+        final Map<String, Integer> own = all.getOrDefault(pkg, new LinkedHashMap<>());
+        final List<Integer> rows = new java.util.ArrayList<>();
+        final List<CharSequence> labels = new java.util.ArrayList<>();
+        final List<Integer> next = new java.util.ArrayList<>();
+        for (int i = 0; i < TUNES.length; i++) {
+            if (!scrolls && i < 3) {
+                continue;
+            }
+            final int value = own.getOrDefault(TUNES[i], general(i));
+            int at = 0;
+            for (int v = 0; v < TUNE_VALUES[i].length; v++) {
+                if (Math.abs(TUNE_VALUES[i][v] - value) < Math.abs(TUNE_VALUES[i][at] - value)) {
+                    at = v;
+                }
+            }
+            final String said = getResources().getStringArray(TUNE_NAMES[i])[at];
+            rows.add(i);
+            next.add(TUNE_VALUES[i][(at + 1) % TUNE_VALUES[i].length]);
+            labels.add(twoLines(getString(TUNE_TITLES[i]), own.containsKey(TUNES[i])
+                    ? getString(R.string.app_tune_own, said) : said));
+        }
+        final AlertDialog.Builder builder = new AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.app_tune_of, app))
+                .setItems(labels.toArray(new CharSequence[0]), (dialog, which) -> {
+                    final int tune = rows.get(which);
+                    if (next.get(which) == general(tune)) {
+                        own.remove(TUNES[tune]);
+                    } else {
+                        own.put(TUNES[tune], next.get(which));
+                    }
+                    all.remove(pkg);
+                    if (!own.isEmpty()) {
+                        all.put(pkg, own);
+                    }
+                    writeTuning(all);
+                    tune(pkg, app, scrolls);
+                })
+                .setPositiveButton(R.string.app_tune_done, (dialog, which) -> fill());
+        if (!own.isEmpty()) {
+            builder.setNeutralButton(R.string.app_tune_reset, (dialog, which) -> {
+                all.remove(pkg);
+                writeTuning(all);
+                fill();
+            });
+        }
+        WheelSelect.attach(builder.setOnCancelListener(dialog -> fill()).show());
+    }
+
+    private CharSequence twoLines(String title, String value) {
+        final SpannableString lines = new SpannableString(title + "\n" + value);
+        final TypedArray a = requireContext().obtainStyledAttributes(
+                new int[] {android.R.attr.textColorSecondary});
+        final int secondary = a.getColor(0, 0);
+        a.recycle();
+        lines.setSpan(new RelativeSizeSpan(0.8f), title.length() + 1, lines.length(), 0);
+        lines.setSpan(new ForegroundColorSpan(secondary), title.length() + 1, lines.length(), 0);
+        return lines;
+    }
+
+    /** LineageSettings.Secure.WHEEL_APP_TUNING: package=name:value;name:value, comma separated. */
+    private Map<String, Map<String, Integer>> readTuning() {
+        final Map<String, Map<String, Integer>> all = new LinkedHashMap<>();
+        final String value = LineageSettings.Secure.getStringForUser(
+                requireContext().getContentResolver(), LineageSettings.Secure.WHEEL_APP_TUNING,
+                UserHandle.myUserId());
+        if (TextUtils.isEmpty(value)) {
+            return all;
+        }
+        for (String entry : value.split(",")) {
+            final int equals = entry.indexOf('=');
+            if (equals <= 0) {
+                continue;
+            }
+            final Map<String, Integer> own = new LinkedHashMap<>();
+            for (String tune : entry.substring(equals + 1).split(";")) {
+                final int colon = tune.indexOf(':');
+                try {
+                    if (colon > 0) {
+                        own.put(tune.substring(0, colon),
+                                Integer.parseInt(tune.substring(colon + 1)));
+                    }
+                } catch (NumberFormatException e) {
+                    // Not one of ours
+                }
+            }
+            if (!own.isEmpty()) {
+                all.put(entry.substring(0, equals), own);
+            }
+        }
+        return all;
+    }
+
+    private void writeTuning(Map<String, Map<String, Integer>> all) {
+        final StringBuilder value = new StringBuilder();
+        for (Map.Entry<String, Map<String, Integer>> entry : all.entrySet()) {
+            if (value.length() > 0) {
+                value.append(',');
+            }
+            value.append(entry.getKey()).append('=');
+            boolean first = true;
+            for (Map.Entry<String, Integer> tune : entry.getValue().entrySet()) {
+                value.append(first ? "" : ";").append(tune.getKey()).append(':')
+                        .append(tune.getValue());
+                first = false;
+            }
+        }
+        LineageSettings.Secure.putStringForUser(requireContext().getContentResolver(),
+                LineageSettings.Secure.WHEEL_APP_TUNING, value.toString(),
+                UserHandle.myUserId());
     }
 
     /** Opens the app, then the zones over it, for the touch mode. */

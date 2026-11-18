@@ -122,6 +122,23 @@
         <item quantity="other">%1$d apps set their own way</item>
     </plurals>
     <string name="app_modes_none">All apps open the taskbar</string>
+    <string name="app_modes_tuned">%s, its own wheel feel</string>
+    <string name="app_tune_title">This app\'s wheel</string>
+    <string name="app_tune_of">%s - wheel</string>
+    <string name="app_tune_own">%s, this app only</string>
+    <string name="app_tune_done">Done</string>
+    <string name="app_tune_reset">Reset</string>
+    <string name="divide_title">Clicks per step</string>
+    <string-array name="divide_entries">
+        <item>Every click</item>
+        <item>Every 2nd click</item>
+        <item>Every 3rd click</item>
+        <item>Every 4th click</item>
+    </string-array>
+    <string-array name="switch_entries">
+        <item>Off</item>
+        <item>On</item>
+    </string-array>
     <string name="mode_taskbar">Taskbar</string>
     <string name="mode_app">Move the highlight</string>
     <string name="mode_scroll">Smooth scroll</string>
