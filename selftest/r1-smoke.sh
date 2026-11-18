@@ -451,12 +451,13 @@ t_wheeltune() {
 	fast=$(dev getprop persist.sys.r1.kt.wheel_poll_fast)
 	step=$(dev getprop persist.sys.r1.kt.wheel_step)
 	sh "setprop persist.sys.r1.kt.enabled 1; setprop persist.sys.r1.kt.wheel_poll_fast 16; setprop persist.sys.r1.kt.wheel_step 30; setprop sys.r1.kt.apply t$(date +%s%N)"
-	sleep 3
+	# The tweaks service takes a little over three seconds
+	sleep 6
 	got="$(dev cat $d/poll_fast_ms) $(dev cat $d/step_deg) $(dev getprop sys.r1.kt.result)"
 	[ "$got" = "16 30 ok" ] && ok "wheel tweaks reach the driver ($got)" \
 		|| bad "wheel tweaks didn't reach the driver (poll, step, result: $got)"
 	sh "setprop persist.sys.r1.kt.wheel_poll_fast \"$fast\"; setprop persist.sys.r1.kt.wheel_step \"$step\"; setprop persist.sys.r1.kt.enabled \"$on\"; setprop sys.r1.kt.apply t$(date +%s%N)"
-	sleep 3
+	sleep 6
 	got="$(dev cat $d/poll_fast_ms) $(dev cat $d/step_deg)"
 	case "$fast$step$on" in
 	""|1) [ "$got" = "10 20" ] && ok "wheel back at its defaults" \
