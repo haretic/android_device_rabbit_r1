@@ -60,9 +60,9 @@
     </plurals>
     <string name="foot_after">The code changes each time. Remote Control turns itself off after <xliff:g id="time">%1$s</xliff:g> with no computer.</string>
     <!-- Asked first: the page opens with Remote Control off and this button -->
-    <string name="off_text">Remote Control is off. Start it to let a computer on this Wi-Fi see and control the r1.</string>
-    <string name="start">Start</string>
-    <string name="start_failed">Could not start - press to try again.</string>
+    <string name="off_text">Remote Control is off. Turn it on to let a computer on this Wi-Fi see and control the r1.</string>
+    <string name="start">Turn on</string>
+    <string name="start_failed">Could not turn on - press to try again.</string>
     <string name="ask_first">Ask before starting</string>
     <string name="ask_first_sub">when this page opens</string>
     <!-- The address as a code for a phone's camera -->
@@ -71,7 +71,7 @@
     <string name="scan_done">Done</string>
     <string name="connected_from">Connected since <xliff:g id="clock">%1$s</xliff:g> from <xliff:g id="address">%2$s</xliff:g></string>
     <!-- Along the bottom: what the wheel and the side button do -->
-    <string name="hint_off">Press Start, or tap it, to turn Remote Control on. Turn the wheel for the settings.</string>
+    <string name="hint_off">Press Turn on, or tap it, to turn Remote Control on. Turn the wheel for the settings.</string>
     <string name="hint_waiting">Type the code on the computer. Turn the wheel to a row and press, or tap it, to change it.</string>
     <string name="hint_no_wifi">Join a Wi-Fi network first. Turn the wheel to a row and press, or tap it, to change it.</string>
     <string name="hint_connected">Turn the wheel to Disconnect and press, or tap it, to end the session.</string>

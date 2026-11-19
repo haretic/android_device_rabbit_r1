@@ -3,7 +3,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Settings > System > Problem report -->
     <string name="report_title">Problem report</string>
-    <string name="report_summary">Save logs for a bug report</string>
+    <string name="report_summary">Save logs for a problem report</string>
 
     <string name="intro">Saves the system logs from now and from the last start, crash reports and a description of this r1 as one .zip in Download/haretic-reports. Takes about a minute.</string>
 
@@ -72,7 +72,7 @@
     <string name="self_test_full_summary">About 40 minutes - every check the build runs</string>
     <string name="self_test_confirm">The self test will take over the screen. To stop it, go back to Self test and choose Stop. Your settings will be put back when it ends.</string>
     <string name="self_test_start">Start</string>
-    <string name="self_test_starting">Starting...</string>
+    <string name="self_test_starting">Starting…</string>
     <string name="self_test_didnt_start">The self test didn\'t start</string>
     <string name="self_test_start_error">The self test could not be started.</string>
     <string name="self_test_progress">Test <xliff:g id="index">%1$d</xliff:g> of <xliff:g id="total">%2$d</xliff:g> - <xliff:g id="test">%3$s</xliff:g></string>
@@ -90,7 +90,7 @@
     <string name="self_test_skipped">skipped</string>
     <string name="self_test_skipped_group">Skipped - <xliff:g id="count">%1$d</xliff:g></string>
     <string name="self_test_passed_group">Passed - <xliff:g id="count">%1$d</xliff:g></string>
-    <string name="self_test_loading_shot">Loading screenshot...</string>
+    <string name="self_test_loading_shot">Loading screenshot…</string>
     <string name="self_test_missing_shot">Screenshot unavailable</string>
     <string name="self_test_close">Close</string>
     <string name="self_test_add_report">Add to problem report</string>

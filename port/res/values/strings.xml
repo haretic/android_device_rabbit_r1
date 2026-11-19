@@ -14,7 +14,7 @@
     <string name="internet_sum">the r1\'s Wi-Fi, over the cable</string>
     <string name="webcam">Webcam</string>
     <string name="sound_card">Sound card</string>
-    <string name="disk">Disk emulator</string>
+    <string name="disk">USB drive or CD</string>
     <string name="disk_sum">be a USB stick or CD drive</string>
     <string name="lock_hint">Back to power only when you lock the r1.</string>
     <string name="debug_hint">Back to power only when you lock the r1. USB debugging stays on.</string>

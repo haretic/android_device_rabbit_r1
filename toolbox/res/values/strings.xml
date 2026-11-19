@@ -6,7 +6,7 @@
     <string name="level">Level</string>
     <!-- Tools that are apps of their own -->
     <string name="synth">Synth</string>
-    <string name="synth_row">pads and a knob to play</string>
+    <string name="synth_row">pads and knobs to play</string>
     <string name="knob">Bluetooth Wheel</string>
     <string name="knob_row">the wheel for a computer or phone</string>
     <string name="webdesk">Remote Control</string>
@@ -73,8 +73,8 @@
     <string name="tally_since_only">since <xliff:g id="clock">%1$s</xliff:g></string>
     <string name="tally_start">Turn the wheel down to count.</string>
     <string name="tally_lap">Lap <xliff:g id="number">%1$d</xliff:g></string>
-    <string name="tally_hint">One wheel click down counts one. Press for a new lap, hold to clear.</string>
-    <string name="tally_hint_empty">One wheel click down counts one, a click up takes one back.</string>
+    <string name="tally_hint">One wheel step down counts one. Press for a new lap, hold to clear.</string>
+    <string name="tally_hint_empty">One wheel step down counts one, a step up takes one back.</string>
     <string name="tally_cleared">Cleared</string>
 
     <string name="metronome">Metronome</string>
@@ -85,7 +85,7 @@
     </plurals>
     <string name="metronome_running">Running for <xliff:g id="time">%1$s</xliff:g>, bar <xliff:g id="bar">%2$d</xliff:g></string>
     <string name="metronome_stopped">Stopped.</string>
-    <string name="metronome_hint">Press to start, hold goes back. Wheel sets tempo. To set the bar tap the beats, or hold once started.</string>
+    <string name="metronome_hint">Press to start. Hold to go back. Wheel sets tempo. To set the bar tap the beats, or hold once started.</string>
     <string name="metronome_hint_running">Press to stop. Wheel sets tempo. Hold or tap the beats to change the bar.</string>
 
     <string name="tuner">Tuner</string>
@@ -115,8 +115,8 @@
     <string name="tone_wave_cm">One wave is <xliff:g id="length">%1$d</xliff:g> cm long in air.</string>
     <string name="tone_wave_m">One wave is <xliff:g id="length">%1$s</xliff:g> m long in air.</string>
     <string name="tone_volume">Loudness follows the media volume.</string>
-    <string name="tone_hint">Press to play. One wheel click is a semitone, up is higher.</string>
-    <string name="tone_hint_playing">Press to stop. One wheel click is a semitone, up is higher.</string>
+    <string name="tone_hint">Press to play. One wheel step is a semitone, up is higher.</string>
+    <string name="tone_hint_playing">Press to stop. One wheel step is a semitone, up is higher.</string>
 
     <string name="stopwatch">Stopwatch</string>
     <string name="stopwatch_ready">ready</string>
@@ -128,8 +128,8 @@
     <string name="stopwatch_start">Press to start.</string>
     <string name="stopwatch_fastest">fastest</string>
     <string name="stopwatch_slowest">slowest</string>
-    <string name="stopwatch_hint">Press to start. Hold goes back.</string>
-    <string name="stopwatch_hint_running">Press to stop. A wheel click down marks a lap.</string>
+    <string name="stopwatch_hint">Press to start. Hold to go back.</string>
+    <string name="stopwatch_hint_running">Press to stop. A wheel step down marks a lap.</string>
     <string name="stopwatch_hint_stopped">Press to go on, hold to reset.</string>
 
     <!-- The settings page, last in the list -->

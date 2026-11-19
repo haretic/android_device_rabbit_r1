@@ -40,7 +40,7 @@
     <string name="decline">Decline</string>
     <string name="settings">Settings</string>
     <string name="settings_title">Phone settings</string>
-    <string name="settings_guide">Turn the wheel to pick one, press or tap to turn it on or off. The Phone page always shows everything.</string>
+    <string name="settings_guide">Turn the wheel to pick one, press or tap to turn it on or off. The main page always shows everything.</string>
     <string name="shade_music">Music player in the shade</string>
     <string name="shade_music_on">On - the phone\'s music on the lock screen too</string>
     <string name="shade_music_off">Off - only on this page</string>

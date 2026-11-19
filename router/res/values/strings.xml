@@ -60,7 +60,7 @@
     <string name="own_since">%1$s, on since %2$s</string>
     <string name="device_joined">Joined at %1$s</string>
     <!-- Along the bottom: what the wheel and the side button do, for where the wheel is -->
-    <string name="hint_page">Turn the wheel to move between the stops. Press, or tap one, to choose it. Hold to go back.</string>
+    <string name="hint_page">Turn to move. Press or tap to pick. Hold to go back.</string>
     <string name="hint_pass_on">Press, or tap it, to pass this network on under the r1\'s own name.</string>
     <string name="hint_turn_off">Press, or tap it, to turn the r1\'s own network off. Everyone on it drops off.</string>
     <string name="hint_show_code">Press, or tap it, to show the code to join, large.</string>

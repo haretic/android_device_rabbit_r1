@@ -70,7 +70,7 @@
         <item>5</item>
     </string-array>
 
-    <string name="overlay_about">FPS is how many frames the screen showed in the last second. It drops to 0 when nothing on screen moves, that\'s normal.\n\nThe numbers update once a second and cost next to nothing. If a game gets slower with the overlay on, turn it off or pick FPS only.\n\nQuick Settings gets a Performance overlay tile once you have used the overlay.</string>
+    <string name="overlay_about">FPS is how many frames the screen showed in the last second. It drops to 0 when nothing on screen moves, that\'s normal.\n\nThe numbers update as often as Updates is set, once a second at first, and cost next to nothing. If a game gets slower with the overlay on, turn it off or pick FPS only.\n\nQuick Settings gets a Perf overlay tile once you have used the overlay.</string>
 
     <!-- Foreground service notification -->
     <string name="channel_name">Performance overlay</string>
@@ -87,8 +87,8 @@
     <string name="hud_fps">FPS</string>
     <string name="hud_cpu">CPU</string>
     <string name="hud_gpu">GPU</string>
-    <string name="hud_temp">TEMP</string>
-    <string name="hud_bat">BAT</string>
+    <string name="hud_temp">Temp</string>
+    <string name="hud_bat">Bat</string>
     <string name="hud_ram">RAM</string>
-    <string name="hud_storage">STOR</string>
+    <string name="hud_storage">Stor</string>
 </resources>

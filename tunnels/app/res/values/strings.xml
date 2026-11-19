@@ -109,7 +109,7 @@
     <string name="field_dns">DNS, if the server gave one</string>
     <string name="field_dns_hint">10.8.0.1</string>
     <string name="type_key_title">This r1\'s public key</string>
-    <string name="type_key_making">Making a key on this r1...</string>
+    <string name="type_key_making">Making a key on this r1…</string>
     <string name="key_failed">Could not make a key: the tunnel helper did not answer.</string>
     <string name="type_bad_server">The server is a name or address and its port: vpn.example.net:51820</string>
     <string name="type_bad_key">The server\'s public key is 44 characters of base64, ending in =</string>
@@ -137,12 +137,11 @@
     <string name="mullvad_disclaimer">This talks to Mullvad\'s servers with your account number. It is not made or endorsed by Mullvad.</string>
     <string name="mullvad_scan">Or scan the number from your account page.</string>
     <string name="key_backspace">Delete the last digit</string>
-    <string name="mullvad_asking">Asking Mullvad...</string>
+    <string name="mullvad_asking">Asking Mullvad…</string>
     <string name="mullvad_bad_account">Mullvad does not know this account number.</string>
     <string name="mullvad_wait">Mullvad asks to wait a moment</string>
     <string name="mullvad_unreachable">Could not reach Mullvad. Check the internet connection.</string>
     <string name="mullvad_error">Mullvad said no: %1$s</string>
-    <string name="mullvad_no_key">Could not make a key: the tunnel helper did not answer.</string>
     <string name="hint_pad">Press to type this digit</string>
 
     <!-- Mullvad's devices -->
@@ -162,22 +161,16 @@
     <string name="all_countries">All %1$d countries</string>
     <string name="all_sum_today">List from Mullvad, updated today</string>
     <string name="all_sum_older">List from Mullvad, updated %1$s</string>
-    <string name="relays_loading">Getting the server list from Mullvad...</string>
+    <string name="relays_loading">Getting the server list from Mullvad…</string>
     <string name="relays_failed">Could not get the server list from Mullvad.</string>
-    <string name="hint_place">Press to choose</string>
+    <string name="hint_place">Press or tap to pick</string>
 
     <!-- The tunnel -->
     <string name="channel">Private network</string>
     <string name="notif_on">%1$s is on</string>
     <string name="notif_connecting">Connecting to %1$s</string>
     <string name="fail_resolve">Could not find the server %1$s</string>
-    <string name="fail_consent">Not allowed to start - turn it on again in this app</string>
     <string name="fail_settings">The settings were not taken: %1$s</string>
-    <string name="fail_helper_start">The tunnel helper did not start</string>
-    <string name="fail_helper_exit">The tunnel helper stopped</string>
-    <string name="fail_helper_stranger">Another program answered for the tunnel helper</string>
-    <string name="fail_helper_refused">The tunnel helper said no: %1$s</string>
-    <string name="fail_revoked">Another VPN took over</string>
     <string name="fail_relays">No Mullvad server to use</string>
     <string name="fail_missing">This network is gone</string>
     <string name="fail_other">Could not connect: %1$s</string>
@@ -266,20 +259,20 @@
     <string name="ts_bad_server">The server\'s address starts with https:// - check it.</string>
     <string name="ts_trademark">Tailscale is a trademark of Tailscale Inc. This is not made or endorsed by Tailscale.</string>
     <string name="ts_default_name">Tailscale</string>
-    <string name="ts_starting">Starting Tailscale on this r1...</string>
-    <string name="ts_asking">Asking Tailscale for a sign-in link...</string>
-    <string name="ts_key_checking">Signing in with the key...</string>
+    <string name="ts_starting">Starting Tailscale on this r1…</string>
+    <string name="ts_asking">Asking Tailscale for a sign-in link…</string>
+    <string name="ts_key_checking">Signing in with the key…</string>
     <string name="ts_open_this">Open this on your phone or computer and sign in. This page moves on by itself.</string>
     <string name="ts_or_open">Or type this address:</string>
     <string name="ts_waiting">Waiting for approval - an admin of your Tailscale network has to approve this r1. This page moves on by itself.</string>
     <string name="ts_waiting_page">Waiting for approval - an admin of your Tailscale network has to approve this r1. Nothing is needed here.</string>
-    <string name="ts_signed_in">Signed in. Connecting...</string>
+    <string name="ts_signed_in">Signed in. Connecting…</string>
     <string name="ts_no_start">Tailscale did not start on this r1. Try again.</string>
     <string name="ts_no_link">Tailscale\'s server did not answer. Check the internet connection and try again.</string>
     <string name="ts_too_long">The sign-in took too long. Try again.</string>
     <string name="ts_key_refused">The key was not taken. Check that it is valid and not used up, then try again.</string>
     <string name="try_again">Try again</string>
-    <string name="hint_choose">Press to choose</string>
+    <string name="hint_choose">Press or tap to pick</string>
     <string name="hint_ts_wait">Waiting for you to sign in</string>
     <string name="hint_url">The address to type on another device</string>
 
@@ -296,7 +289,7 @@
     <string name="ts_exit_nobody_sum">The rest goes out directly</string>
     <string name="ts_exit_someone">A device of yours</string>
     <string name="ts_exit_lead">Pick the device all of this r1\'s traffic should go out through.</string>
-    <string name="ts_exit_loading">Asking your devices...</string>
+    <string name="ts_exit_loading">Asking your devices…</string>
     <string name="ts_exit_none">None of your devices offers this</string>
     <string name="ts_exit_off">Turn Tailscale on to see your devices that offer this.</string>
     <string name="ts_exit_failed">Could not change it. Check the connection and try again.</string>
@@ -307,7 +300,7 @@
     <string name="ts_sign_out">Sign out</string>
     <string name="ts_sign_out_sum">Signs this r1 out and takes it off this r1</string>
     <string name="ts_sign_out_confirm">Press again to sign out</string>
-    <string name="ts_signing_out">Signing out...</string>
+    <string name="ts_signing_out">Signing out…</string>
     <string name="ts_sign_out_failed">Could not sign out: Tailscale did not answer. Check the connection and try again.</string>
     <string name="ts_sign_in_again">Sign in again</string>
     <string name="ts_sign_in_again_sum">This r1 is signed out of Tailscale</string>
