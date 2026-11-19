@@ -157,6 +157,22 @@ public final class WheelSelect implements InvocationHandler {
     /** A hold goes back, as everywhere with the wheel UI */
     private void goBack() {
         mSlept = true;
+        // Asked of the page itself: a window whose app takes Back the new way (a back callback)
+        // ignores the Back key when it comes through its callback
+        if (mCallback instanceof android.app.Dialog) {
+            ((android.app.Dialog) mCallback).onBackPressed();
+            return;
+        }
+        android.content.Context context = mWindow.getContext();
+        while (context instanceof android.content.ContextWrapper
+                && !(context instanceof android.app.Activity)) {
+            context = ((android.content.ContextWrapper) context).getBaseContext();
+        }
+        if (context instanceof android.app.Activity
+                && ((android.app.Activity) context).getWindow() == mWindow) {
+            ((android.app.Activity) context).onBackPressed();
+            return;
+        }
         final long now = SystemClock.uptimeMillis();
         mCallback.dispatchKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
                 KeyEvent.KEYCODE_BACK, 0));
