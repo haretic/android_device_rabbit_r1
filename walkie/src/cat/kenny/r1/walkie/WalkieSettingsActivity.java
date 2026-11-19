@@ -129,6 +129,10 @@ public final class WalkieSettingsActivity extends Activity {
                     }
                 }
             }
+            if (!down) {
+                // The gesture is over: a next press must not count as part of this hold
+                mHeld = false;
+            }
             return true;
         }
         return super.dispatchKeyEvent(event);

@@ -174,12 +174,17 @@ abstract class ToolActivity extends Activity {
                 } else if (held && !mHeld) {
                     hold(touch);
                 }
-            } else if (!mHeld && !event.isCanceled()) {
-                if (held) {
-                    hold(touch);
-                } else {
-                    press();
+            } else {
+                if (!mHeld && !event.isCanceled()) {
+                    if (held) {
+                        hold(touch);
+                    } else {
+                        press();
+                    }
                 }
+                // This gesture ended. After a tap, ViewRoot can consume the next
+                // select DOWN to leave touch mode; its UP must not inherit this hold.
+                mHeld = false;
             }
             return true;
         }
