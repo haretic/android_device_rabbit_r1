@@ -62,7 +62,8 @@
                     </LinearLayout>
                     <cat.kenny.r1.router.QrView android:id="@+id/qr"
                         android:layout_width="104dp" android:layout_height="104dp"
-                        android:layout_marginEnd="18dp" android:visibility="gone" />
+                        android:layout_marginEnd="18dp" android:visibility="gone"
+                        android:contentDescription="@string/show_code" />
                 </LinearLayout>
             </LinearLayout>
         </cat.kenny.r1.router.RouteLine>
@@ -82,9 +83,20 @@
             <TextView android:id="@+id/pass_on" style="@style/Button"
                 android:text="@string/pass_on" android:visibility="gone" />
             <TextView android:id="@+id/turn_off" style="@style/Button"
+                android:nextFocusDown="@+id/show_code"
                 android:background="@drawable/button_quiet_bg" android:textColor="@color/text"
                 android:fontFamily="haretic-text-medium" android:text="@string/turn_off"
                 android:visibility="gone" />
+            <TextView android:id="@+id/show_code" style="@style/Button"
+                android:nextFocusUp="@id/turn_off"
+                android:background="@drawable/button_quiet_bg" android:textColor="@color/text"
+                android:fontFamily="haretic-text-medium" android:text="@string/show_code"
+                android:visibility="gone" />
         </LinearLayout>
+        <!-- What the r1's own network does, set once -->
+        <LinearLayout android:id="@+id/options" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical"
+            android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
+            android:layout_marginBottom="16dp" />
     </LinearLayout>
 </ScrollView>

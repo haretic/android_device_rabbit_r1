@@ -127,6 +127,10 @@ public final class RouterActivity extends Activity {
             show();
         });
         findViewById(R.id.own).setOnClickListener(v -> change());
+        // The code, big: from its button, or the small code tapped
+        findViewById(R.id.show_code).setOnClickListener(v -> bigCode());
+        findViewById(R.id.qr).setOnClickListener(v -> bigCode());
+        stayRow();
         findViewById(R.id.vpn).setOnClickListener(v -> {
             Settings.Secure.putInt(getContentResolver(), VPN_UPSTREAMS, throughVpn() ? 0 : 1);
             show();
@@ -219,6 +223,71 @@ public final class RouterActivity extends Activity {
                     show();
                 }));
         dialog.show();
+    }
+
+    /** The code to join, as big as the screen takes it, with the name and password under it. */
+    private void bigCode() {
+        final SoftApConfiguration config = mWifi.getSoftApConfiguration();
+        final String ssid = config.getWifiSsid() == null ? ""
+                : config.getWifiSsid().toString().replaceAll("^\"|\"$", "");
+        final String pass = config.getPassphrase();
+        final android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+        final float dp = metrics.density;
+        final android.widget.LinearLayout content = new android.widget.LinearLayout(this);
+        content.setOrientation(android.widget.LinearLayout.VERTICAL);
+        content.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        content.setPadding((int) (16 * dp), (int) (16 * dp), (int) (16 * dp), 0);
+        final QrView qr = new QrView(this, null);
+        // Room left for the name, the password and the button, either way the r1 is held
+        final int side = Math.max((int) (120 * dp),
+                Math.min(metrics.widthPixels, metrics.heightPixels) - (int) (170 * dp));
+        qr.setLayoutParams(new android.widget.LinearLayout.LayoutParams(side, side));
+        qr.set(join(ssid, pass));
+        content.addView(qr);
+        final TextView name = new TextView(this, null, 0, R.style.Body);
+        name.setText(ssid);
+        name.setGravity(android.view.Gravity.CENTER);
+        name.setPadding(0, (int) (10 * dp), 0, 0);
+        content.addView(name);
+        if (pass != null && !pass.isEmpty()) {
+            final TextView password = new TextView(this, null, 0, R.style.Dim);
+            password.setText(getString(R.string.password, pass));
+            password.setGravity(android.view.Gravity.CENTER);
+            content.addView(password);
+        }
+        final android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.addView(content);
+        new android.app.AlertDialog.Builder(this).setView(scroll)
+                .setPositiveButton(R.string.code_done, null).show();
+    }
+
+    /** Whether the r1's own network stays on with nobody on it: the system's own switch. */
+    private void stayRow() {
+        final ViewGroup options = findViewById(R.id.options);
+        final View row = getLayoutInflater().inflate(R.layout.row, options, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_router);
+        ((TextView) row.findViewById(R.id.title)).setText(R.string.stay_on);
+        final TextView sub = row.findViewById(R.id.sub);
+        sub.setVisibility(View.VISIBLE);
+        sub.setMaxLines(2);
+        row.findViewById(R.id.toggle).setVisibility(View.VISIBLE);
+        row.setFocusable(true);
+        row.setOnClickListener(v -> {
+            final SoftApConfiguration config = mWifi.getSoftApConfiguration();
+            // Staying on is the automatic turning off, turned off
+            mWifi.setSoftApConfiguration(new SoftApConfiguration.Builder(config)
+                    .setAutoShutdownEnabled(!config.isAutoShutdownEnabled()).build());
+            showStay(v);
+        });
+        options.addView(row);
+        showStay(row);
+    }
+
+    private void showStay(View row) {
+        final boolean stays = !mWifi.getSoftApConfiguration().isAutoShutdownEnabled();
+        ((android.widget.Switch) row.findViewById(R.id.toggle)).setChecked(stays);
+        ((TextView) row.findViewById(R.id.sub)).setText(stays ? R.string.stay_on_yes
+                : R.string.stay_on_no);
     }
 
     private void start() {
@@ -333,7 +402,8 @@ public final class RouterActivity extends Activity {
         vpnStop.setVisibility(vpn || (portal && through) ? View.VISIBLE : View.GONE);
         text(R.id.vpn_state, getString(!vpn ? R.string.vpn_waiting
                 : through ? R.string.vpn_through : R.string.vpn_around));
-        vpnStop.setFocusable(vpn && !through);
+        // A waiting VPN is informational; a live one can be switched either way.
+        vpnStop.setFocusable(vpn);
         vpnStop.setClickable(vpn);
 
         // The r1's own network
@@ -378,10 +448,16 @@ public final class RouterActivity extends Activity {
         }
         final View passOn = findViewById(R.id.pass_on);
         final View turnOff = findViewById(R.id.turn_off);
-        final boolean hadFocus = passOn.isFocused() || turnOff.isFocused();
+        final View showCode = findViewById(R.id.show_code);
+        final View focused = passOn.isFocused() ? passOn : turnOff.isFocused() ? turnOff
+                : showCode.isFocused() ? showCode : null;
         visible(R.id.pass_on, !on && !mStarting && mUpCaps != null);
         visible(R.id.turn_off, on);
-        if (hadFocus || getCurrentFocus() == null) {
+        visible(R.id.show_code, on);
+        // Focus stays on a button that stays; one that went takes it to the button now in its
+        // place, not wherever Android would put it
+        if ((focused != null && focused.getVisibility() != View.VISIBLE)
+                || getCurrentFocus() == null) {
             (on ? turnOff : passOn).requestFocus();
         }
 

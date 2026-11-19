@@ -34,11 +34,15 @@
         <item name="android:maxLines">1</item>
     </style>
     <!-- A stop on the route: a round icon on the line, and what is there -->
+    <!-- In from the screen's edges, so the wheel's ring and the focused ground round a stop
+         are whole; the icons stay 26 dp in (RouteLine draws its line there) -->
     <style name="Stop">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:minHeight">88dp</item>
-        <item name="android:paddingStart">26dp</item>
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:paddingStart">14dp</item>
         <item name="android:gravity">center_vertical</item>
     </style>
     <style name="StopIcon">

@@ -15,7 +15,7 @@
     <string name="up_offline">Connected, but nothing comes through</string>
     <string name="sign_in">Sign in</string>
     <!-- The VPN -->
-    <string name="vpn_through">Through your VPN, like everything else</string>
+    <string name="vpn_through">Through your VPN. Press to go around it.</string>
     <string name="vpn_around">Around your VPN. Press to send it through.</string>
     <string name="vpn_waiting">Your VPN starts once this is online</string>
     <!-- The r1's own network -->
@@ -45,6 +45,13 @@
     <string name="pass_on">Pass it on</string>
     <string name="turn_off">Turn off</string>
     <string name="device_unnamed">A device</string>
+    <!-- The code to join, as big as the screen takes it -->
+    <string name="show_code">Big code</string>
+    <string name="code_done">Done</string>
+    <!-- Set once, under the route -->
+    <string name="stay_on">Stays on with nobody on it</string>
+    <string name="stay_on_yes">On until you turn it off</string>
+    <string name="stay_on_no">Goes off once nobody is on it for a while</string>
     <!-- The card under the route -->
     <string name="card_off">The r1 joins this network once and passes it on under its own name. Your other devices join the r1 and never see the sign-in page.</string>
     <string name="card_sign_in">Sign in once, here on the r1. Everything that has joined comes online with it and never sees the page.</string>
