@@ -89,6 +89,19 @@ public final class WheelSelect implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] args)
             throws Throwable {
+        if ("dispatchKeyEvent".equals(method.getName())) {
+            final KeyEvent event = (KeyEvent) args[0];
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
+                final boolean up = event.getAction() == KeyEvent.ACTION_UP;
+                if (!up && event.getRepeatCount() == 0) mSlept = false;
+                final boolean held = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
+                if (held || mSlept) {
+                    if (held && !mSlept && !event.isCanceled()) goBack();
+                    if (up) mSlept = false;
+                    return true;
+                }
+            }
+        }
         if ("dispatchKeyEvent".equals(method.getName())
                 && ((KeyEvent) args[0]).getKeyCode() == KeyEvent.KEYCODE_POWER) {
             onPowerKey((KeyEvent) args[0]);

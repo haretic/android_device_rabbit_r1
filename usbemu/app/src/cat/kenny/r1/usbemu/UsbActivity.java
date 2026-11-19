@@ -105,6 +105,12 @@ public final class UsbActivity extends FragmentActivity {
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        // FragmentActivity routes modern system Back through this dispatcher, not the
+        // legacy onBackPressed override. Use the same navigation as the toolbar and hold.
+        getOnBackPressedDispatcher().addCallback(this,
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override public void handleOnBackPressed() { goBack(); }
+                });
         if (UserHandle.myUserId() != 0) { finish(); return; }
         ACCENT = getColor(android.R.color.system_primary_dark);
         ON_ACCENT = getColor(android.R.color.system_on_primary_dark);
