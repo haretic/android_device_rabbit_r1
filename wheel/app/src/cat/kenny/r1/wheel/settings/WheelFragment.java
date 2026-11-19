@@ -4,11 +4,14 @@ package cat.kenny.r1.wheel.settings;
 import android.content.ContentResolver;
 import android.os.Bundle;
 import android.os.UserHandle;
+import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.SwitchPreferenceCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.settingslib.widget.MainSwitchPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
@@ -106,6 +109,49 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                 return true;
             });
         }
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Room under the last row, every page's: the wheel scrolls a row clear of the list's
+        // padding, so the ring round the last one is whole, not cut by the screen's edge
+        final RecyclerView rows = getListView();
+        rows.setPadding(rows.getPaddingLeft(), rows.getPaddingTop(), rows.getPaddingRight(),
+                rows.getPaddingBottom()
+                        + Math.round(16 * getResources().getDisplayMetrics().density));
+        rows.setClipToPadding(false);
+        if (mWheelUi == null) {
+            return;
+        }
+        // The wheel's first stop in the list is not the switch that turns the whole wheel UI
+        // off, where one stray press would: the row below it, the wheel going up to it. Once,
+        // the first time the focus comes into the list (from the toolbar's back arrow, the
+        // window's first stop skipping it), so a step back up to the switch stays there. The
+        // framework's rule for main switches (isWheelRiskyFirstStop) knows the MainSwitchBar
+        // only, not this preference's row round it, which is the view that takes the focus
+        final RecyclerView list = getListView();
+        list.getViewTreeObserver().addOnGlobalFocusChangeListener(
+                new ViewTreeObserver.OnGlobalFocusChangeListener() {
+                    @Override
+                    public void onGlobalFocusChanged(View oldFocus, View newFocus) {
+                        View row = newFocus;
+                        while (row != null && row.getParent() != list) {
+                            row = row.getParent() instanceof View parent ? parent : null;
+                        }
+                        if (row == null) {
+                            return;
+                        }
+                        list.getViewTreeObserver().removeOnGlobalFocusChangeListener(this);
+                        // The switch is the page's first row (wheel_settings.xml)
+                        if (!row.isInTouchMode() && list.getChildAdapterPosition(row) == 0) {
+                            final View next = row.focusSearch(View.FOCUS_DOWN);
+                            if (next != null && next != row) {
+                                next.requestFocus(View.FOCUS_DOWN);
+                            }
+                        }
+                    }
+                });
     }
 
     @Override
