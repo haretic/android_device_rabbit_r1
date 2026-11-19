@@ -55,4 +55,18 @@
     <!-- The card under the route -->
     <string name="card_off">The r1 joins this network once and passes it on under its own name. Your other devices join the r1 and never see the sign-in page.</string>
     <string name="card_sign_in">Sign in once, here on the r1. Everything that has joined comes online with it and never sees the page.</string>
+    <!-- Since when, where it was seen happening -->
+    <string name="own_used_since">%1$s, %2$s since %3$s</string>
+    <string name="own_since">%1$s, on since %2$s</string>
+    <string name="device_joined">Joined at %1$s</string>
+    <!-- Along the bottom: what the wheel and the side button do, for where the wheel is -->
+    <string name="hint_page">Turn the wheel to move between the stops. Press, or tap one, to choose it. Hold to go back.</string>
+    <string name="hint_pass_on">Press, or tap it, to pass this network on under the r1\'s own name.</string>
+    <string name="hint_turn_off">Press, or tap it, to turn the r1\'s own network off. Everyone on it drops off.</string>
+    <string name="hint_show_code">Press, or tap it, to show the code to join, large.</string>
+    <string name="hint_own">Press, or tap it, to change the name or password of the r1\'s own network.</string>
+    <string name="hint_vpn">Press, or tap it, to send what is passed on through your VPN or around it.</string>
+    <string name="hint_sign_in">Press, or tap it, to open the sign-in page of this network.</string>
+    <string name="hint_device">A device on the r1\'s own network. Turn the wheel for the next one.</string>
+    <string name="hint_stay">Press, or tap it, to switch it.</string>
 </resources>

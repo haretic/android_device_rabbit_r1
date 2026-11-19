@@ -48,6 +48,11 @@ public final class RouterActivity extends Activity {
     private Network mUp;
     private NetworkCapabilities mUpCaps;
     private boolean mShown;
+    /** The focus was put where the page starts: on the next step, not on a switch */
+    private boolean mFocusPlaced;
+    private Sessions mSessions;
+    /** The stay-on row, for the hint */
+    private View mStay;
 
     private final Runnable mTick = new Runnable() {
         @Override
@@ -114,6 +119,8 @@ public final class RouterActivity extends Activity {
         mConnectivity = getSystemService(ConnectivityManager.class);
         mTethering = getSystemService(TetheringManager.class);
         mWifi = getSystemService(WifiManager.class);
+        // Who joins and when, also while this page is closed
+        mSessions = Sessions.get(this);
         name();
         findViewById(R.id.sign_in).setOnClickListener(v -> {
             if (mUp != null) {
@@ -135,6 +142,27 @@ public final class RouterActivity extends Activity {
             Settings.Secure.putInt(getContentResolver(), VPN_UPSTREAMS, throughVpn() ? 0 : 1);
             show();
         });
+        // The hint follows the wheel: what a press does on what it is on
+        getWindow().getDecorView().getViewTreeObserver()
+                .addOnGlobalFocusChangeListener((was, now) -> hint());
+        hint();
+    }
+
+    /** Along the bottom, what the wheel and a press do here, for where the focus is. */
+    private void hint() {
+        final View focused = getCurrentFocus();
+        final int id = focused == null ? View.NO_ID : focused.getId();
+        final int text = id == R.id.pass_on ? R.string.hint_pass_on
+                : id == R.id.turn_off ? R.string.hint_turn_off
+                : id == R.id.show_code ? R.string.hint_show_code
+                : id == R.id.own ? R.string.hint_own
+                : id == R.id.vpn ? R.string.hint_vpn
+                : id == R.id.sign_in ? R.string.hint_sign_in
+                : focused != null && focused == mStay ? R.string.hint_stay
+                : focused != null && focused.getParent() == findViewById(R.id.devices)
+                        ? R.string.hint_device
+                : R.string.hint_page;
+        ((TextView) findViewById(R.id.hint)).setText(text);
     }
 
     /**
@@ -280,6 +308,7 @@ public final class RouterActivity extends Activity {
             showStay(v);
         });
         options.addView(row);
+        mStay = row;
         showStay(row);
     }
 
@@ -421,10 +450,19 @@ public final class RouterActivity extends Activity {
         if (on) {
             final long bytes = TrafficStats.getRxBytes(mInterface)
                     + TrafficStats.getTxBytes(mInterface);
+            // Since when, where that was seen: the data passed on is this session's
+            final long since = mSessions.onSince();
+            final String clock = since == 0 ? null
+                    : android.text.format.DateFormat.getTimeFormat(this).format(
+                            new java.util.Date(since));
             ownState = count == 0 ? getString(R.string.own_nobody)
-                    : portal || bytes <= 0 ? devices
-                    : getString(R.string.own_used, devices,
-                            Formatter.formatShortFileSize(this, bytes));
+                    : portal || bytes <= 0
+                            ? (clock == null ? devices
+                                    : getString(R.string.own_since, devices, clock))
+                    : clock == null ? getString(R.string.own_used, devices,
+                            Formatter.formatShortFileSize(this, bytes))
+                    : getString(R.string.own_used_since, devices,
+                            Formatter.formatShortFileSize(this, bytes), clock);
         }
         text(R.id.own_state, ownState);
         text(R.id.own_password, on && pass != null && !pass.isEmpty()
@@ -438,27 +476,70 @@ public final class RouterActivity extends Activity {
 
         // Under the route: what this is, the sign-in card, or who has joined
         final ViewGroup list = findViewById(R.id.devices);
-        list.removeAllViews();
         text(R.id.card, !on ? getString(R.string.card_off)
                 : portal ? getString(R.string.card_sign_in) : null);
-        if (on && !portal) {
-            for (TetheredClient client : mClients) {
-                list.addView(device(client, list));
+        final List<TetheredClient> shown = on && !portal ? mClients : new ArrayList<>();
+        final List<Object> keys = new ArrayList<>();
+        for (TetheredClient client : shown) {
+            keys.add(key(client));
+        }
+        final List<Object> had = new ArrayList<>();
+        for (int i = 0; i < list.getChildCount(); i++) {
+            had.add(list.getChildAt(i).getTag());
+        }
+        if (!keys.equals(had)) {
+            // Who is on it changed: the rows again, the wheel kept on the same device. Rows
+            // made anew every tick would drop the focus off them every two seconds
+            final View current = getCurrentFocus();
+            final Object focusedKey = current != null && current.getParent() == list
+                    ? current.getTag() : null;
+            final int focusedAt = focusedKey == null ? -1 : list.indexOfChild(current);
+            list.removeAllViews();
+            boolean kept = false;
+            for (TetheredClient client : shown) {
+                final View row = getLayoutInflater().inflate(R.layout.row, list, false);
+                row.setTag(key(client));
+                row.setFocusable(true);
+                list.addView(row);
+                if (focusedKey != null && focusedKey.equals(row.getTag())) {
+                    kept = row.requestFocus();
+                }
             }
+            if (focusedKey != null && !kept) {
+                // The focused device left: the row now in its place, else the last one, else
+                // what is just above the list. Not the title, the page scrolled to its top
+                if (list.getChildCount() > 0) {
+                    list.getChildAt(Math.min(focusedAt, list.getChildCount() - 1))
+                            .requestFocus();
+                } else {
+                    final View above = android.view.FocusFinder.getInstance().findNextFocus(
+                            (ViewGroup) list.getParent(), list, View.FOCUS_UP);
+                    if (above != null) {
+                        above.requestFocus();
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < shown.size(); i++) {
+            device(shown.get(i), list.getChildAt(i));
         }
         final View passOn = findViewById(R.id.pass_on);
         final View turnOff = findViewById(R.id.turn_off);
         final View showCode = findViewById(R.id.show_code);
         final View focused = passOn.isFocused() ? passOn : turnOff.isFocused() ? turnOff
                 : showCode.isFocused() ? showCode : null;
+        final View current = getCurrentFocus();
+        // Only as the page opens: once the wheel has been turned, the title is a place too
+        final boolean nothingChosen = !mFocusPlaced
+                && (current == null || current.getId() == R.id.title);
         visible(R.id.pass_on, !on && !mStarting && mUpCaps != null);
         visible(R.id.turn_off, on);
         visible(R.id.show_code, on);
         // Focus stays on a button that stays; one that went takes it to the button now in its
-        // place, not wherever Android would put it
-        if ((focused != null && focused.getVisibility() != View.VISIBLE)
-                || getCurrentFocus() == null) {
-            (on ? turnOff : passOn).requestFocus();
+        // place, not wherever Android would put it. Never first on Turn off: while on, the
+        // code to join is the harmless next step
+        if ((focused != null && focused.getVisibility() != View.VISIBLE) || nothingChosen) {
+            mFocusPlaced |= (on ? showCode : passOn).requestFocus();
         }
 
         final RouteLine line = findViewById(R.id.line);
@@ -496,7 +577,14 @@ public final class RouterActivity extends Activity {
         return at[1] - origin[1] + icon.getHeight() / 2f;
     }
 
-    private View device(TetheredClient client, ViewGroup list) {
+    /** Which device a row is: its hardware address, else what it has. */
+    private static Object key(TetheredClient client) {
+        return client.getMacAddress() != null ? client.getMacAddress().toString()
+                : client.getAddresses().toString();
+    }
+
+    /** A device's row filled in: its name, since when it is on, its address. */
+    private void device(TetheredClient client, View row) {
         String name = null;
         String address = null;
         for (TetheredClient.AddressInfo info : client.getAddresses()) {
@@ -513,15 +601,19 @@ public final class RouterActivity extends Activity {
                 : lower.contains("book") || lower.contains("laptop") || lower.contains("mac")
                 || lower.contains("pc") || lower.contains("desktop") || lower.contains("think")
                 ? R.drawable.ic_laptop : R.drawable.ic_device;
-        final View row = getLayoutInflater().inflate(R.layout.row, list, false);
         ((ImageView) row.findViewById(R.id.icon)).setImageResource(icon);
         ((TextView) row.findViewById(R.id.title)).setText(name == null
                 ? getString(R.string.device_unnamed) : name);
         final TextView time = row.findViewById(R.id.time);
         time.setText(address);
         time.setVisibility(address == null ? View.GONE : View.VISIBLE);
-        row.setFocusable(true);
-        return row;
+        // Since when, only where it was seen joining: no time rather than a wrong one
+        final long joined = mSessions.joined(client);
+        final TextView sub = row.findViewById(R.id.sub);
+        sub.setText(joined == 0 ? null : getString(R.string.device_joined,
+                android.text.format.DateFormat.getTimeFormat(this).format(
+                        new java.util.Date(joined))));
+        sub.setVisibility(joined == 0 ? View.GONE : View.VISIBLE);
     }
 
     /** What a phone's camera reads to join, special characters escaped as that format asks. */

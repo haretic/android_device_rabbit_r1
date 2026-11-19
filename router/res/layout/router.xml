@@ -1,102 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- The page scrolls; what the wheel and the button do stays along the bottom -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:fitsSystemWindows="true" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <TextView style="@style/Title" android:text="@string/app_name" />
-
-        <!-- The route, top to bottom: the network, the VPN, the r1's own network -->
-        <cat.kenny.r1.router.RouteLine android:id="@+id/line"
-            android:layout_width="match_parent" android:layout_height="wrap_content">
-            <LinearLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:orientation="vertical">
-                <LinearLayout android:id="@+id/up" style="@style/Stop">
-                    <ImageView android:id="@+id/up_icon" style="@style/StopIcon"
-                        android:src="@drawable/ic_wifi" />
-                    <LinearLayout style="@style/StopText">
-                        <TextView android:id="@+id/up_name" style="@style/Body"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" android:maxLines="1"
-                            android:ellipsize="end" android:fontFamily="haretic-text-bold"
-                            android:textSize="17sp" />
-                        <TextView android:id="@+id/up_state" style="@style/Dim"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <TextView android:id="@+id/sign_in" style="@style/Button"
-                        android:text="@string/sign_in" android:visibility="gone" />
-                </LinearLayout>
-                <LinearLayout android:id="@+id/vpn" style="@style/Stop"
-                    android:background="@drawable/stop_bg">
-                    <ImageView style="@style/StopIcon" android:src="@drawable/ic_shield" />
-                    <TextView android:id="@+id/vpn_state" style="@style/Body"
-                        android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:layout_marginStart="14dp"
-                        android:layout_marginEnd="18dp" android:textColor="@color/text_sum" />
-                </LinearLayout>
-                <LinearLayout android:id="@+id/own" style="@style/Stop"
-                    android:minHeight="112dp" android:gravity="top"
-                    android:background="@drawable/stop_bg" android:focusable="true"
-                    android:clickable="true">
-                    <ImageView android:id="@+id/own_icon" style="@style/StopIcon"
-                        android:layout_marginTop="4dp" android:src="@drawable/ic_router" />
-                    <LinearLayout style="@style/StopText" android:layout_marginTop="6dp">
-                        <TextView android:id="@+id/own_name" style="@style/Number"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" android:textSize="16sp" />
-                        <TextView android:id="@+id/own_state" style="@style/Dim"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp" />
-                        <TextView android:id="@+id/own_password" style="@style/Dim"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/text_faint" />
-                        <TextView android:id="@+id/own_change" style="@style/Dim"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/text_faint"
-                            android:text="@string/own_change" />
-                    </LinearLayout>
-                    <cat.kenny.r1.router.QrView android:id="@+id/qr"
-                        android:layout_width="104dp" android:layout_height="104dp"
-                        android:layout_marginEnd="18dp" android:visibility="gone"
-                        android:contentDescription="@string/show_code" />
-                </LinearLayout>
-            </LinearLayout>
-        </cat.kenny.r1.router.RouteLine>
-
-        <TextView android:id="@+id/card" style="@style/Body"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
-            android:padding="20dp" android:background="@drawable/card_bg"
-            android:textSize="17sp" android:lineSpacingMultiplier="1.2"
-            android:textColor="@color/text_sum" android:visibility="gone" />
-        <LinearLayout android:id="@+id/devices" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical"
-            android:layout_marginStart="18dp" android:layout_marginEnd="18dp" />
+    android:orientation="vertical" android:fitsSystemWindows="true">
+    <ScrollView android:id="@+id/scroll" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginStart="18dp" android:layout_marginTop="12dp"
-            android:layout_marginBottom="16dp">
-            <TextView android:id="@+id/pass_on" style="@style/Button"
-                android:text="@string/pass_on" android:visibility="gone" />
-            <TextView android:id="@+id/turn_off" style="@style/Button"
-                android:nextFocusDown="@+id/show_code"
-                android:background="@drawable/button_quiet_bg" android:textColor="@color/text"
-                android:fontFamily="haretic-text-medium" android:text="@string/turn_off"
-                android:visibility="gone" />
-            <TextView android:id="@+id/show_code" style="@style/Button"
-                android:nextFocusUp="@id/turn_off"
-                android:background="@drawable/button_quiet_bg" android:textColor="@color/text"
-                android:fontFamily="haretic-text-medium" android:text="@string/show_code"
-                android:visibility="gone" />
+            android:orientation="vertical">
+            <!-- Where the focus rests when no button is the page's next step: never on a switch
+                 or Turn off -->
+            <TextView android:id="@+id/title" style="@style/Title"
+                android:text="@string/app_name" android:focusable="true"
+                android:focusedByDefault="true" android:defaultFocusHighlightEnabled="false" />
+
+            <!-- The route, top to bottom: the network, the VPN, the r1's own network -->
+            <cat.kenny.r1.router.RouteLine android:id="@+id/line"
+                android:layout_width="match_parent" android:layout_height="wrap_content">
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/up" style="@style/Stop">
+                        <ImageView android:id="@+id/up_icon" style="@style/StopIcon"
+                            android:src="@drawable/ic_wifi" />
+                        <LinearLayout style="@style/StopText">
+                            <TextView android:id="@+id/up_name" style="@style/Body"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" android:maxLines="1"
+                                android:ellipsize="end" android:fontFamily="haretic-text-bold"
+                                android:textSize="17sp" />
+                            <TextView android:id="@+id/up_state" style="@style/Dim"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/sign_in" style="@style/Button"
+                            android:text="@string/sign_in" android:visibility="gone" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/vpn" style="@style/Stop"
+                        android:background="@drawable/stop_bg">
+                        <ImageView style="@style/StopIcon" android:src="@drawable/ic_shield" />
+                        <TextView android:id="@+id/vpn_state" style="@style/Body"
+                            android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:layout_marginStart="14dp"
+                            android:layout_marginEnd="18dp" android:textColor="@color/text_sum" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/own" style="@style/Stop"
+                        android:minHeight="112dp" android:gravity="top"
+                        android:background="@drawable/stop_bg" android:focusable="true"
+                        android:clickable="true">
+                        <ImageView android:id="@+id/own_icon" style="@style/StopIcon"
+                            android:layout_marginTop="4dp" android:src="@drawable/ic_router" />
+                        <LinearLayout style="@style/StopText" android:layout_marginTop="6dp">
+                            <TextView android:id="@+id/own_name" style="@style/Number"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" android:textSize="16sp" />
+                            <TextView android:id="@+id/own_state" style="@style/Dim"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp" />
+                            <TextView android:id="@+id/own_password" style="@style/Dim"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text_faint" />
+                            <TextView android:id="@+id/own_change" style="@style/Dim"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text_faint"
+                                android:text="@string/own_change" />
+                        </LinearLayout>
+                        <cat.kenny.r1.router.QrView android:id="@+id/qr"
+                            android:layout_width="104dp" android:layout_height="104dp"
+                            android:layout_marginEnd="18dp" android:visibility="gone"
+                            android:contentDescription="@string/show_code" />
+                    </LinearLayout>
+                </LinearLayout>
+            </cat.kenny.r1.router.RouteLine>
+
+            <TextView android:id="@+id/card" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
+                android:padding="20dp" android:background="@drawable/card_bg"
+                android:textSize="17sp" android:lineSpacingMultiplier="1.2"
+                android:textColor="@color/text_sum" android:visibility="gone" />
+            <LinearLayout android:id="@+id/devices" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginStart="18dp" android:layout_marginEnd="18dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginStart="18dp" android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp">
+                <TextView android:id="@+id/pass_on" style="@style/Button"
+                    android:text="@string/pass_on" android:visibility="gone" />
+                <TextView android:id="@+id/turn_off" style="@style/Button"
+                    android:nextFocusDown="@+id/show_code"
+                    android:background="@drawable/button_quiet_bg" android:textColor="@color/text"
+                    android:fontFamily="haretic-text-medium" android:text="@string/turn_off"
+                    android:visibility="gone" />
+                <TextView android:id="@+id/show_code" style="@style/Button"
+                    android:nextFocusUp="@id/turn_off"
+                    android:background="@drawable/button_quiet_bg" android:textColor="@color/text"
+                    android:fontFamily="haretic-text-medium" android:text="@string/show_code"
+                    android:visibility="gone" />
+            </LinearLayout>
+            <!-- What the r1's own network does, set once -->
+            <LinearLayout android:id="@+id/options" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
+                android:layout_marginBottom="16dp" />
         </LinearLayout>
-        <!-- What the r1's own network does, set once -->
-        <LinearLayout android:id="@+id/options" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical"
-            android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
-            android:layout_marginBottom="16dp" />
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+    <include layout="@layout/hint" />
+</LinearLayout>
