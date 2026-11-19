@@ -222,7 +222,7 @@ crash_final() {
 }
 runner_cleanup() {
 	local result=$1
-	stress_cancel_end; pageprefs_end; synth_loop_end; app_abort; toolbox_silent_end; powerhold_settings_end; sweep_end
+	stress_cancel_end; pageprefs_end; synth_loop_end; r2_resources_end; app_abort; toolbox_silent_end; powerhold_settings_end; sweep_end
 	sh "settings put global stay_on_while_plugged_in ${stay:-0}"
 	ui_cleanup
 	retry=; cur=crashes
@@ -1727,6 +1727,7 @@ t_routername() {
 # Keep these local to each test: nothing is cleared, and every choice is put back by the UI.
 app_begin() {
 	app_land=0
+	app_package=${1%%/*}; app_lost=0
 	app_modes=$(lget wheel_app_modes)
 	app_tuning=$(lget wheel_app_tuning)
 	app_restore_modes=$app_modes; app_restore_tuning=$app_tuning; app_active=1
@@ -1740,9 +1741,9 @@ app_begin() {
 }
 # app_* tests use local saved modes; retain an EXIT-safe copy for timeout/cancellation.
 app_abort() {
-	stress_cancel_end; pageprefs_end; synth_loop_end
+	stress_cancel_end; pageprefs_end; synth_loop_end; r2_resources_end
 	[ "${app_active:-0}" = 1 ] || return 0
-	key 3
+	key 3; r2_after_home
 	toolbox_silent_end
 	if [ "${app_land:-0}" = 1 ]; then rotation_back "$app_rotation" "$app_auto"; fi
 	lset wheel_app_modes "$app_restore_modes"
@@ -1750,8 +1751,8 @@ app_abort() {
 	app_active=0
 }
 app_end() {
-	stress_cancel_end; pageprefs_end; synth_loop_end
-	key 3
+	stress_cancel_end; pageprefs_end; synth_loop_end; r2_resources_end
+	key 3; r2_after_home
 	toolbox_silent_end
 	if [ "${app_land:-0}" = 1 ]; then rotation_back "$app_rotation" "$app_auto"; fi
 	lset wheel_app_modes "$app_modes"
@@ -1765,10 +1766,12 @@ app_focus() {
 	for way in down up; do
 		was=
 		for i in $(seq 1 24); do
+			app_window_ok "$1" || return 1
 			ui "$1"
 			if xfocus "$1" | awk -F '\t' -v want="$2" '
+				$1 == "self" && $5 ~ /(RecyclerView|NestedScrollView|ScrollView|ListView)$/ { container = 1 }
 				$1 != "out" && ($8 == want || $9 == want || index($9, want " - ") == 1) { found = 1 }
-				END { exit !found }'; then return 0; fi
+				END { exit !(found && !container) }'; then return 0; fi
 			now="$(focused_in "$1") $(focused_text "$1")"
 			[ -n "$now" ] && [ "$now" = "$was" ] && break
 			was=$now
@@ -1776,6 +1779,16 @@ app_focus() {
 		done
 	done
 	shot "$1-missing"; bad "$cur: no wheel stop on $2"
+	return 1
+}
+app_window_ok() {
+	[ "${app_active:-0}" = 1 ] && [ -n "${app_package:-}" ] || return 0
+	local window
+	window=$(focus_win)
+	case "$window" in *" $app_package/"*) return 0 ;; esac
+	app_lost=1
+	ui "$1-lost-window"; shot "$1-lost-window"
+	bad "$cur: lost $app_package window (${window:-no focus})"
 	return 1
 }
 # Texts and checkable state of the nearest clickable row containing a title. Parsing nodes
@@ -1821,6 +1834,7 @@ app_next() {
 }
 app_tap() {
 	local at
+	app_window_ok "$1" || return 1
 	tap_text "$1" "$2" && return 0
 	at=$(node_at "$1" "^$2")
 	[ -n "$at" ] && sh "input tap $at"
@@ -1833,7 +1847,9 @@ app_cycle() {
 	app_focus "$1" "$2" || return
 	before=$(app_value "$1" "$2" "$3")
 	if [ -z "$before" ]; then bad "$cur: $2 has no known visible value"; return; fi
+	app_window_ok "$1" || return 1
 	side_press; sleep 1; ui "$1"
+	app_window_ok "$1" || return 1
 	after=$(app_value "$1" "$2" "$3"); expected=$(app_next "$3" "$before")
 	# An optional last choice (Port's Webcam) is absent on hardware without that role.
 	if [ -n "$optional" ] && [ "$expected" = "$optional" ] \
@@ -2182,10 +2198,15 @@ t_toolboxset() {
 	side_press; sleep 1
 	app_title toolboxset 'Toolbox settings' || { app_end; return; }
 	app_cycle toolboxset 'Keep the screen on' 'While a tool plays or runs|While a tool is open'
+	[ "${app_lost:-0}" = 0 ] || { app_end; return; }
 	app_cycle toolboxset 'Metronome sound' 'Click|Wood block|Beep'
+	[ "${app_lost:-0}" = 0 ] || { app_end; return; }
 	app_cycle toolboxset 'Tone loudness' 'Quiet|Medium|Loud'
+	[ "${app_lost:-0}" = 0 ] || { app_end; return; }
 	app_cycle toolboxset 'Tone wave' 'Sine|Triangle|Square'
+	[ "${app_lost:-0}" = 0 ] || { app_end; return; }
 	app_cycle toolboxset 'Buzz at dead level' 'Off|On'
+	[ "${app_lost:-0}" = 0 ] || { app_end; return; }
 	shot toolboxset; key 4; sleep 0.7
 	# The end keys use the same tempo steps as the wheel. Open through the exported list,
 	# since its child activities are private to the app on an on-device run.
@@ -2305,7 +2326,8 @@ pageprefs_end() {
 	sh "am start -W -n $pageprefs_component >/dev/null"; sleep 0.5
 	while IFS="$tab" read -r label choices value; do
 		[ -n "$label" ] || continue
-		if pageprefs_set pageprefs-restore "$label" "$choices" "$value"; then
+		# adb shell otherwise consumes the following journal rows from this here-document.
+		if pageprefs_set pageprefs-restore "$label" "$choices" "$value" </dev/null; then
 			ok "$cur: restored original $label ($value)"
 		else bad "$cur: could not restore original $label ($value)"; result=1; fi
 	done <<EOF_PREFS
@@ -2323,7 +2345,12 @@ app_portrait() {
 }
 pageprefs_fresh() {
 	# Clear only the activity task, not a process/service or preferences. This resets scroll.
-	sh "am start -W --activity-new-task --activity-clear-task -n $1 >/dev/null"; sleep 0.7
+	# NEW_TASK | CLEAR_TASK; Intent's shell parser has no --activity-new-task option.
+	if ! sh "am start -W -f 0x10008000 -n $1 >/dev/null"; then
+		bad "$cur: could not freshly open $1"; return 1
+	fi
+	sleep 0.7
+	app_window_ok "$2" || return 1
 	ui "$2"
 }
 page_header_folded() {
@@ -2340,7 +2367,7 @@ pageprefs_effect() {
 	local label=$1 value=$2 i file
 	[ "$pageprefs_component" = cat.kenny.r1.batterydetails/.BatteryDetailsActivity ] || return 0
 	case "$label:$value" in 'Temperature in:Fahrenheit'|'Current in:Milliamps'|'24 hour graph:Shown'|'24 hour graph:Hidden') ;; *) return 0 ;; esac
-	pageprefs_fresh "$pageprefs_component" battery-page-effect
+	pageprefs_fresh "$pageprefs_component" battery-page-effect || return 1
 	for i in 1 2 3 4 5 6; do
 		ui battery-page-effect
 		case "$label:$value" in
@@ -2387,7 +2414,7 @@ t_overlaylook() {
 	local app_modes app_tuning
 	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
 	app_begin cat.kenny.r1.perfoverlay/.OverlayActivity || { app_end; return; }
-	app_portrait; pageprefs_fresh cat.kenny.r1.perfoverlay/.OverlayActivity overlaylook
+	app_portrait; pageprefs_fresh cat.kenny.r1.perfoverlay/.OverlayActivity overlaylook || { app_end; return; }
 	page_header_folded overlaylook
 	pageprefs_begin cat.kenny.r1.perfoverlay/.OverlayActivity
 	pageprefs_cycle overlaylook 'Text size' 'Small|Medium|Large'
@@ -2399,7 +2426,7 @@ t_batterypage() {
 	local app_modes app_tuning ui_fast=1
 	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
 	app_begin cat.kenny.r1.batterydetails/.BatteryDetailsActivity || { app_end; return; }
-	app_portrait; pageprefs_fresh cat.kenny.r1.batterydetails/.BatteryDetailsActivity batterypage
+	app_portrait; pageprefs_fresh cat.kenny.r1.batterydetails/.BatteryDetailsActivity batterypage || { app_end; return; }
 	page_header_folded batterypage
 	pageprefs_begin cat.kenny.r1.batterydetails/.BatteryDetailsActivity
 	pageprefs_cycle batterypage 'Readings update' 'Every 2 seconds|Every second|Every 5 seconds'
@@ -2412,7 +2439,7 @@ t_reportcontents() {
 	local app_modes app_tuning
 	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
 	app_begin cat.kenny.r1.problemreport/.ProblemReportActivity || { app_end; return; }
-	app_portrait; pageprefs_fresh cat.kenny.r1.problemreport/.ProblemReportActivity reportcontents
+	app_portrait; pageprefs_fresh cat.kenny.r1.problemreport/.ProblemReportActivity reportcontents || { app_end; return; }
 	page_header_folded reportcontents
 	pageprefs_begin cat.kenny.r1.problemreport/.ProblemReportActivity
 	pageprefs_cycle reportcontents 'List of apps' 'Included|Left out'
@@ -2423,7 +2450,7 @@ t_smallheaders() {
 	local app_modes app_tuning component
 	for component in cat.kenny.r1.performance/.PerformanceActivity cat.kenny.r1.radiosleep/.RadioSleepActivity; do
 		app_begin "$component" || { app_end; continue; }
-		app_portrait; pageprefs_fresh "$component" smallheaders
+		app_portrait; pageprefs_fresh "$component" smallheaders || { app_end; continue; }
 		page_header_folded smallheaders
 		# Navigation only: no CPU profile, extreme saver, radio timeout or switch is pressed.
 		app_end
@@ -2912,6 +2939,571 @@ t_usbemuset() {
 	shot usbemuset
 	echo "SKIP usbemuset HID and drive effects: needs a computer and an active USB session"
 	app_end
+}
+
+# Second app round: named UI mutations, guarded root checks and EXIT-owned resources.
+r2_begin() {
+	[ "${r2_backup_active:-0}" = 0 ] && [ "${r2_secure_active:-0}" = 0 ] && [ "${pageprefs_active:-0}" = 0 ] \
+		|| { bad "$cur: unresolved second-round cleanup"; return 1; }
+	app_begin "$1" || { app_end; return 1; }
+	app_portrait
+	pageprefs_fresh "$1" "$2" || { app_end; return 1; }
+}
+r2_activity() {
+	local window
+	window=$(focus_win)
+	case "$window" in *" $app_package/.$1"*|*" $app_package/$app_package.$1"*) return 0;; esac
+	return 1
+}
+r2_focus_id() {
+	local way i was now
+	for way in down up; do
+		was=
+		for i in $(seq 1 32); do
+			app_window_ok "$1" || return 1
+			ui "$1"; now=$(focus_field "$1" 5)
+			case "$now" in *":id/$2") return 0;; esac
+			now="$now $(focus_field "$1" 6) $(focused_text "$1")"
+			[ "$now" = "$was" ] && break
+			was=$now; wheel "$way" 1 >/dev/null; sleep 0.3
+		done
+	done
+	bad "$cur: no wheel stop on id/$2"; return 1
+}
+r2_fresh() { pageprefs_fresh "$1" "$2"; }
+# Only these three non-system UIDs are backed up. A running user's service is never stopped.
+# Force-stop before snapshot and restore avoids SharedPreferences' live cache rewriting it.
+r2_backup_begin() {
+	local state
+	[ "${r2_backup_active:-0}" = 0 ] && [ "${pageprefs_active:-0}" = 0 ] || return 1
+	case "$1:$2" in cat.kenny.r1.toolbox:toolbox|cat.kenny.r1.walkie:walkie|cat.kenny.r1.webdesk:desk) ;; *) return 1;; esac
+	state=$(app_service_state "$1")
+	[ "$state" = off ] || { echo "SKIP $cur: $1 service $state; preserving existing activity/session"; return 1; }
+	r2_backup_pkg=$1; r2_backup_path=/data/user/0/$1/shared_prefs/$2.xml
+	r2_backup_dir=/data/local/tmp/r1-smoke-round2-$$
+	sh "am force-stop $1" || return 1
+	# Refuse an in-flight recovery file rather than discard another writer's preferences.
+	if ! sh "[ ! -e $r2_backup_path.bak ] && mkdir $r2_backup_dir && if [ -e $r2_backup_path ]; then cp -p $r2_backup_path $r2_backup_dir/prefs && touch $r2_backup_dir/present; else touch $r2_backup_dir/absent; fi"; then
+		bad "$cur: cannot snapshot $1 preferences"; return 1
+	fi
+	r2_backup_active=1
+}
+r2_resources_end() {
+	local name value tab failed_restore=0
+	if [ "${r2_backup_active:-0}" = 1 ]; then
+		# This is an owned, test-started app; stop audio/network work before volume returns.
+		sh "am force-stop $r2_backup_pkg"
+		if sh "if [ -f $r2_backup_dir/present ]; then cp -p $r2_backup_dir/prefs $r2_backup_path && rm -f $r2_backup_path.bak && restorecon $r2_backup_path && cmp -s $r2_backup_dir/prefs $r2_backup_path; else rm -f $r2_backup_path $r2_backup_path.bak; fi"; then
+			sh "rm -rf $r2_backup_dir"; r2_backup_active=0
+			ok "$cur: restored exact saved preferences and stopped $r2_backup_pkg"
+		else bad "$cur: preference restore failed; backup kept at $r2_backup_dir"; fi
+	fi
+	if [ "${r2_secure_active:-0}" = 1 ]; then
+		tab=$(printf '\t')
+		while IFS="$tab" read -r name value; do
+			[ -n "$name" ] || continue
+			if [ "$value" = absent ]; then
+				sh "content call --uri content://lineagesettings/secure --method DELETE_secure --arg $name" </dev/null >/dev/null
+				[ -z "$(lget "$name" </dev/null)" ] || failed_restore=1
+			else
+				lset "$name" "$value" </dev/null
+				[ "$(lget "$name" </dev/null)" = "$value" ] || failed_restore=1
+			fi
+		done <<EOF_R2_SECURE
+$r2_secure_saved
+EOF_R2_SECURE
+		if [ "$failed_restore" = 0 ]; then r2_secure_active=0; r2_secure_saved=; ok "$cur: restored original Lineage settings"
+		else bad "$cur: Lineage settings restoration failed"; fi
+	fi
+}
+r2_after_home() {
+	[ "${r2_tour_active:-0}" = 1 ] || return 0
+	if [ "$r2_tour_saved" = null ]; then sh 'settings delete secure r1_wheel_tour_done >/dev/null'
+	else sh "settings put secure r1_wheel_tour_done $r2_tour_saved"; fi
+	[ "$(dev 'settings get secure r1_wheel_tour_done')" = "$r2_tour_saved" ] \
+		&& { r2_tour_active=0; ok "$cur: restored tour-shown state"; } || bad "$cur: tour-shown state not restored"
+}
+r2_secure_remember() {
+	local value tab
+	value=$(lget "$1"); tab=$(printf '\t'); [ -n "$value" ] || value=absent
+	r2_secure_saved="${r2_secure_saved:-}${r2_secure_saved:+
+}$1${tab}$value"; r2_secure_active=1
+}
+r2_permission() {
+	dev "dumpsys package $1" | awk '
+		/User 0:/ {user=1;next}
+		/User [0-9]+:/ {user=0}
+		user && $1=="android.permission.RECORD_AUDIO:" && /granted=true/ {yes=1}
+		END {exit !yes}'
+}
+r2_no_danger_focus() {
+	case "$(focus_field "$1" 5)" in
+		*:id/title|*:id/start|*:id/scan) ;;
+		*) bad "$cur: missing, destructive or unexpected first focus ($(focus_field "$1" 5))"; return 1;;
+	esac
+	ok "$cur: first focus is harmless"
+}
+r2_pinned_hint() {
+	local snap=$1 min=$2 file hint scroll screen row dpi
+	ui "$snap"; file="$SHOTS/smoke-$snap-activity.txt"
+	dev "dumpsys activity $app_package" > "$file"
+	hint=$(sweep_canvas_bounds "$file" hint_row); scroll=$(sweep_canvas_bounds "$file" scroll)
+	screen=$(sweep_screen "$snap"); row=$(focus_field "$snap" 6)
+	dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//')
+	case "$dpi" in ''|*[!0-9]*) bad "$cur: no density for pinned hint"; return 1;; esac
+	if sweep_inside "$hint" "$screen" && sweep_inside "$scroll" "$screen" \
+		&& sweep_inside "$row" "$scroll" && awk -v h="$hint" -v s="$scroll" -v r="$row" -v dpi="$dpi" -v min="$min" 'BEGIN {
+			split(h,a," ");split(s,b," ");split(r,c," ");exit !(b[4]<=a[2] && c[4]<=a[2] && c[4]-c[2]>=min*dpi/160)
+		}'; then ok "$cur: last row is fully clear of the pinned hint"
+	else bad "$cur: hint/last row overlaps or clips ($hint; scroll $scroll; row $row)"; return 1; fi
+}
+
+t_walkiemessages() {
+	local app_modes app_tuning i channel state
+	host_only || return
+	state=$(app_service_state cat.kenny.r1.walkie)
+	[ "$state" = off ] || { echo "SKIP walkiemessages: existing receiver $state; opening/leaving settings could stop it"; return; }
+	toolbox_silent_begin || return
+	r2_begin cat.kenny.r1.walkie/.WalkieSettingsActivity walkiemessages || { toolbox_silent_end; return; }
+	if [ "$(focus_field walkiemessages 4)" = android.widget.TextView ] && [ "$(focused_text walkiemessages)" = 'Walkie-Talkie settings' ]; then ok 'walkiemessages: settings first focus is the title'
+	else bad 'walkiemessages: first focus is not the settings title'; fi
+	app_end
+	r2_backup_begin cat.kenny.r1.walkie walkie || { toolbox_silent_end; return; }
+	# app_end restored the saved media value; silence again before the receiver can start.
+	toolbox_silent_begin || { r2_resources_end; return; }
+	app_begin cat.kenny.r1.walkie/.WalkieActivity || { app_end; return; }
+	app_portrait; r2_fresh cat.kenny.r1.walkie/.WalkieActivity walkiemessages || { app_end; return; }
+	app_min_target walkiemessages messages_button
+	# Never hold or press a channel: only the explicit Messages line may be pressed.
+	for i in $(seq 1 12); do
+		ui walkiemessages
+		[ "$(app_id_text walkiemessages hint)" = 'Press to see the last messages heard. Hold the side button to talk.' ] && break
+		wheel down 1 >/dev/null; sleep .2
+	done
+	if [ "$(app_id_text walkiemessages hint)" = 'Press to see the last messages heard. Hold the side button to talk.' ]; then
+		side_press; sleep .5; ui walkiemessages-list
+		if r2_activity MessagesActivity; then
+			ok 'walkiemessages: wheel/press Messages opens recent messages'
+			app_title walkiemessages-list 'No messages yet. The last five heard stay here until the walkie-talkie is turned off.'
+			side_hold; sleep .4
+			r2_activity WalkieActivity && ok 'walkiemessages: hold goes back' || bad 'walkiemessages: hold did not go back'
+		else bad 'walkiemessages: drum press did not open Messages'; fi
+	else bad 'walkiemessages: cannot reach Messages safely on drum'; fi
+	# No replay is attempted, even if another peer supplies a message during the test.
+	if r2_activity WalkieActivity; then
+		ui walkiemessages; app_tap_id walkiemessages messages_button; sleep .4
+		r2_activity MessagesActivity && ok 'walkiemessages: 48dp button opens Messages by touch' || bad 'walkiemessages: touch did not open Messages'
+		key 4
+	fi
+	echo 'SKIP walkiemessages replay: needs a second r1 and a received message; no transmission/replay attempted'
+	app_end
+}
+
+r2_listener_snapshot() {
+	local file="$SHOTS/smoke-$1-listeners.txt"
+	dev 'cat /proc/net/tcp /proc/net/tcp6' > "$file" || return 1
+	[ "$(grep -c local_address "$file")" = 2 ] || return 1
+	awk '$4=="0A" {split($2,a,":"); if(a[2]=="0050" || a[2]=="1F90" || a[2]=="1F91") print a[2]}' "$file"
+}
+# Custom QrView inherits View's accessibility class (android.view.View). Its URL
+# description and square visible bounds identify it; the dialog also supplies Done.
+r2_qr() {
+	xnodes "$1" | awk -F '\t' '
+		$8~/^http:\/\/[^ ]+\/$/ {split($6,b," "); if(b[3]>b[1] && b[4]>b[2] && b[3]-b[1]==b[4]-b[2]) qr=1}
+		$7=="Done" {done=1}
+		END {exit !(qr && done)}'
+}
+t_webdeskstart() {
+	local app_modes app_tuning listeners way i
+	host_only || return
+	listeners=$(r2_listener_snapshot webdesk-baseline) || { echo 'SKIP webdeskstart: cannot inspect TCP listeners'; return; }
+	[ -z "$listeners" ] || { echo 'SKIP webdeskstart: a candidate port is already listening; cannot attribute its owner safely'; return; }
+	r2_backup_begin cat.kenny.r1.webdesk desk || return
+	app_begin cat.kenny.r1.webdesk/.WebDeskActivity || { app_end; return; }
+	app_portrait; r2_fresh cat.kenny.r1.webdesk/.WebDeskActivity webdeskstart || { app_end; return; }
+	r2_no_danger_focus webdeskstart
+	pageprefs_set webdeskstart 'Ask before starting' 'checked=false|checked=true' checked=true || { bad 'webdeskstart: cannot enable Ask'; app_end; return; }
+	# Keep this app owned for EXIT cleanup even while explicitly stopping its server.
+	sh 'am force-stop cat.kenny.r1.webdesk'
+	r2_fresh cat.kenny.r1.webdesk/.WebDeskActivity webdesk-off || { app_end; return; }
+	if [ "$(focus_field webdesk-off 5)" = cat.kenny.r1.webdesk:id/start ] \
+		&& [ -n "$(app_id_text webdesk-off off_text)" ] \
+		&& [ "$(app_service_state cat.kenny.r1.webdesk)" = off ]; then ok 'webdeskstart: Ask On opens off with Start focused'
+	else bad 'webdeskstart: Ask On did not wait off on Start'; fi
+	listeners=$(r2_listener_snapshot webdesk-off)
+	if [ "$?" = 0 ] && [ -z "$listeners" ]; then ok 'webdeskstart: Ask On has no TCP listener on 80/8080/8081'
+	else bad 'webdeskstart: Ask On is listening or listener inspection failed'; fi
+	app_focus webdesk-last 'Ask before starting' && r2_pinned_hint webdesk-last 60
+	pageprefs_set webdeskstart 'Ask before starting' 'checked=false|checked=true' checked=false || { bad 'webdeskstart: cannot restore Ask Off'; app_end; return; }
+	sh 'am force-stop cat.kenny.r1.webdesk'
+	r2_fresh cat.kenny.r1.webdesk/.WebDeskActivity webdesk-on || { app_end; return; }
+	for i in 1 2 3 4 5; do
+		[ "$(app_service_state cat.kenny.r1.webdesk)" = on ] && break; sleep .3
+	done
+	listeners=$(r2_listener_snapshot webdesk-on)
+	if [ "$?" = 0 ] && [ -n "$listeners" ] && [ "$(app_service_state cat.kenny.r1.webdesk)" = on ]; then ok 'webdeskstart: Ask Off automatically starts a listening server'
+	else bad 'webdeskstart: Ask Off failed to start/listen'; fi
+	ui webdesk-on; r2_no_danger_focus webdesk-on
+	if [ -n "$(sweep_bounds webdesk-on scan)" ]; then
+		for way in hold back tap; do
+			ui webdesk-on; app_tap_id webdesk-on scan; sleep .4; ui webdesk-qr
+			if ! r2_qr webdesk-qr; then bad 'webdeskstart: Code to scan did not show QR view'; break; fi
+			case "$way" in hold) side_hold;; back) key 4;; tap) app_tap webdesk-qr Done;; esac
+			sleep .4; ui webdesk-closed
+			if r2_qr webdesk-closed; then bad "webdeskstart: $way left QR open"; key 4
+			else ok "webdeskstart: $way closes the QR view"; fi
+		done
+	else echo 'SKIP webdeskstart QR: no address on the existing Wi-Fi; no network changes made'; fi
+	app_end
+	[ "$(app_service_state cat.kenny.r1.webdesk)" = off ] && ok 'webdeskstart: server stopped at exit' || bad 'webdeskstart: server left running'
+}
+
+t_routerrefresh() {
+	local app_modes app_tuning wifi before after i
+	host_only || return
+	# Opening Router renames stock AndroidAP_* configurations. Do not do that to a user.
+	wifi=$(dev 'dumpsys wifi')
+	case "$wifi" in *AndroidAP_*) echo 'SKIP routerrefresh: stock AP name would be changed on open'; return;; esac
+	[ -n "$wifi" ] || { echo 'SKIP routerrefresh: cannot read existing hotspot state'; return; }
+	r2_begin cat.kenny.r1.router/.RouterActivity routerrefresh || return
+	case "$(app_id_text routerrefresh own_state)" in 'Not passed on yet'|'It did not start. Try once more.') ;; *) echo 'SKIP routerrefresh: network on/starting; no network change made'; app_end; return;; esac
+	ok 'routerrefresh: opened with network off without pressing Pass it on'
+	if app_focus routerrefresh 'Stays on with nobody on it'; then
+		before="$(focus_field routerrefresh 5) $(focus_field routerrefresh 6) $(focused_text routerrefresh)"
+		for i in 1 2; do
+			sleep 2.5; ui routerrefresh
+			after="$(focus_field routerrefresh 5) $(focus_field routerrefresh 6) $(focused_text routerrefresh)"
+			[ "$after" = "$before" ] && ok "routerrefresh: focus survives refresh $i" || bad "routerrefresh: focus changed at refresh $i"
+		done
+		r2_pinned_hint routerrefresh 60
+	fi
+	app_end
+}
+
+t_toolboxextra() {
+	local app_modes app_tuning i file laps screen hint
+	host_only || return
+	r2_begin cat.kenny.r1.toolbox/.ToolboxSettingsActivity toolboxextra || return
+	pageprefs_begin cat.kenny.r1.toolbox/.ToolboxSettingsActivity
+	pageprefs_cycle toolboxextra 'Level zero' 'Forgotten when the level closes|Kept until you press it away'
+	pageprefs_cycle toolboxextra 'Tuner needle' 'Thin|Large, to read from further away'
+	app_end
+	# Four laps are real saved tally data. Preserve the whole file exactly, never erase user data.
+	r2_backup_begin cat.kenny.r1.toolbox toolbox || return
+	app_begin cat.kenny.r1.toolbox/.TallyActivity || { app_end; return; }
+	app_portrait; r2_fresh cat.kenny.r1.toolbox/.TallyActivity toolbox-tally || { app_end; return; }
+	side_hold; sleep .3
+	# An empty tally's hold leaves it; reopen without a hold before adding the four laps.
+	if ! r2_activity TallyActivity; then r2_fresh cat.kenny.r1.toolbox/.TallyActivity toolbox-tally || { app_end; return; }; fi
+	for i in 1 2 3 4; do wheel down 1 >/dev/null; side_press; done
+	app_landscape toolbox-fourlaps; file="$SHOTS/smoke-toolbox-fourlaps-activity.txt"
+	dev 'dumpsys activity cat.kenny.r1.toolbox/.TallyActivity' > "$file"
+	laps=$(sweep_canvas_bounds "$file" laps); hint=$(sweep_canvas_bounds "$file" hint_row); screen=$(sweep_screen toolbox-fourlaps)
+	if [ "$(xnodes toolbox-fourlaps | awk -F '\t' '$7~/^Lap [1-4]$/ {n++} END{print n+0}')" = 4 ] \
+		&& sweep_inside "$laps" "$screen" && sweep_clear "$laps" "$hint"; then ok 'toolboxextra: all four lap lines fit in landscape above the hint'
+	else bad "toolboxextra: fourth lap clipped ($laps; $screen; $hint)"; fi
+	app_end
+	if ! r2_permission cat.kenny.r1.toolbox; then echo 'SKIP toolboxextra Sound Level hold: microphone not already granted; no permission request made'; return; fi
+	toolbox_silent_begin || return
+	app_begin cat.kenny.r1.toolbox/.SoundActivity || { app_end; return; }
+	app_portrait; r2_fresh cat.kenny.r1.toolbox/.SoundActivity toolbox-sound || { app_end; return; }
+	if [ "$(app_id_text toolbox-sound words)" = 'The microphone is in use by something else.' ]; then
+		echo 'SKIP toolboxextra Sound Level hold: microphone busy'; app_end; return
+	fi
+	app_tap_id toolbox-sound level; sleep .5; ui toolbox-sound
+	local held
+	held=$(app_id_text toolbox-sound level); sleep 1; ui toolbox-sound-still
+	if [ "$(app_id_text toolbox-sound-still hint)" = 'Held. Press to listen again.' ] && [ -n "$held" ] && [ "$(app_id_text toolbox-sound-still level)" = "$held" ]; then
+		ok 'toolboxextra: tap holds the Sound Level reading unchanged'
+	else bad 'toolboxextra: Sound Level tap did not hold'; fi
+	app_end
+}
+
+t_portsheets() {
+	local app_modes app_tuning role functions sum battery volume tasks pending
+	host_only || return
+	tasks=$(dev 'dumpsys activity activities')
+	case "$tasks" in *'ACTIVITY MANAGER ACTIVITIES'*) ;; *) echo 'SKIP portsheets: cannot establish existing activity/copy state'; return;; esac
+	if echo "$tasks" | grep -Eq 'cat\.kenny\.r1\.port/[^ ]*PortActivity'; then
+		echo 'SKIP portsheets: existing port sheet may own a photo copy; preserving it'; return
+	fi
+	r2_begin cat.kenny.r1.port/.PortActivity portsheets || return
+	app_title portsheets 'Wheel to pick - press or tap to choose'
+	functions=$(dev 'svc usb getFunctions')
+	case "$functions" in *mtp*) role=Files;; *rndis*|*ncm*) role='Share internet';; *uvc*) role=Webcam;; *none*|*adb*|*midi*|*ptp*) role='Power only';; *) role=;; esac
+	sum=$(app_id_text portsheets sum)
+	case "$sum" in "$role - "*) [ -n "$role" ] && ok 'portsheets: computer summary names the current USB role';; *) bad "portsheets: wrong role in summary ($sum; $functions)";; esac
+	battery=$(dev 'dumpsys battery')
+	if echo "$battery" | grep -Eq '(AC|USB|Wireless|Dock) powered: true'; then
+		case "$sum" in *' - Charging'*|*' - On power, not charging') ok 'portsheets: plugged-in power summary shown';; *) bad "portsheets: plugged-in power summary missing ($sum)";; esac
+	else
+		case "$sum" in *' - Not charging') ok 'portsheets: unplugged summary does not claim charging';; *) bad "portsheets: charging claim while unplugged ($sum)";; esac
+	fi
+	app_end
+	volume=$(dev 'sm list-volumes public' | awk '$2=="mounted" && $1~/^public:/ {print $1;exit}')
+	if [ -z "$volume" ]; then echo 'SKIP portsheets stick guide and Stop copying: needs a mounted USB stick; no copy/eject attempted'; return; fi
+	[ "$(app_service_state cat.kenny.r1.port)" = off ] || { echo 'SKIP portsheets stick: existing port service/copy preserved'; return; }
+	pending=$(dev 'if [ -f /data/user/0/cat.kenny.r1.port/shared_prefs/port.xml ]; then cat /data/user/0/cat.kenny.r1.port/shared_prefs/port.xml; else echo absent; fi')
+	if [ "$?" != 0 ] || echo "$pending" | awk 'BEGIN{RS="<"} /name="copy_total"/ && /value="[1-9][0-9]*"/ {found=1} END{exit !found}'; then
+		echo 'SKIP portsheets stick: pending copy result or unreadable state; preserve its acknowledgement'; return
+	fi
+	app_begin cat.kenny.r1.port/.PortActivity || { app_end; return; }
+	if ! sh "am start -W -f 0x10008000 -n cat.kenny.r1.port/.PortActivity --es volume $volume >/dev/null"; then
+		bad 'portsheets: stick sheet launch failed'; app_end; return
+	fi
+	sleep .5; app_window_ok port-stick || { app_end; return; }; ui port-stick
+	app_title port-stick 'Open in Files'
+	app_title port-stick 'Wheel to pick - press or tap to choose'
+	echo 'SKIP portsheets Stop copying: no photo copy started by this navigation-only check'
+	app_end
+}
+
+t_phonekeys() {
+	local app_modes app_tuning id dpi bounds track screen
+	host_only || return
+	toolbox_silent_begin || return
+	r2_begin cat.kenny.r1.phone/.PhoneSettings phonekeys || { toolbox_silent_end; return; }
+	pageprefs_begin cat.kenny.r1.phone/.PhoneSettings
+	pageprefs_remember phonekeys 'Large music keys' 'Off - small, beside the song|On - under the song, easy to tap' || { app_end; return; }
+	pageprefs_set phonekeys 'Large music keys' 'Off - small, beside the song|On - under the song, easy to tap' 'On - under the song, easy to tap' || { bad 'phonekeys: cannot enable large keys'; app_end; return; }
+	r2_fresh cat.kenny.r1.phone/.PhoneActivity phonekeys-page || { app_end; return; }
+	if [ -n "$(sweep_bounds phonekeys-page big_prev)" ]; then
+		dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//'); track=$(sweep_bounds phonekeys-page track); screen=$(sweep_screen phonekeys-page)
+		for id in big_prev big_toggle big_next; do
+			bounds=$(sweep_bounds phonekeys-page "$id")
+			if sweep_inside "$bounds" "$screen" && awk -v a="$bounds" -v t="$track" -v dpi="$dpi" 'BEGIN {split(a,b," ");split(t,c," ");exit !(dpi>0 && b[3]-b[1]>=64*dpi/160 && b[2]>=c[4])}'; then ok "phonekeys: $id is 64dp wide and below song"
+			else bad "phonekeys: small/clipped/misplaced $id ($bounds)"; fi
+			if awk -v id="$id" 'BEGIN{RS="<"} index($0,"resource-id=\"cat.kenny.r1.phone:id/" id "\"") && / enabled="true"/ {yes=1} END{exit !yes}' "$SHOTS/smoke-phonekeys-page.xml"; then
+				r2_focus_id phonekeys-page "$id" && ok "phonekeys: enabled $id is wheel reachable"
+			else echo "SKIP phonekeys wheel on $id: connected phone does not expose that music command"; fi
+		done
+	else
+		case "$(app_id_text phonekeys-page state)" in 'Waiting for the iPhone'|Pairing|'Bluetooth is off'|'Connected, without notifications')
+			[ "$(focus_field phonekeys-page 5)" = cat.kenny.r1.phone:id/settings ] && ok 'phonekeys: waiting first focus is Settings' || bad 'phonekeys: waiting first focus is not Settings';;
+		*) echo 'SKIP phonekeys waiting first focus: companion is off or already connected';; esac
+		echo 'SKIP phonekeys rendered/reachable music keys: needs a connected iPhone exposing music commands; no Bluetooth or companion switch changed'
+	fi
+	r2_fresh cat.kenny.r1.phone/.PhoneSettings phonekeys || { app_end; return; }
+	pageprefs_set phonekeys 'Large music keys' 'Off - small, beside the song|On - under the song, easy to tap' 'Off - small, beside the song' && ok 'phonekeys: Off restored before original preference cleanup' || bad 'phonekeys: cannot return keys to Off'
+	r2_fresh cat.kenny.r1.phone/.PhoneActivity phonekeys-off || { app_end; return; }
+	if [ -n "$(sweep_bounds phonekeys-off track)" ]; then
+		if [ -z "$(sweep_bounds phonekeys-off big_prev)" ] && [ -n "$(sweep_bounds phonekeys-off prev)" ]; then ok 'phonekeys: Off restores small keys beside song'
+		else bad 'phonekeys: Off left large keys or lost small keys'; fi
+	fi
+	app_end
+}
+
+t_usbshortcuts() {
+	local app_modes app_tuning state first
+	host_only || return
+	state=$(dev 'getprop sys.r1.usbemu.st.session')
+	case "$state" in ''|idle) ;; *) echo 'SKIP usbshortcuts: existing USB session preserved; no session navigation'; return;; esac
+	r2_begin cat.kenny.r1.usbemu/.UsbActivity usbshortcuts || return
+	app_title usbshortcuts 'USB Devices'
+	first=$(focused_text usbshortcuts)
+	[ "$first" = 'USB drive or CD' ] && ok 'usbshortcuts: hub first focus is USB drive or CD' || bad "usbshortcuts: wrong hub first focus ($first)"
+	app_focus usbshortcuts Settings || { app_end; return; }
+	side_press; sleep .4
+	pageprefs_begin cat.kenny.r1.usbemu/.UsbActivity
+	pageprefs_cycle usbshortcuts 'Shortcut keys for' 'Windows and Linux - Ctrl + C copies|Mac - Cmd + C copies'
+	pageprefs_end
+	key 4; sleep .4; ui usb-hub
+	app_title usb-hub 'USB Devices'
+	side_hold; sleep .4
+	if focus_win | grep -Fq 'cat.kenny.r1.usbemu/'; then bad 'usbshortcuts: hub hold stayed in app or clicked a row'
+	else ok 'usbshortcuts: hub hold leaves without activating a row'; fi
+	[ "$(dev 'getprop sys.r1.usbemu.st.session')" = "$state" ] && ok 'usbshortcuts: session state unchanged' || bad 'usbshortcuts: unexpected USB session'
+	echo 'SKIP usbshortcuts sending shortcuts: Shortcuts is session-only; no USB session started'
+	app_end
+}
+
+r2_row_is() {
+	xfocus "$1" | awk -F '\t' -v want="$2" '
+		$1=="self" && $5~/(RecyclerView|NestedScrollView|ScrollView|ListView)$/ {container=1}
+		$1!="out" && ($8==want || $9==want || index($9,want " - ")==1) {found=1}
+		END {exit !(found && !container)}'
+}
+r2_practice_status() {
+	if xnodes "$1" | awk -F '\t' -v text="$2" '
+		$7==text {split($6,a," ");found=1}
+		$4=="android.widget.ScrollView" {split($6,b," ");scroll=1}
+		END {exit !(found && scroll && a[2]>=0 && a[4]>a[2] && a[4]<=b[2])}'; then
+		ok "$cur: top status changed to $2"
+	else bad "$cur: status missing or no longer above controls ($2)"; return 1; fi
+}
+r2_wheel_page() {
+	app_focus "$1" "$2" || return 1
+	side_press; sleep .5; ui "$1"
+	app_title "$1" "$2"
+}
+t_wheelpractice() {
+	local app_modes app_tuning before after
+	r2_begin cat.kenny.r1.wheel.settings/.WheelActivity wheelpractice || return
+	page_header_folded wheelpractice
+	r2_wheel_page wheelpractice 'How the wheel works' || { app_end; return; }
+	ui wheelpractice
+	if ! r2_row_is wheelpractice 'Try it'; then wheel down 1 >/dev/null; sleep .3; ui wheelpractice; fi
+	if r2_row_is wheelpractice 'Try it'; then ok 'wheelpractice: Try it is the first help row'
+	else bad 'wheelpractice: help first row is not Try it'; fi
+	app_focus wheelpractice 'Try it' || { app_end; return; }
+	side_press; sleep .4; ui practice
+	r2_activity PracticeActivity || { bad 'wheelpractice: Try it did not open Practice'; app_end; return; }
+	app_focus practice Apples || { app_end; return; }
+	side_press; sleep .3; ui practice
+	r2_practice_status practice 'Picked Apples'
+	r2_focus_id practice practice_switch || { app_end; return; }
+	side_press; sleep .3; ui practice
+	app_title practice 'Switch on'
+	r2_focus_id practice practice_slider || { app_end; return; }
+	side_press; sleep .3; ui practice
+	app_title practice 'Grabbed - turn to set it'
+	wheel down 1 >/dev/null; sleep .3; ui practice
+	after=$(texts practice | sed -n '/^Slider at [0-9][0-9]* of 10$/p' | head -1)
+	if [ "$(focus_field practice 5)" = cat.kenny.r1.wheel.settings:id/practice_slider ] \
+		&& [ -n "$after" ] && [ "$after" != 'Slider at 5 of 10' ]; then
+		ok 'wheelpractice: grabbed wheel changes slider value without moving focus'
+		r2_practice_status practice "$after"
+	else bad 'wheelpractice: grabbed slider did not change its initial value'; fi
+	side_press; wheel down 1 >/dev/null; sleep .3; ui practice
+	[ "$(focus_field practice 5)" != cat.kenny.r1.wheel.settings:id/practice_slider ] && ok 'wheelpractice: release lets wheel leave the slider' || bad 'wheelpractice: slider did not release'
+	r2_focus_id practice practice_text && ok 'wheelpractice: text field is wheel reachable'
+	# Reaching the field is enough: no keyboard typing or app setting is needed.
+	app_focus practice Done || { app_end; return; }
+	side_press; sleep .4
+	if r2_activity PracticeActivity; then bad 'wheelpractice: wheel Done did not leave'; else ok 'wheelpractice: wheel Done leaves'; fi
+	app_focus wheelpractice 'Try it' || { app_end; return; }
+	side_press; sleep .4
+	app_focus practice Done && app_tap practice Done; sleep .4
+	if r2_activity PracticeActivity; then bad 'wheelpractice: tap Done did not leave'; else ok 'wheelpractice: tap Done leaves'; fi
+	app_focus wheelpractice 'Try it' || { app_end; return; }
+	side_press; sleep .4; side_hold; sleep .4
+	if r2_activity PracticeActivity; then bad 'wheelpractice: hold did not leave'; else ok 'wheelpractice: hold leaves'; fi
+	app_end
+}
+
+# ListPreferences, unlike the app cycle rows, open a single-choice dialog. Match a checked
+# radio option, then travel to the exact option; never press the underlying page's switch.
+# AbsListView owns focus; its CheckedTextView row is selected, not necessarily focused.
+# Never accept the list merely because the desired label is somewhere in its subtree.
+r2_dialog_seek() {
+	local way i
+	for way in down up; do
+		for i in 1 2 3 4; do
+			app_window_ok "$1" || return 1
+			ui "$1"
+			if awk -v want="$2" 'BEGIN {RS="<"}
+				function attr(key, m) {
+					if(!match($0," " key "=\"[^\"]*\""))return ""
+					m=substr($0,RSTART+length(key)+3,RLENGTH-length(key)-4);return m
+				}
+				/^node / && attr("class")~/ListView$/ && attr("focused")=="true" {listFocus=1}
+				/^node / && attr("class")~/CheckedTextView$/ && attr("text")==want {
+					selected=attr("selected")=="true"; rowFocus=attr("focused")=="true"
+				}
+				END {exit !(rowFocus || listFocus && selected)}' "$SHOTS/smoke-$1.xml"; then return 0; fi
+			wheel "$way" 1 >/dev/null; sleep .2
+		done
+	done
+	bad "$cur: choice list never selected $2"; return 1
+}
+r2_list_pick() {
+	local snap=$1 label=$2 wanted=$3 method=$4 i way at
+	app_focus "$snap" "$label" || return 1
+	if [ "$method" = touch ]; then app_tap "$snap" "$label"; else side_press; fi
+	sleep .3; ui "$snap-dialog"
+	if ! xnodes "$snap-dialog" | awk -F '\t' '$4~/CheckedTextView$/ {f=1} END{exit !f}'; then
+		bad "$cur: $label did not open a choice dialog"; key 4; return 1
+	fi
+	if [ "$method" = touch ]; then
+		at=$(node_at "$snap-dialog" "$wanted"); [ -n "$at" ] || { key 4; return 1; }
+		sh "input tap $at"
+	else
+		r2_dialog_seek "$snap-dialog" "$wanted" || { key 4; return 1; }
+		side_press
+	fi
+	sleep .3; ui "$snap"
+	if xnodes "$snap" | awk -F '\t' '$4~/CheckedTextView$/ {f=1} END{exit !f}'; then bad "$cur: choice dialog did not close"; key 4; return 1; fi
+	[ "$(app_value "$snap" "$label" "$wanted")" = "$wanted" ] || { bad "$cur: wrong $label summary after choice"; return 1; }
+}
+r2_list_check() {
+	local label=$2 key=$3 choices=$4 def=$5 method value number i
+	r2_secure_remember "$key"
+	# Verify all entries by wheel, then all by touch, restoring the requested default after each.
+	for method in wheel touch; do
+		i=0
+		while [ "$i" -lt "$(echo "$choices" | awk -F '|' '{print NF}')" ]; do
+			i=$((i+1)); value=$(echo "$choices" | cut -d '|' -f "$i"); number=$((i-1))
+			[ "$key" = wheel_button_columns ] && number=$i
+			if r2_list_pick "$1" "$label" "$value" "$method"; then
+				[ "$(lget "$key")" = "$number" ] && ok "$cur: $method sets $label=$value in Lineage settings" || bad "$cur: $label did not persist $number"
+			else return 1; fi
+			r2_list_pick "$1" "$label" "$def" touch || return 1
+			case "$key" in wheel_taskbar_size|wheel_button_columns) number=1;; *) number=0;; esac
+			[ "$(lget "$key")" = "$number" ] && ok "$cur: restored $label=$def and verified Lineage value" || bad "$cur: default $label did not persist"
+		done
+	done
+}
+t_wheellook() {
+	local app_modes app_tuning
+	r2_begin cat.kenny.r1.wheel.settings/.WheelActivity wheellook || return
+	r2_wheel_page wheellook Taskbar || { app_end; return; }
+	app_focus wheellook Size || { app_end; return; }
+	app_title wheellook Look
+	r2_list_check wheellook Size wheel_taskbar_size 'Compact|Normal|Large' Normal
+	r2_list_check wheellook Colour wheel_taskbar_color 'Black|Translucent|Theme colour' Black
+	r2_list_check wheellook 'Focus ring' wheel_taskbar_ring 'Soft|White|Theme colour' Soft
+	app_end
+}
+t_wheelparts() {
+	local app_modes app_tuning
+	r2_begin cat.kenny.r1.wheel.settings/.WheelActivity wheelparts || return
+	if [ "$(lget wheel_ui)" = 0 ]; then echo 'SKIP wheelparts: wheel UI disabled; its switch is not changed'; app_end; return; fi
+	r2_wheel_page wheelparts 'Parts of the system' || { app_end; return; }
+	ui wheelparts
+	if ! r2_row_is wheelparts 'Columns in the shade and home'; then wheel down 1 >/dev/null; sleep .3; ui wheelparts; fi
+	r2_row_is wheelparts 'Columns in the shade and home' && ok 'wheelparts: first focus is Columns list row' || bad 'wheelparts: first focus is not Columns list row'
+	r2_list_check wheelparts 'Columns in the shade and home' wheel_button_columns 'One - a list|Two - a grid' 'One - a list'
+	app_end
+}
+t_tourskip() {
+	local app_modes app_tuning bounds
+	host_only || return
+	r2_tour_saved=$(dev 'settings get secure r1_wheel_tour_done')
+	case "$r2_tour_saved" in null|0|1) ;; *) echo 'SKIP tourskip: unknown tour-shown state'; return;; esac
+	r2_tour_active=1
+	r2_begin cat.kenny.r1.wheel.settings/.TourActivity tourskip || { r2_after_home; return; }
+	app_title tourskip 'Made for the wheel' || { app_end; return; }
+	bounds=$(xnodes tourskip | awk -F '\t' '$7=="Skip" {print $6;exit}')
+	rawshot tour-skip-before; wheel up 1 >/dev/null; sleep .3; ui tourskip; rawshot tour-skip-after
+	if texts tourskip | grep -Fxq 'Press to leave the tour' && [ -n "$bounds" ]; then
+		set -- $bounds
+		shots_differ tour-skip-before tour-skip-after "$1" "$2" "$3" "$4" && ok 'tourskip: wheel up draws the Skip ring on a non-exercise step' || bad 'tourskip: no Skip ring change'
+	else bad 'tourskip: wheel up did not choose Skip'; fi
+	side_press; sleep .4
+	if r2_activity TourActivity; then bad 'tourskip: press did not skip'; else ok 'tourskip: one press skips tour'; fi
+	app_end
+}
+t_wheellatch() {
+	local app_modes app_tuning at
+	r2_begin cat.kenny.r1.performance/.PerformanceActivity wheellatch || return
+	app_focus wheellatch 'Per-app profiles' || { app_end; return; }
+	# A title touch removes the highlight without any hold or a profile/CPU change.
+	at=$(xnodes wheellatch | awk -F '\t' '
+		$4~/RecyclerView$/ {split($6,b," "); top=b[2];list=1}
+		$7=="Performance" {candidate[++n]=$6}
+		END {if(!list)exit; for(i=1;i<=n;i++) {split(candidate[i],b," ");
+			if(b[3]>b[1] && b[4]>b[2] && b[2]>=0 && b[4]<=top) {
+				print int((b[1]+b[3])/2),int((b[2]+b[4])/2);exit
+			}}}')
+	[ -n "$at" ] || { bad 'wheellatch: no safe title above the preference list'; app_end; return; }
+	sh "input tap $at"
+	sleep .3; ui wheellatch-touch
+	[ -z "$(sweep_focus_id wheellatch-touch)" ] || { bad 'wheellatch: inert title touch did not clear highlight'; app_end; return; }
+	side_press; sleep .4; ui wheellatch-open
+	if r2_activity AppProfilesActivity; then
+		ok 'wheellatch: first post-touch press opens harmless subpage without a prior hold'
+	else bad 'wheellatch: wrong subpage after one post-touch press'; fi
+	key 4; app_end
 }
 
 # Tunnels: navigating only. Every press is allowlisted on an identified Home/Add or ZtJoin
@@ -4057,7 +4649,7 @@ t_etartitle() {
 	sweep_end
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
@@ -4079,11 +4671,12 @@ progress() {
 }
 # A test that ended on a touch leaves the windows in touch mode, where the wheel's first step only
 # brings the highlight back: each test starts from the wheel, so its steps count as written
-untouch() { key 224; key 3; wheel down 1 >/dev/null; sleep 0.3; }
+# Tour's isolated Skip test must launch its own activity, not trigger Home's first-run tour.
+untouch() { key 224; [ "${1:-}" = tourskip ] && return; key 3; wheel down 1 >/dev/null; sleep 0.3; }
 for t in $tests; do
 	i=$((i + 1)); progress $i $t
 	echo "== $t"
-	untouch
+	untouch "$t"
 	cur=$t; t_$t
 done
 # A test that failed runs once more at the end, its lines marked RETRY: one that passes then was
@@ -4093,6 +4686,6 @@ retry=1
 for t in $(echo "$failed" | tr ' ' '\n' | awk 'NF && !seen[$0]++'); do
 	progress $n $t
 	echo "== retry $t"
-	untouch
+	untouch "$t"
 	cur=$t; t_$t
 done
