@@ -15,9 +15,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Web desk's page on the r1. Opening it turns web desk on: where a computer goes, the code to
- * type there, and what that computer may do. With a computer connected: who it is, what it is
- * doing, and the way to end it.
+ * Web desk's page on the r1. Opening it turns web desk on, or with "Ask before starting" waits
+ * for Start: where a computer goes, the code to type there, and what that computer may do.
+ * With a computer connected: who it is, what it is doing, and the way to end it.
  */
 public final class WebDeskActivity extends Activity {
 
@@ -30,7 +30,12 @@ public final class WebDeskActivity extends Activity {
 
     private final Switch[] mToggles = new Switch[CAPS.length];
     private boolean mTurnedOff;
+    /** Asked to start and not running yet: the waiting page shows, not the off one */
+    private boolean mStarting;
     private Switch mScreenOn;
+    private Switch mAsk;
+    /** The focus was put where the page starts, on a harmless button */
+    private boolean mFocusPlaced;
     private TextView mOffAfter;
 
     @Override
@@ -67,6 +72,14 @@ public final class WebDeskActivity extends Activity {
                 desk.disconnect();
             }
         });
+        findViewById(R.id.start).setOnClickListener(v -> {
+            mStarting = true;
+            // The code to scan takes the focus once there is an address
+            mFocusPlaced = false;
+            DeskService.start(this);
+            show();
+        });
+        findViewById(R.id.scan).setOnClickListener(v -> bigCode());
         final ViewGroup code = findViewById(R.id.code);
         final float density = getResources().getDisplayMetrics().density;
         for (int i = 0; i < 6; i++) {
@@ -85,7 +98,8 @@ public final class WebDeskActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!mTurnedOff && DeskService.running() == null) {
+        if (!mTurnedOff && DeskService.running() == null && !DeskService.askFirst(this)) {
+            mStarting = true;
             DeskService.start(this);
         }
         DeskService.listen(this::show);
@@ -95,7 +109,42 @@ public final class WebDeskActivity extends Activity {
     @Override
     protected void onPause() {
         DeskService.listen(null);
+        mStarting = false;
         super.onPause();
+    }
+
+    /** The address as a code for a phone's camera, as big as the screen takes it. */
+    private void bigCode() {
+        final DeskService desk = DeskService.running();
+        final String address = desk == null ? null : desk.address();
+        if (address == null) {
+            return;
+        }
+        final String url = "http://" + address + (desk.port() == 80 ? "" : ":" + desk.port())
+                + "/";
+        final android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+        final float dp = metrics.density;
+        final LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        content.setPadding((int) (16 * dp), (int) (16 * dp), (int) (16 * dp), 0);
+        final QrView qr = new QrView(this, null);
+        // Room left for the line under it and the button, either way the r1 is held
+        final int side = Math.max((int) (120 * dp),
+                Math.min(metrics.widthPixels, metrics.heightPixels) - (int) (170 * dp));
+        qr.setLayoutParams(new LinearLayout.LayoutParams(side, side));
+        qr.set(url);
+        qr.setContentDescription(url);
+        content.addView(qr);
+        final TextView under = new TextView(this, null, 0, R.style.Dim);
+        under.setText(getString(R.string.scan_under, url));
+        under.setGravity(android.view.Gravity.CENTER);
+        under.setPadding(0, (int) (10 * dp), 0, 0);
+        content.addView(under);
+        final android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.addView(content);
+        new android.app.AlertDialog.Builder(this).setView(scroll)
+                .setPositiveButton(R.string.scan_done, null).show();
     }
 
     /**
@@ -143,6 +192,23 @@ public final class WebDeskActivity extends Activity {
             show();
         });
         options.addView(off);
+
+        final View ask = getLayoutInflater().inflate(R.layout.cap, options, false);
+        ((ImageView) ask.findViewById(R.id.icon)).setImageResource(R.drawable.ic_start);
+        ((TextView) ask.findViewById(R.id.title)).setText(R.string.ask_first);
+        final TextView askSub = ask.findViewById(R.id.sub);
+        askSub.setText(R.string.ask_first_sub);
+        askSub.setVisibility(View.VISIBLE);
+        mAsk = ask.findViewById(R.id.toggle);
+        mAsk.setVisibility(View.VISIBLE);
+        ask.setFocusable(true);
+        ask.setClickable(true);
+        ask.setOnClickListener(v -> {
+            final boolean on = !DeskService.askFirst(this);
+            DeskService.prefs(this).edit().putBoolean(DeskService.PREF_ASK, on).apply();
+            mAsk.setChecked(on);
+        });
+        options.addView(ask);
     }
 
     /** "15 min", "1 hour", "3 hours": how long it waits for a computer. */
@@ -154,30 +220,63 @@ public final class WebDeskActivity extends Activity {
 
     private void show() {
         final DeskService desk = DeskService.running();
+        // A start that found no port leaves the page off, saying so, with Start to try again
+        final boolean failed = desk == null && DeskService.failed();
+        if (desk != null || failed) {
+            if (failed && mStarting) {
+                // The press asked for is Start's now, wherever the focus was waiting
+                mFocusPlaced = false;
+            }
+            mStarting = false;
+        }
+        final boolean off = desk == null && !mStarting;
         final boolean paired = desk != null && desk.paired();
         final View disconnect = findViewById(R.id.disconnect);
-        final boolean hadFocus = disconnect.isFocused();
-        findViewById(R.id.waiting).setVisibility(paired ? View.GONE : View.VISIBLE);
+        final View start = findViewById(R.id.start);
+        final View scan = findViewById(R.id.scan);
+        // A button about to go: the focus goes to a harmless one, never on to Turn off
+        final boolean hadFocus = disconnect.isFocused() || start.isFocused();
+        findViewById(R.id.off).setVisibility(off ? View.VISIBLE : View.GONE);
+        findViewById(R.id.waiting).setVisibility(paired || off ? View.GONE : View.VISIBLE);
         findViewById(R.id.connected).setVisibility(paired ? View.VISIBLE : View.GONE);
         disconnect.setVisibility(paired ? View.VISIBLE : View.GONE);
+        findViewById(R.id.turn_off).setVisibility(off ? View.GONE : View.VISIBLE);
         final int offAfter = DeskService.offMinutes(this);
-        ((TextView) findViewById(R.id.foot)).setText(paired ? getString(R.string.foot_connected)
+        final TextView foot = findViewById(R.id.foot);
+        foot.setText(paired ? getString(R.string.foot_connected)
                 : offAfter == 60 ? getString(R.string.foot)
                 : getString(R.string.foot_after, minutes(offAfter)));
         for (int i = 0; i < CAPS.length; i++) {
             mToggles[i].setChecked(DeskService.allowed(this, CAPS[i]));
         }
         mScreenOn.setChecked(DeskService.screenOn(this));
+        mAsk.setChecked(DeskService.askFirst(this));
         mOffAfter.setText(minutes(offAfter));
+        final TextView hint = findViewById(R.id.hint);
         if (paired) {
+            hint.setText(R.string.hint_connected);
             showConnected(desk);
             return;
         }
-        if (hadFocus) {
-            findViewById(R.id.turn_off).requestFocus();
+        ((TextView) findViewById(R.id.off_text)).setText(failed ? R.string.start_failed
+                : R.string.off_text);
+        if (off) {
+            hint.setText(R.string.hint_off);
+            // Start is what the page is for now: asked for, so a press of it is the answer
+            if (nothingChosen() || hadFocus || failed && !mFocusPlaced) {
+                mFocusPlaced |= start.requestFocus();
+            }
+            return;
         }
         final String address = desk == null ? null : desk.address();
         final boolean online = address != null;
+        hint.setText(online ? R.string.hint_waiting : R.string.hint_no_wifi);
+        scan.setVisibility(online ? View.VISIBLE : View.GONE);
+        if (online && (nothingChosen() || hadFocus)) {
+            mFocusPlaced |= scan.requestFocus();
+        } else if (hadFocus) {
+            findViewById(R.id.title).requestFocus();
+        }
         final String port = desk == null || desk.port() == 80 ? "" : ":" + desk.port();
         ((TextView) findViewById(R.id.open)).setText(online ? R.string.open : R.string.no_wifi);
         final TextView name = findViewById(R.id.address);
@@ -200,8 +299,11 @@ public final class WebDeskActivity extends Activity {
     }
 
     private void showConnected(DeskService desk) {
-        ((TextView) findViewById(R.id.since)).setText(getString(R.string.connected_since,
-                DateFormat.getTimeFormat(this).format(new Date(desk.since()))));
+        final String clock = DateFormat.getTimeFormat(this).format(new Date(desk.since()));
+        final String from = desk.from();
+        ((TextView) findViewById(R.id.since)).setText(from == null
+                ? getString(R.string.connected_since, clock)
+                : getString(R.string.connected_from, clock, from));
         ((TextView) findViewById(R.id.who)).setText(who(desk.who()));
         final ViewGroup list = findViewById(R.id.did);
         list.removeAllViews();
@@ -249,8 +351,18 @@ public final class WebDeskActivity extends Activity {
             }
         }
         if (getCurrentFocus() == null) {
-            findViewById(R.id.disconnect).requestFocus();
+            // Not on Disconnect: a press that was meant for something else must not end it
+            findViewById(R.id.title).requestFocus();
         }
+    }
+
+    /**
+     * No row or button picked yet as the page opens: nothing focused, or only the title, where
+     * it starts. Once the wheel has been turned, the title is a place like any other.
+     */
+    private boolean nothingChosen() {
+        final View focused = getCurrentFocus();
+        return !mFocusPlaced && (focused == null || focused.getId() == R.id.title);
     }
 
     private void add(ViewGroup list, int icon, String title, String sub, String time) {

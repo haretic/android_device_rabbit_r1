@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The side button, as it is drawn wherever a hint says "press" -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="?android:attr/colorAccent" /><corners android:radius="4dp" />
+    <size android:width="8dp" android:height="20dp" />
+</shape>

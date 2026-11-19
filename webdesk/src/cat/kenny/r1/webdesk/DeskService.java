@@ -71,6 +71,8 @@ public final class DeskService extends Service implements HttpServer.Handler {
     static final int[] OFF_MINUTES = {15, 30, 60, 180};
     /** Whether the r1's screen stays on while a computer is connected. */
     static final String PREF_SCREEN_ON = "screen_on";
+    /** Whether the page waits for a press before it starts, instead of on opening. */
+    static final String PREF_ASK = "ask_first";
     private static final int CLIPBOARD_MAX = 16 * 1024;
     private static final long FILE_MAX = 256L * 1024 * 1024;
     private static final long UPLOAD_MAX = 512L * 1024 * 1024;
@@ -92,6 +94,8 @@ public final class DeskService extends Service implements HttpServer.Handler {
     }
 
     private static volatile DeskService sRunning;
+    /** The last start found no port to listen on and the service went again at once */
+    private static volatile boolean sFailed;
     private static Runnable sListener;
 
     private final Handler mMain = new Handler(Looper.getMainLooper());
@@ -112,6 +116,8 @@ public final class DeskService extends Service implements HttpServer.Handler {
     private volatile int mPort;
     private volatile long mSeen;
     private volatile boolean mOn;
+    /** The connected computer's address on the network, null when none is */
+    private volatile String mFrom;
     private final Semaphore mUploading = new Semaphore(1);
     private long mUploaded;
     private int mUploads;
@@ -136,12 +142,19 @@ public final class DeskService extends Service implements HttpServer.Handler {
         return sRunning;
     }
 
+    /** The last start could not listen on a port: off again, until the next start. */
+    static boolean failed() {
+        return sFailed;
+    }
+
     /** One listener, the page: called on the main thread when anything it shows changed. */
     static void listen(Runnable listener) {
         sListener = listener;
     }
 
     static void start(Context context) {
+        // Cleared before the start is asked for, so a page waiting on it never reads an old one
+        sFailed = false;
         context.startForegroundService(new Intent(context, DeskService.class));
     }
 
@@ -159,6 +172,10 @@ public final class DeskService extends Service implements HttpServer.Handler {
 
     static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences("desk", MODE_PRIVATE);
+    }
+
+    static boolean askFirst(Context context) {
+        return prefs(context).getBoolean(PREF_ASK, false);
     }
 
     static boolean screenOn(Context context) {
@@ -209,6 +226,10 @@ public final class DeskService extends Service implements HttpServer.Handler {
             mPort = mServer.start(null, 80, 8080, 8081);
         } catch (IOException e) {
             Log.w(TAG, "no port to listen on", e);
+            mOn = false;
+            sFailed = true;
+            // The page waiting for it to start shows that it did not, and Start again
+            changed();
             stopSelf();
             return;
         }
@@ -307,6 +328,11 @@ public final class DeskService extends Service implements HttpServer.Handler {
 
     long since() {
         return mPairing.since();
+    }
+
+    /** The connected computer's address, null without one. */
+    String from() {
+        return mPairing.paired() ? mFrom : null;
     }
 
     List<Did> did() {
@@ -722,6 +748,7 @@ public final class DeskService extends Service implements HttpServer.Handler {
                     System.currentTimeMillis()) : null;
             if (token != null) {
                 mSeen = System.currentTimeMillis();
+                mFrom = request.remote() == null ? null : request.remote().getHostAddress();
             }
         }
         if (token == null) {
