@@ -8,4 +8,8 @@
     <fraction name="config_key_vertical_gap_you">2.4%p</fraction>
     <fraction name="config_key_vertical_gap_holo">2.4%p</fraction>
     <dimen name="config_suggestions_strip_height">27.5dp</dimen>
+    <!-- No full-screen extract editor in landscape (LatinIME's values-land turns it on): on 480 px
+         it is a white panel with Done that hides the field's dialog or page; the keyboard leaves
+         the app the rest of the screen as in portrait -->
+    <bool name="config_use_fullscreen_mode">false</bool>
 </resources>
