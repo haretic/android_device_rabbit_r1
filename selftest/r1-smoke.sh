@@ -1625,9 +1625,13 @@ progress() {
 	fi
 	echo "running $1 $n $2" > $R1_STATUS
 }
+# A test that ended on a touch leaves the windows in touch mode, where the wheel's first step only
+# brings the highlight back: each test starts from the wheel, so its steps count as written
+untouch() { key 224; key 3; wheel down 1 >/dev/null; sleep 0.3; }
 for t in $tests; do
 	i=$((i + 1)); progress $i $t
 	echo "== $t"
+	untouch
 	cur=$t; t_$t
 done
 # A test that failed runs once more at the end, its lines marked RETRY: one that passes then was
@@ -1637,5 +1641,6 @@ retry=1
 for t in $(echo "$failed" | tr ' ' '\n' | awk 'NF && !seen[$0]++'); do
 	progress $n $t
 	echo "== retry $t"
+	untouch
 	t_$t
 done
