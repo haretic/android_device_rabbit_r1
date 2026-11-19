@@ -235,8 +235,8 @@ t_boot() {
 	dev getprop ro.build.date
 	local crashes
 	# Apps and native processes: a shell tool that throws (a screen dump cut short) names no process
-	crashes=$(dev "logcat -b crash -d | grep -c -E 'AndroidRuntime: Process: |Fatal signal'")
-	[ "${crashes:-0}" = 0 ] && ok "no crashes" || { bad "crashes: $crashes"; dev "logcat -b crash -d | grep -A6 -E 'AndroidRuntime: Process: |Fatal signal' | head -60"; }
+	crashes=$(dev "logcat -b crash -d | grep -c -e AndroidRuntime:.Process: -e Fatal.signal")
+	[ "${crashes:-0}" = 0 ] && ok "no crashes" || { bad "crashes: $crashes"; dev "logcat -b crash -d | grep -A6 -e AndroidRuntime:.Process: -e Fatal.signal | head -60"; }
 	local denials
 	denials=$(dev "logcat -d | grep -c avc:.*denied")
 	echo "selinux denials: $denials"
@@ -599,7 +599,7 @@ t_stock() {
 		diff -q $SHOTS/homes-before.txt $SHOTS/homes-after.txt >/dev/null && ok "homes kept as they were" || bad "homes changed switching ($(diff $SHOTS/homes-before.txt $SHOTS/homes-after.txt | grep -c '^[<>]') lines)"
 	fi
 	[ "$(dev "cmd overlay list android" | grep -c "\[x\] com.rabbit.r1.overlay.wheel")" = 2 ] && ok "wheel UI back on" || bad "wheel overlays not back"
-	[ "$(dev "logcat -b crash -d | grep -c -E 'AndroidRuntime: Process: |Fatal signal'")" = 0 ] && ok "no crashes switching" || bad "crash switching"
+	[ "$(dev "logcat -b crash -d | grep -c -e AndroidRuntime:.Process: -e Fatal.signal")" = 0 ] && ok "no crashes switching" || bad "crash switching"
 	key 3
 }
 
