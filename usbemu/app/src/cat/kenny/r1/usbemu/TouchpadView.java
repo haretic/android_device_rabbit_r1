@@ -26,6 +26,9 @@ final class TouchpadView extends View {
     private long downAt;
     private int fingers, buttons;
     private boolean moved, dragging, tapPending;
+    // The settings page's touchpad speed, and its scrolling the other way round
+    private float speed = 1.6f;
+    private int scrollSign = 1;
     private final Runnable click = () -> { tapPending = false; tap(1); };
 
     TouchpadView(Context context, Pointer pointer) {
@@ -36,12 +39,14 @@ final class TouchpadView extends View {
         setFocusable(false);
     }
 
+    void settings(float speed, boolean reverse) { this.speed = speed; scrollSign = reverse ? -1 : 1; }
+
     private void tap(int button) { pointer.mouse(button, 0, 0, 0); pointer.mouse(0, 0, 0, 0); }
 
     // Slow strokes move finely; fast ones cross the PC's screen without lifting off
     private int accelerated(float d) {
         float speed = Math.abs(d) / density;
-        return Math.round(d * Math.min(1.3f + speed * 0.22f, 4f) / density * 1.6f);
+        return Math.round(d * Math.min(1.3f + speed * 0.22f, 4f) / density * this.speed);
     }
 
     private float centroid(MotionEvent e, boolean y) {
@@ -78,7 +83,7 @@ final class TouchpadView extends View {
                     // Natural scrolling: the page follows the fingers, a notch per 14 dp
                     scrollRest += (y - lastY) / (14 * density);
                     int notches = (int) scrollRest;
-                    if (notches != 0) { pointer.mouse(buttons, 0, 0, notches); scrollRest -= notches; moved = true; }
+                    if (notches != 0) { pointer.mouse(buttons, 0, 0, notches * scrollSign); scrollRest -= notches; moved = true; }
                     lastX = x; lastY = y;
                 } else if (moved) {
                     int dx = accelerated(x - lastX), dy = accelerated(y - lastY);

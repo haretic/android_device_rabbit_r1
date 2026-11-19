@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings: three sliders, drawn as the other icons are. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M4 7h9M17 7h3M4 17h3M11 17h9M4 12h3M11 12h9M15 5v4M9 15v4M9 10v4" android:fillColor="#00000000" android:strokeColor="#acdce7" android:strokeWidth="1.9" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

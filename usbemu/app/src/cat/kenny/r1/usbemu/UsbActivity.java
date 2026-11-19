@@ -71,6 +71,7 @@ public final class UsbActivity extends FragmentActivity {
     private View touchpad;
     private float touchX, touchY, startX, startY;
     private boolean moved, inputUsed;
+    private boolean keyboardKey;
     private static final int MICROPHONE = 3;
     private FrameLayout root;
     private LinearLayout body;
@@ -266,6 +267,7 @@ public final class UsbActivity extends FragmentActivity {
             case "typing": typingPage(); break;
             case "swap": imagesPage(true); break;
             case "confirm": confirmPage(); break;
+            case "settings": settingsPage(); break;
             default: hubPage(); break;
         }
         LinearLayout foot = row(); foot.setGravity(Gravity.CENTER_VERTICAL);
@@ -275,6 +277,17 @@ public final class UsbActivity extends FragmentActivity {
         FrameLayout.LayoutParams fp = new FrameLayout.LayoutParams(-1, px(landscape ? 20 : 29), Gravity.BOTTOM);
         fp.setMargins(px(28), 0, px(24), px(landscape ? 23 : 24)); root.addView(foot, fp);
         targets.addAll(bannerTargets); target(back, this::goBack); wrapTargets();
+        // The toolbar has room around its approved back icon for a full touch target.
+        final ImageView backTarget = back;
+        backTarget.post(() -> {
+            if (!backTarget.isAttachedToWindow()) return;
+            android.graphics.Rect hit = new android.graphics.Rect(); backTarget.getHitRect(hit);
+            int extraX = Math.max(0, touchSize() - hit.width());
+            int extraY = Math.max(0, touchSize() - hit.height());
+            hit.inset(-(extraX + 1) / 2, -(extraY + 1) / 2);
+            hit.intersect(0, 0, toolbar.getWidth(), toolbar.getHeight());
+            toolbar.setTouchDelegate(new android.view.TouchDelegate(hit, backTarget));
+        });
         View next = initialFocus != null ? initialFocus : targets.isEmpty() ? null : targets.get(0);
         if (focusKey != null) for (View candidate : targets) if (focusKey.equals(candidate.getTag())) { next = candidate; break; }
         final View focusTarget = next;
@@ -327,6 +340,7 @@ public final class UsbActivity extends FragmentActivity {
             case "session": return Control.prop("st.session").equals("sound") ? R.string.sound
                     : Control.input() ? R.string.keyboard : R.string.session_title;
             case "swap": case "confirm": return R.string.change_disc;
+            case "settings": return R.string.settings_title;
             default: return R.string.app_name;
         }
     }
@@ -359,6 +373,10 @@ public final class UsbActivity extends FragmentActivity {
         View unavailable = card(s(R.string.flipper_combo), s(R.string.combo_unavailable), R.drawable.ic_combo, 0, false, null, combinedHeight);
         cardText(unavailable, 17, 15); disabled(unavailable); add(body, unavailable, -2, landscape ? 9 : 10);
         combinationStyle(unavailable);
+        View settings = card(s(R.string.settings_title), s(R.string.settings_sub), R.drawable.ic_tune, 0, true,
+                () -> navigate("settings"), combinedHeight);
+        cardText(settings, 18, 15); add(body, settings, -2, landscape ? 9 : 10);
+        combinationStyle(settings);
     }
     private void combinationStyle(View card) {
         card.setPadding(px(18), card.getPaddingTop(), px(20), card.getPaddingBottom());
@@ -431,7 +449,7 @@ public final class UsbActivity extends FragmentActivity {
                     ACCENT, enabled, () -> {
                         if (current) navigate("session");
                         else if (swap) { nextDisc = image; navigate("confirm"); }
-                        else { selected = image; readOnly = image.readOnly; navigate("review"); }
+                        else { selected = image; readOnly = image.readOnly || Control.readOnlyFirst(this); navigate("review"); }
                     }, swap ? 76 : 74);
             if (!enabled) disabled(item);
             if (current) {
@@ -674,7 +692,7 @@ public final class UsbActivity extends FragmentActivity {
     private LinearLayout sessionColumns() {
         if (!landscape) { stopButton(body); return body; }
         LinearLayout[] panes = columns(192); stopButton(panes[0]);
-        note(panes[0], s(page.equals("pointer") ? R.string.pointer_guidance : R.string.input_actions_hint), 15, 10);
+        note(panes[0], page.equals("pointer") ? pointerGuidance() : s(R.string.input_actions_hint), 15, 10);
         if (Control.prop("st.session").contains("_")) note(panes[0], s(R.string.shared_image, Images.session()[1]), 14, 10);
         return panes[1];
     }
@@ -754,9 +772,11 @@ public final class UsbActivity extends FragmentActivity {
                     startX = touchX = event.getX(); startY = touchY = event.getY(); moved = false; return true;
                 case android.view.MotionEvent.ACTION_MOVE:
                     if (Math.hypot(event.getX() - startX, event.getY() - startY) > px(6)) moved = true;
-                    int x = (int) ((event.getX() - touchX) / scale), y = (int) ((event.getY() - touchY) / scale);
+                    // The settings' touchpad speed, the normal one as it always was
+                    float speed = Control.PAD_SPEEDS[Control.padSpeed(this)] / Control.PAD_SPEEDS[1];
+                    int x = (int) ((event.getX() - touchX) / scale * speed), y = (int) ((event.getY() - touchY) / scale * speed);
                     if (hid != null && (x != 0 || y != 0)) { inputUsed = true; hid.mouse(0, x, y, 0); }
-                    touchX += x * scale; touchY += y * scale; return true;
+                    touchX += x * scale / speed; touchY += y * scale / speed; return true;
                 case android.view.MotionEvent.ACTION_UP:
                     if (!moved) v.performClick(); v.getParent().requestDisallowInterceptTouchEvent(false); return true;
                 case android.view.MotionEvent.ACTION_CANCEL:
@@ -790,14 +810,15 @@ public final class UsbActivity extends FragmentActivity {
         LinearLayout panel = sessionColumns(); if (!landscape) sessionBrief(panel);
         add(panel, pointerPad(true), landscape ? 136 : 152, 0);
         LinearLayout directions = row(); add(panel, directions, 46, 8);
-        direction(directions, R.string.up, R.drawable.ic_up, 0, -16);
-        direction(directions, R.string.right, R.drawable.ic_right, 16, 0);
-        direction(directions, R.string.down, R.drawable.ic_down, 0, 16);
-        direction(directions, R.string.left, R.drawable.ic_left, -16, 0);
+        int step = Control.pointerStep(this);
+        direction(directions, R.string.up, R.drawable.ic_up, 0, -step);
+        direction(directions, R.string.right, R.drawable.ic_right, step, 0);
+        direction(directions, R.string.down, R.drawable.ic_down, 0, step);
+        direction(directions, R.string.left, R.drawable.ic_left, -step, 0);
         LinearLayout clicks = row(); add(panel, clicks, 47, 8); clickActions(clicks);
         View done = action(panel, s(R.string.pointer_done), false, () -> navigate("session"), 48);
         ((LinearLayout.LayoutParams) done.getLayoutParams()).topMargin = px(8);
-        if (!landscape) note(panel, s(R.string.pointer_guidance), 15, 8);
+        if (!landscape) note(panel, pointerGuidance(), 15, 8);
     }
     private void direction(LinearLayout parent, int label, int icon, int x, int y) {
         pairAction(parent, s(label), false, () -> move(x, y));
@@ -856,7 +877,66 @@ public final class UsbActivity extends FragmentActivity {
     }
     private void keyboardKey(LinearLayout parent, String label, float weight, int size, Runnable click) {
         TextView key = single(label, size, INK); key.setGravity(Gravity.CENTER); key.setBackground(background(0xff353535, 9));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, weight); if (parent.getChildCount() > 0) lp.leftMargin = px(4); parent.addView(key, lp); target(key, click);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, weight); if (parent.getChildCount() > 0) lp.leftMargin = px(4); parent.addView(key, lp);
+        // At 41 px with a 46 px row pitch, 48dp hit boxes would overlap. Keep this
+        // approved keyboard geometry; other action rows can grow and scroll normally.
+        keyboardKey = true; target(key, click); keyboardKey = false;
+    }
+    /** A wheel step up scrolls the PC up, unless the settings turn it round. */
+    private int wheelNotch(int key) {
+        int notch = key == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1;
+        return Control.reverseScroll(this) ? -notch : notch;
+    }
+    private String pointerGuidance() {
+        int step = Control.pointerStep(this);
+        return step == 16 ? s(R.string.pointer_guidance) : s(R.string.pointer_guidance_step, step);
+    }
+    private int stepName(int step) {
+        return step == Control.POINTER_STEPS[0] ? R.string.setting_fine : step == Control.POINTER_STEPS[2] ? R.string.setting_fast : R.string.setting_normal;
+    }
+    /**
+     * What the user sets once: how the pointer and scrolling behave and how drives open. Only
+     * what this UI sends and shows changes; the gadget and its reports stay as they are. The
+     * wheel goes from row to row and a press or a tap changes one, as everywhere here.
+     */
+    private void settingsPage() {
+        note(body, s(R.string.settings_guide), 16, 0);
+        LinearLayout[] panes = columns(330); LinearLayout left = panes[0], right = panes[1];
+        LinearLayout pointer = stack(); add(left, pointer, -2, 12);
+        int step = Control.pointerStep(this);
+        add(pointer, option(s(R.string.pointer_step), s(R.string.pointer_step_value, s(stepName(step)), step), null, () -> {
+            int next = Control.POINTER_STEPS[0];
+            for (int i = 0; i < Control.POINTER_STEPS.length; i++)
+                if (Control.POINTER_STEPS[i] == step) { next = Control.POINTER_STEPS[(i + 1) % Control.POINTER_STEPS.length]; break; }
+            Control.prefs(this).edit().putInt("pointerStep", next).apply(); render(true);
+        }), 72, 0);
+        int speed = Control.padSpeed(this);
+        add(pointer, option(s(R.string.pad_speed), s(speed == 0 ? R.string.setting_slow : speed == 2 ? R.string.setting_fast : R.string.setting_normal), null, () -> {
+            Control.prefs(this).edit().putInt("padSpeed", (speed + 1) % Control.PAD_SPEEDS.length).apply(); render(true);
+        }), 72, 2);
+        boolean reverse = Control.reverseScroll(this);
+        add(pointer, option(s(R.string.reverse_scroll), s(reverse ? R.string.reverse_scroll_on : R.string.reverse_scroll_off), reverse, () -> {
+            Control.prefs(this).edit().putBoolean("reverseScroll", !reverse).apply(); render(true);
+        }), 72, 2);
+        LinearLayout drives = stack(); add(right, drives, -2, landscape ? 12 : 10);
+        boolean first = Control.readOnlyFirst(this);
+        add(drives, option(s(R.string.read_only_first), s(first ? R.string.read_only_first_on : R.string.read_only_first_off), first, () -> {
+            Control.prefs(this).edit().putBoolean("readOnlyFirst", !first).apply(); render(true);
+        }), 72, 0);
+        note(right, s(R.string.settings_note), 15, 12);
+    }
+    /** A setting: what it is, what it is set to, and a switch or "Change" for the press or tap. */
+    private View option(String label, String value, Boolean on, Runnable click) {
+        LinearLayout field = row(); field.setGravity(Gravity.CENTER_VERTICAL);
+        field.setContentDescription(label + s(R.string.text_separator) + value);
+        field.setPadding(px(18), px(10), px(18), px(10)); field.setBackground(background(CARD, 0, 22));
+        LinearLayout copy = column(); field.addView(copy, new LinearLayout.LayoutParams(0, -2, 1));
+        // Tagged so that the wheel stays on this row when the value under it changes
+        TextView title = single(label, 15, MUTED); title.setTag("title"); add(copy, title, 20, 0);
+        TextView content = single(value, 19, INK); content.setTypeface(medium); add(copy, content, 25, 2);
+        LinearLayout.LayoutParams end = new LinearLayout.LayoutParams(on != null ? px(50) : -2, on != null ? px(30) : -2); end.leftMargin = px(10);
+        field.addView(on != null ? toggle(on) : single(s(R.string.change), 17, ACCENT), end);
+        target(field, click); return field;
     }
     private void confirmPage() {
         if (nextDisc == null || !Control.running()) { navigate("session"); return; }
@@ -907,11 +987,11 @@ public final class UsbActivity extends FragmentActivity {
         }
     }
     private void goBack() {
-        if (pad != null) { touchpadCue(); return; }
+        if (pad != null) { confirmLeaveTouchpad(); return; }
         if (Control.busy(this)) { navigate("hub"); return; }
         switch (page) {
             case "hub": finish(); break;
-            case "images": case "session": navigate("hub"); break;
+            case "images": case "session": case "settings": navigate("hub"); break;
             case "size": navigate("create"); break;
             case "confirm": navigate("swap"); break;
             case "swap": case "pointer": case "typing": navigate("session"); break;
@@ -924,7 +1004,7 @@ public final class UsbActivity extends FragmentActivity {
         if (scrollMode && scrollModeButton != null && scrollModeButton.hasFocus() && page.equals("session") && Control.input()) {
             int key = event.getKeyCode();
             if (key == KeyEvent.KEYCODE_DPAD_UP || key == KeyEvent.KEYCODE_DPAD_DOWN) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN && hid != null) { inputUsed = true; hid.mouse(0, 0, 0, key == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1); }
+                if (event.getAction() == KeyEvent.ACTION_DOWN && hid != null) { inputUsed = true; hid.mouse(0, 0, 0, wheelNotch(key)); }
                 return true;
             }
             if (key == KeyEvent.KEYCODE_BACK) {
@@ -953,8 +1033,8 @@ public final class UsbActivity extends FragmentActivity {
     /**
      * The touchpad screen: the whole screen is the PC's touchpad (TouchpadView), the wheel
      * scrolls the PC and a side-button press clicks. Both exit circles, in the top corners, held
-     * together for EXIT_HOLD_MS leave, stopping the touchpad. A hold, a back gesture or Back do
-     * nothing here, so the pad isn't left by accident.
+     * together for EXIT_HOLD_MS leave, stopping the touchpad. Back asks before stopping it,
+     * so a wheel user can leave too and an accidental hold never disconnects it.
      */
     private void touchpadScreen() {
         targets.clear(); initialFocus = null; touchpad = null; scrollModeButton = null;
@@ -967,6 +1047,7 @@ public final class UsbActivity extends FragmentActivity {
         pad = new TouchpadView(this, (buttons, x, y, wheel) -> {
             if (hid != null) { inputUsed = true; hid.mouse(buttons, x, y, wheel); }
         });
+        pad.settings(Control.PAD_SPEEDS[Control.padSpeed(this)], Control.reverseScroll(this));
         root.addView(pad, new FrameLayout.LayoutParams(-1, -1));
         // Far apart, so a single hand resting on the screen doesn't hold both
         exitLeft = new ExitZone(this, this::exitHeld); exitRight = new ExitZone(this, this::exitHeld);
@@ -979,7 +1060,9 @@ public final class UsbActivity extends FragmentActivity {
         FrameLayout.LayoutParams hp = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
         hp.bottomMargin = px(18); root.addView(hint, hp);
         if (!uiError.isEmpty()) {
-            TextView error = single(s(R.string.touchpad_lost), 15, 0xffffb4ab); error.setGravity(Gravity.CENTER);
+            // Wrapped, not cut off: it says how to get out of a touchpad that no longer works
+            TextView error = text(s(R.string.touchpad_lost), 15, 0xffffb4ab); error.setGravity(Gravity.CENTER);
+            error.setPadding(px(24), 0, px(24), 0);
             root.addView(error, new FrameLayout.LayoutParams(-1, -2, Gravity.CENTER));
         }
         setContentView(root);
@@ -1022,13 +1105,13 @@ public final class UsbActivity extends FragmentActivity {
         boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         switch (key) {
             case KeyEvent.KEYCODE_DPAD_UP: case KeyEvent.KEYCODE_DPAD_DOWN:
-                if (down && hid != null) { inputUsed = true; hid.mouse(0, 0, 0, key == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1); }
+                if (down && hid != null) { inputUsed = true; hid.mouse(0, 0, 0, wheelNotch(key)); }
                 return true;
             case KeyEvent.KEYCODE_ENTER: case KeyEvent.KEYCODE_DPAD_CENTER:
                 if (down && event.getRepeatCount() == 0 && hid != null) { inputUsed = true; hid.click(1); }
                 return true;
             case KeyEvent.KEYCODE_BACK:
-                if (!down) touchpadCue();
+                if (!down && !event.isCanceled()) confirmLeaveTouchpad();
                 return true;
             default:
                 return false;
@@ -1039,6 +1122,12 @@ public final class UsbActivity extends FragmentActivity {
         if (pad != null) pad.cancel();
         WheelCue.hide();
         request("stop", null, true);
+    }
+    private void confirmLeaveTouchpad() {
+        // The wheel gets a deliberate exit too; an accidental Back never disconnects it.
+        new AlertDialog.Builder(this).setTitle(R.string.touchpad_stop)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.stop, (dialog, which) -> leaveTouchpad()).show();
     }
     private void fullScreen(boolean on) {
         if (!on) pad = null;
@@ -1066,7 +1155,9 @@ public final class UsbActivity extends FragmentActivity {
         LinearLayout stack = column(); stack.setBackground(shape(CARD, 24, false)); stack.setClipToOutline(true); return stack;
     }
     private void add(LinearLayout parent, View view, int height, int margin) {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, height < 0 ? height : px(height)); lp.topMargin = px(margin); parent.addView(view, lp);
+        int pixels = height < 0 ? height : px(height);
+        if (view.isClickable() && pixels >= 0) pixels = Math.max(pixels, touchSize());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, pixels); lp.topMargin = px(margin); parent.addView(view, lp);
     }
     private TextView text(String value, int size, int color) {
         TextView text = new TextView(this); text.setText(value); text.setTextColor(color); text.setTypeface(regular);
@@ -1132,11 +1223,25 @@ public final class UsbActivity extends FragmentActivity {
     }
     private void target(View view, Runnable action) {
         if (action == null || !view.isEnabled()) return;
+        if (!keyboardKey && view != back) {
+            view.setMinimumWidth(Math.max(view.getMinimumWidth(), touchSize()));
+            view.setMinimumHeight(Math.max(view.getMinimumHeight(), touchSize()));
+            ViewGroup.LayoutParams lp = view.getLayoutParams();
+            if (lp != null && lp.height >= 0) lp.height = Math.max(lp.height, touchSize());
+            if (lp != null && lp.height == -1 && view.getParent() instanceof View) {
+                // Pair buttons fill a fixed-height row. Grow that row, not just its child.
+                ViewGroup.LayoutParams row = ((View) view.getParent()).getLayoutParams();
+                if (row != null && row.height >= 0) row.height = Math.max(row.height, touchSize());
+            }
+        }
         if (view.getContentDescription() == null && view instanceof TextView) view.setContentDescription(((TextView) view).getText());
         // Stable across poll-driven redraws and the insertion/dismissal of a banner.
         TextView label = view.findViewWithTag("title");
         view.setTag(page + ":" + (label == null ? view.getContentDescription() : label.getText()));
-        view.setFocusable(true); view.setFocusableInTouchMode(true); view.setOnClickListener(v -> action.run());
+        // These are actions, not text editors. In touch mode a newly focused View consumes
+        // ACTION_UP without clicking, making Back and other unfocused actions need two taps.
+        // Keep wheel focusability; the first touch should execute the action immediately.
+        view.setFocusable(true); view.setFocusableInTouchMode(false); view.setOnClickListener(v -> action.run());
         view.setOnFocusChangeListener((v, focused) -> {
             if (focused) v.post(() -> { if (v.hasFocus()) reveal(v); });
             else if (v == scrollModeButton && scrollMode) {
@@ -1145,6 +1250,7 @@ public final class UsbActivity extends FragmentActivity {
         });
         targets.add(view);
     }
+    private int touchSize() { return Math.round(48 * getResources().getDisplayMetrics().density); }
     private View field(String label, String value, String end, boolean access, Runnable click) {
         LinearLayout field = row(); field.setGravity(Gravity.CENTER_VERTICAL);
         field.setContentDescription(label + s(R.string.text_separator) + value);

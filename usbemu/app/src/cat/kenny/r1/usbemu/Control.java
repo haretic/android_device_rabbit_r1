@@ -59,6 +59,21 @@ final class Control {
         c.startForegroundService(intent.putExtra("requestToken", token));
         return token;
     }
+    // The user's settings, from the settings page: only what the UI sends and shows, never the gadget
+    /** Pixels a side-button click moves the pointer on the pointer page. */
+    static final int[] POINTER_STEPS = {4, 16, 48};
+    static int pointerStep(Context c) {
+        int step = prefs(c).getInt("pointerStep", 16);
+        for (int one : POINTER_STEPS) if (one == step) return step;
+        return 16;
+    }
+    /** How far a finger moves the pointer: slow, normal, fast. */
+    static final float[] PAD_SPEEDS = {1.0f, 1.6f, 2.4f};
+    static int padSpeed(Context c) { return Math.max(0, Math.min(2, prefs(c).getInt("padSpeed", 1))); }
+    /** Wheel and two-finger scrolling the other way round. */
+    static boolean reverseScroll(Context c) { return prefs(c).getBoolean("reverseScroll", false); }
+    /** Writable images open as read-only until Access is switched in review. */
+    static boolean readOnlyFirst(Context c) { return prefs(c).getBoolean("readOnlyFirst", false); }
     static boolean input() { return prop("st.session").endsWith("input"); }
     static boolean touchpad() { return "touchpad".equals(prop("st.session")); }
     static String label(Context c) {

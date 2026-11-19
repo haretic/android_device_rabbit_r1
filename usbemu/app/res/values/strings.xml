@@ -15,8 +15,9 @@
     <string name="coming_soon">Coming soon</string>
     <string name="touchpad_mode">Touchpad</string>
     <string name="touchpad_sub">The whole screen moves the pointer</string>
-    <string name="touchpad_exit">Hold both top circles for 3 seconds to exit</string>
-    <string name="touchpad_lost">Touchpad disconnected - hold both top circles for 3 seconds to stop</string>
+    <string name="touchpad_exit">Hold both circles 3 seconds to stop - side hold asks</string>
+    <string name="touchpad_stop">Stop touchpad?</string>
+    <string name="touchpad_lost">Touchpad disconnected - hold both circles 3 seconds to stop, side hold asks</string>
     <string name="touchpad_cue_turn">Scroll</string>
     <string name="touchpad_cue_press">Click</string>
     <string name="flipper_combo">Flipper + other devices</string>
@@ -222,4 +223,23 @@
     <string name="mic_input">Mic input</string>
     <string name="separate_session">Unavailable - needs a separate session</string>
     <string name="input_pairing">Use the R1 to type on this PC</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_sub">Pointer, scrolling and drive access</string>
+    <string name="settings_guide">Wheel to a setting - press or tap to change it.</string>
+    <string name="settings_note">These change only what the R1 sends and how drives open. Running sessions pick them up on their next screen.</string>
+    <string name="change">Change</string>
+    <string name="pointer_step">Wheel pointer step</string>
+    <string name="pointer_step_value">%1$s - %2$d pixels</string>
+    <string name="pointer_guidance_step">Wheel selects a direction. Each side-button click moves the pointer %1$d pixels. Touch is optional.</string>
+    <string name="pad_speed">Touchpad speed</string>
+    <string name="setting_slow">Slow</string>
+    <string name="setting_fine">Fine</string>
+    <string name="setting_normal">Normal</string>
+    <string name="setting_fast">Fast</string>
+    <string name="reverse_scroll">Reverse scrolling</string>
+    <string name="reverse_scroll_on">On - wheel up scrolls the PC down</string>
+    <string name="reverse_scroll_off">Off - wheel up scrolls the PC up</string>
+    <string name="read_only_first">Open drives read-only</string>
+    <string name="read_only_first_on">On - switch Access to let the PC write</string>
+    <string name="read_only_first_off">Off - writable images open writable</string>
 </resources>
