@@ -43,4 +43,42 @@
             android:title="@string/limit_title"
             android:persistent="false" />
     </PreferenceCategory>
+    <!-- How this page shows things: a press or a tap moves a row on to its next choice, the
+         first choice of each is how the page always was. In the app's own preferences. -->
+    <PreferenceCategory
+        android:key="page"
+        android:title="@string/page_title">
+        <Preference
+            android:key="page_hint"
+            android:summary="@string/page_hint"
+            android:selectable="false" />
+        <cat.kenny.r1.batterydetails.CyclePreference
+            android:key="page_refresh"
+            android:defaultValue="2"
+            android:entries="@array/page_refresh_entries"
+            android:entryValues="@array/page_refresh_values"
+            android:summary="%s"
+            android:title="@string/page_refresh" />
+        <cat.kenny.r1.batterydetails.CyclePreference
+            android:key="page_temperature"
+            android:defaultValue="c"
+            android:entries="@array/page_temperature_entries"
+            android:entryValues="@array/page_temperature_values"
+            android:summary="%s"
+            android:title="@string/page_temperature" />
+        <cat.kenny.r1.batterydetails.CyclePreference
+            android:key="page_current"
+            android:defaultValue="a"
+            android:entries="@array/page_current_entries"
+            android:entryValues="@array/page_current_values"
+            android:summary="%s"
+            android:title="@string/page_current" />
+        <cat.kenny.r1.batterydetails.CyclePreference
+            android:key="page_graph"
+            android:defaultValue="shown"
+            android:entries="@array/page_graph_entries"
+            android:entryValues="@array/page_graph_values"
+            android:summary="%s"
+            android:title="@string/page_graph" />
+    </PreferenceCategory>
 </PreferenceScreen>

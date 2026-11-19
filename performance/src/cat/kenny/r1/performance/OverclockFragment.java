@@ -14,6 +14,8 @@ import android.text.TextUtils;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
+import cat.kenny.r1.wheel.WheelSelect;
+
 import com.android.settingslib.widget.MainSwitchPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
@@ -67,7 +69,7 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
                 changed();
                 return true;
             }
-            new AlertDialog.Builder(requireContext())
+            final AlertDialog dialog = new AlertDialog.Builder(requireContext())
                     .setTitle(R.string.oc_skip_title)
                     .setMessage(R.string.oc_skip_text)
                     .setPositiveButton(R.string.oc_skip_use, (d, w) -> {
@@ -75,7 +77,13 @@ public class OverclockFragment extends SettingsBasePreferenceFragment {
                         changed();
                     })
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show();
+                    .create();
+            // Cancel first: a press of the side button right away must not skip the test
+            dialog.setOnShowListener(d ->
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus());
+            dialog.show();
+            // The side button presses its buttons, as in the page's other dialogs
+            WheelSelect.attach(dialog);
             return true;
         });
         mTest = findPreference("test");

@@ -30,6 +30,23 @@
             android:title="@string/last_start_title"
             android:selectable="false" />
     </PreferenceCategory>
+    <!-- What goes in: a press or a tap moves a row on to its next choice, the first choice
+         is how reports always were -->
+    <PreferenceCategory
+        android:key="contents"
+        android:title="@string/contents_title">
+        <Preference
+            android:key="contents_hint"
+            android:summary="@string/contents_hint"
+            android:selectable="false" />
+        <cat.kenny.r1.problemreport.CyclePreference
+            android:key="apps_list"
+            android:defaultValue="include"
+            android:entries="@array/apps_list_entries"
+            android:entryValues="@array/apps_list_values"
+            android:summary="%s"
+            android:title="@string/apps_list_title" />
+    </PreferenceCategory>
     <com.android.settingslib.widget.FooterPreference
         android:key="privacy"
         android:title="@string/privacy" />

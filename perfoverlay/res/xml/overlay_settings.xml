@@ -22,6 +22,38 @@
         android:summary="%s"
         android:title="@string/overlay_position" />
 
+    <!-- The look: a press or a tap moves a row on to its next choice. The first choice of
+         each is how the overlay always looked. -->
+    <PreferenceCategory
+        android:key="look"
+        android:title="@string/look_title">
+        <Preference
+            android:key="look_hint"
+            android:summary="@string/look_hint"
+            android:selectable="false" />
+        <cat.kenny.r1.perfoverlay.CyclePreference
+            android:key="size"
+            android:defaultValue="small"
+            android:entries="@array/size_entries"
+            android:entryValues="@array/size_values"
+            android:summary="%s"
+            android:title="@string/overlay_size" />
+        <cat.kenny.r1.perfoverlay.CyclePreference
+            android:key="background"
+            android:defaultValue="dark"
+            android:entries="@array/background_entries"
+            android:entryValues="@array/background_values"
+            android:summary="%s"
+            android:title="@string/overlay_background" />
+        <cat.kenny.r1.perfoverlay.CyclePreference
+            android:key="interval"
+            android:defaultValue="1"
+            android:entries="@array/interval_entries"
+            android:entryValues="@array/interval_values"
+            android:summary="%s"
+            android:title="@string/overlay_interval" />
+    </PreferenceCategory>
+
     <com.android.settingslib.widget.FooterPreference
         android:key="about"
         android:title="@string/overlay_about" />

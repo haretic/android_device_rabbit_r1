@@ -49,6 +49,8 @@ final class Report {
     static final int STEPS = 8;
     static final int IDLE = 0, RUNNING = 1, DONE = 2, FAILED = 3;
     static final String KEY_NOTE = "note";
+    /** What goes in: apps.txt unless this says leave_out (the page's List of apps) */
+    static final String KEY_APPS_LIST = "apps_list";
     static final String FOLDER = Environment.DIRECTORY_DOWNLOADS + "/haretic-reports";
 
     /** The script has this long to answer, and to move on from a step */
@@ -165,7 +167,10 @@ final class Report {
         step(6, "devices");
         Collector.devices(context, dir);
         step(7, "apps");
-        Collector.apps(context, dir);
+        if (!"leave_out".equals(PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(KEY_APPS_LIST, "include"))) {
+            Collector.apps(context, dir);
+        }
 
         step(8, "saving");
         for (String p : Helper.PSTORE_FILES) {

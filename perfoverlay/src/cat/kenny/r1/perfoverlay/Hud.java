@@ -21,6 +21,17 @@ final class Hud {
     static final String KEY_ENABLED = "enabled";
     static final String KEY_STYLE = "style";
     static final String KEY_POSITION = "position";
+    /** The look: text size, how dark the backing is, how often the numbers change */
+    static final String KEY_SIZE = "size";
+    static final String KEY_BACKGROUND = "background";
+    static final String KEY_INTERVAL = "interval";
+
+    static final String SIZE_SMALL = "small";
+    static final String SIZE_MEDIUM = "medium";
+    static final String SIZE_LARGE = "large";
+    static final String BACKGROUND_DARK = "dark";
+    static final String BACKGROUND_LIGHT = "light";
+    static final String BACKGROUND_NONE = "none";
 
     static final String STYLE_FPS = "fps";
     static final String STYLE_COMPACT = "compact";
@@ -43,6 +54,33 @@ final class Hud {
 
     static String getPosition(Context context) {
         return prefs(context).getString(KEY_POSITION, "status_bar");
+    }
+
+    static String getSize(Context context) {
+        return prefs(context).getString(KEY_SIZE, SIZE_SMALL);
+    }
+
+    /** The text size in sp: small is the size the overlay always had. */
+    static float getTextSp(Context context) {
+        switch (getSize(context)) {
+            case SIZE_MEDIUM: return 14;
+            case SIZE_LARGE: return 17;
+            default: return 11;
+        }
+    }
+
+    static String getBackground(Context context) {
+        return prefs(context).getString(KEY_BACKGROUND, BACKGROUND_DARK);
+    }
+
+    /** Milliseconds between updates, one second unless chosen otherwise. */
+    static long getIntervalMs(Context context) {
+        try {
+            final int seconds = Integer.parseInt(prefs(context).getString(KEY_INTERVAL, "1"));
+            return seconds >= 1 && seconds <= 10 ? seconds * 1000L : 1000L;
+        } catch (NumberFormatException e) {
+            return 1000L;
+        }
     }
 
     /** Remembers the choice and starts or stops the overlay to match. */

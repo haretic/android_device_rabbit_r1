@@ -31,7 +31,8 @@ power.txt       dumpsys battery, power, thermalservice, deviceidle, alarm
 devices.txt     Wi-Fi, Bluetooth and airplane mode on or off; dumpsys input,
                 display, sensorservice, audio, usb
 apps.txt        installed apps and versions, running processes, dumpsys
-                activity activities, meminfo
+                activity activities, meminfo; not there when List of apps
+                was left out
 
 The logs of the last start are only kept when the r1 restarts, not when it
 was switched off or the battery ran empty.

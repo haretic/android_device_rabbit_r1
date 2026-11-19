@@ -4,7 +4,8 @@
     <!-- One of the three periods of What drained me -->
     <style name="DrainPeriod">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">36dp</item>
+        <!-- 48dp to the finger; the pill (drain_period_selected) still 36dp to the eye -->
+        <item name="android:layout_height">48dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:gravity">center</item>
         <item name="android:maxLines">1</item>

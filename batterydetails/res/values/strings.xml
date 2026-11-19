@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Settings > Battery -->
-    <string name="details_title">Battery Details</string>
+    <string name="details_title">Battery details</string>
     <string name="details_summary">Level over 24 hours, voltage, current and charging</string>
 
     <!-- The top of the page -->
@@ -34,6 +34,9 @@
     <string name="value_amps"><xliff:g id="amps">%1$+.2f</xliff:g> A</string>
     <string name="value_watts"><xliff:g id="watts">%1$+.1f</xliff:g> W</string>
     <string name="value_celsius"><xliff:g id="celsius">%1$.0f</xliff:g> °C</string>
+    <string name="value_fahrenheit"><xliff:g id="fahrenheit">%1$.0f</xliff:g> °F</string>
+    <!-- Current in mA when This page asks for it, e.g. "+1080 mA" -->
+    <string name="value_milliamps"><xliff:g id="milliamps">%1$+.0f</xliff:g> mA</string>
     <!-- A reading the r1 doesn't have right now -->
     <string name="value_unknown">–</string>
     <string name="charger_none">Not plugged in</string>
@@ -44,6 +47,48 @@
     <string name="charger_usb">USB</string>
     <!-- e.g. "USB charger, 5.1 V", the voltage the r1 measures on the cable -->
     <string name="charger_volts"><xliff:g id="charger">%1$s</xliff:g>, <xliff:g id="volts">%2$.1f</xliff:g> V</string>
+
+    <!-- This page: how the page shows things -->
+    <string name="page_title">This page</string>
+    <string name="page_hint">Press or tap a row for its next choice</string>
+    <string name="page_refresh">Readings update</string>
+    <string-array name="page_refresh_entries">
+        <item>Every 2 seconds</item>
+        <item>Every second</item>
+        <item>Every 5 seconds</item>
+    </string-array>
+    <string-array name="page_refresh_values" translatable="false">
+        <item>2</item>
+        <item>1</item>
+        <item>5</item>
+    </string-array>
+    <string name="page_temperature">Temperature in</string>
+    <string-array name="page_temperature_entries">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </string-array>
+    <string-array name="page_temperature_values" translatable="false">
+        <item>c</item>
+        <item>f</item>
+    </string-array>
+    <string name="page_current">Current in</string>
+    <string-array name="page_current_entries">
+        <item>Amps</item>
+        <item>Milliamps</item>
+    </string-array>
+    <string-array name="page_current_values" translatable="false">
+        <item>a</item>
+        <item>ma</item>
+    </string-array>
+    <string name="page_graph">24 hour graph</string>
+    <string-array name="page_graph_entries">
+        <item>Shown</item>
+        <item>Hidden</item>
+    </string-array>
+    <string-array name="page_graph_values" translatable="false">
+        <item>shown</item>
+        <item>hidden</item>
+    </string-array>
 
     <!-- Battery care -->
     <string name="care_title">Battery care</string>

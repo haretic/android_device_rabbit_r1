@@ -14,6 +14,11 @@ public class BatteryDetailsActivity extends CollapsingToolbarBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
+        // The title on one line: the tall header took a third of the screen, and only a
+        // finger's scroll folds it, never the wheel's
+        if (getAppBarLayout() != null) {
+            getAppBarLayout().setExpanded(false, false);
+        }
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(com.android.settingslib.collapsingtoolbar.R.id.content_frame,

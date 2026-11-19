@@ -408,6 +408,8 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
                 .setNegativeButton(R.string.kt_off_prompt_keep, (d, w) ->
                         mOffPromptDeclined = true)
                 .show();
+        // The side button presses its buttons, as in the page's other dialogs
+        WheelSelect.attach(mOffPrompt);
     }
 
     private void applied() {

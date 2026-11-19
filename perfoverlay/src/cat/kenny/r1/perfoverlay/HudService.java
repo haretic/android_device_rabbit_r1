@@ -48,7 +48,6 @@ public class HudService extends Service
 
     private static final String CHANNEL = "overlay";
     private static final int NOTIFICATION_ID = 1;
-    private static final long INTERVAL_MS = 1000;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private HandlerThread mWorker;
@@ -59,6 +58,8 @@ public class HudService extends Service
     private TextView mView;
     private boolean mTicking;
     private CharSequence mShown;
+    /** Medium and large text puts the full style's memory and time on a line of their own */
+    private volatile boolean mBigText;
 
     private int mLabelColor;
     private int mValueColor;
@@ -70,7 +71,7 @@ public class HudService extends Service
         @Override
         public void run() {
             update();
-            mWorkerHandler.postDelayed(this, INTERVAL_MS);
+            mWorkerHandler.postDelayed(this, Hud.getIntervalMs(HudService.this));
         }
     };
 
@@ -108,10 +109,9 @@ public class HudService extends Service
 
         mWindowManager = getSystemService(WindowManager.class);
         mView = new TextView(this);
-        mView.setBackgroundResource(R.drawable.hud_background);
         mView.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD));
-        mView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         mView.setIncludeFontPadding(false);
+        applyLook();
         mView.setShadowLayer(2, 1, 1, 0xFF000000);
         final int padX = dp(5);
         final int padY = dp(3);
@@ -161,10 +161,39 @@ public class HudService extends Service
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (Hud.KEY_POSITION.equals(key)) {
             mWindowManager.updateViewLayout(mView, layoutParams());
-        } else if (Hud.KEY_STYLE.equals(key) && mTicking) {
+        } else if (Hud.KEY_SIZE.equals(key) || Hud.KEY_BACKGROUND.equals(key)) {
+            applyLook();
+            if (mTicking) {
+                mWorkerHandler.removeCallbacks(mTick);
+                mWorkerHandler.post(mTick);
+            }
+        } else if ((Hud.KEY_STYLE.equals(key) || Hud.KEY_INTERVAL.equals(key)) && mTicking) {
             // Show the new style right away
             mWorkerHandler.removeCallbacks(mTick);
             mWorkerHandler.post(mTick);
+        }
+    }
+
+    /** The chosen text size and backing; the dark backing and small text are the original. */
+    private void applyLook() {
+        final float sp = Hud.getTextSp(this);
+        mBigText = sp > 11;
+        mView.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        switch (Hud.getBackground(this)) {
+            case Hud.BACKGROUND_NONE:
+                // The text keeps its shadow, readable on most screens
+                mView.setBackground(null);
+                break;
+            case Hud.BACKGROUND_LIGHT:
+                final android.graphics.drawable.Drawable light =
+                        getDrawable(R.drawable.hud_background).mutate();
+                // About half as dark as the 70 % black of the original
+                light.setAlpha(140);
+                mView.setBackground(light);
+                break;
+            default:
+                mView.setBackgroundResource(R.drawable.hud_background);
+                break;
         }
     }
 
@@ -243,15 +272,20 @@ public class HudService extends Service
             }
         }
         if (full) {
+            // Large text would run past the screen's edge on two lines
+            final boolean ownLine = mBigText && (s.ramPercent >= 0 || s.storagePercent >= 0);
+            if (ownLine) {
+                out.append('\n');
+            }
             if (s.ramPercent >= 0) {
-                label(out, R.string.hud_ram);
+                label(out, R.string.hud_ram, ownLine);
                 append(out, s.ramPercent + "%", s.ramPercent >= 90 ? mOkColor : mValueColor);
                 if (s.memMhz > 0) {
                     append(out, " " + s.memMhz + "MHz", mValueColor);
                 }
             }
             if (s.storagePercent >= 0) {
-                label(out, R.string.hud_storage);
+                label(out, R.string.hud_storage, ownLine && s.ramPercent < 0);
                 append(out, s.storagePercent + "%", s.storagePercent >= 90 ? mOkColor
                         : mValueColor);
             }

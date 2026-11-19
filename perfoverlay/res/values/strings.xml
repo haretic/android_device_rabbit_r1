@@ -34,6 +34,42 @@
         <item>bottom_right</item>
     </string-array>
 
+    <string name="look_title">Look</string>
+    <string name="look_hint">Press or tap a row for its next choice</string>
+    <string name="overlay_size">Text size</string>
+    <string-array name="size_entries">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string-array name="size_values" translatable="false">
+        <item>small</item>
+        <item>medium</item>
+        <item>large</item>
+    </string-array>
+    <string name="overlay_background">Background</string>
+    <string-array name="background_entries">
+        <item>Dark</item>
+        <item>Light</item>
+        <item>None</item>
+    </string-array>
+    <string-array name="background_values" translatable="false">
+        <item>dark</item>
+        <item>light</item>
+        <item>none</item>
+    </string-array>
+    <string name="overlay_interval">Updates</string>
+    <string-array name="interval_entries">
+        <item>Every second</item>
+        <item>Every 2 seconds</item>
+        <item>Every 5 seconds</item>
+    </string-array>
+    <string-array name="interval_values" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>5</item>
+    </string-array>
+
     <string name="overlay_about">FPS is how many frames the screen showed in the last second. It drops to 0 when nothing on screen moves, that\'s normal.\n\nThe numbers update once a second and cost next to nothing. If a game gets slower with the overlay on, turn it off or pick FPS only.\n\nQuick Settings gets a Performance overlay tile once you have used the overlay.</string>
 
     <!-- Foreground service notification -->

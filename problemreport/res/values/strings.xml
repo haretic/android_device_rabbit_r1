@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Settings > System > Problem report -->
-    <string name="report_title">Problem Report</string>
+    <string name="report_title">Problem report</string>
     <string name="report_summary">Save logs for a bug report</string>
 
     <string name="intro">Saves the system logs from now and from the last start, crash reports and a description of this r1 as one .zip in Download/haretic-reports. Takes about a minute.</string>
@@ -40,6 +40,18 @@
     <string name="step_apps">the list of apps</string>
     <string name="step_saving">the file</string>
 
+    <string name="contents_title">What goes in</string>
+    <string name="contents_hint">Press or tap a row for its next choice</string>
+    <string name="apps_list_title">List of apps</string>
+    <string-array name="apps_list_entries">
+        <item>Included</item>
+        <item>Left out</item>
+    </string-array>
+    <string-array name="apps_list_values" translatable="false">
+        <item>include</item>
+        <item>leave_out</item>
+    </string-array>
+
     <string name="last_start_title">Logs from the last start</string>
     <string name="last_start_panic">The last start ended with a kernel panic. Its log is kept and goes into the report.</string>
     <string name="last_start_panic_lost">The last start ended with a kernel panic, but its log wasn\'t kept.</string>
@@ -49,7 +61,7 @@
     <string name="last_start_none">None. They are only kept when the r1 restarts, not when it was switched off or the battery ran empty.</string>
     <string name="last_start_unknown">Not looked at yet, the r1 is still starting.</string>
 
-    <string name="privacy">The report lists your apps. Wi-Fi network names, accounts, phone numbers, IMEI and serial numbers are taken out, but the logs can still name Bluetooth devices nearby. Have a look before you post it in public.</string>
+    <string name="privacy">The report lists your apps unless you leave them out above. Wi-Fi network names, accounts, phone numbers, IMEI and serial numbers are taken out, but the logs can still name Bluetooth devices nearby. Have a look before you post it in public.</string>
 
     <!-- Developer options > Self test -->
     <string name="self_test_title">Self test</string>

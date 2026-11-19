@@ -17,6 +17,11 @@ public class DrainActivity extends CollapsingToolbarBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
+        // The title on one line: the tall header took a third of the screen, and only a
+        // finger's scroll folds it, never the wheel's
+        if (getAppBarLayout() != null) {
+            getAppBarLayout().setExpanded(false, false);
+        }
         final int state = getIntent().getIntExtra(DrainFragment.EXTRA_STATE, -1);
         if (state >= 0) {
             setTitle(DrainFragment.STATE_TITLES[state]);

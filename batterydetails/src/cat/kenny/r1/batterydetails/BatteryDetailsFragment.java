@@ -31,12 +31,21 @@ import java.util.concurrent.Executors;
 
 /**
  * Settings > Battery > Battery details. The readings are refreshed every 2 seconds while the
- * page is open, read off the main thread since the charging policy can keep its status file
- * waiting for up to 1.5 s.
+ * page is open (This page can make it 1 or 5), read off the main thread since the charging
+ * policy can keep its status file waiting for up to 1.5 s; the graph's history is read there
+ * too. This page also picks the units and whether the graph shows.
  */
 public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
 
-    private static final long REFRESH_MS = 2000;
+    /** This page's choices, in the app's own preferences; the first value is the default */
+    static final String KEY_REFRESH = "page_refresh";
+    static final String KEY_TEMPERATURE = "page_temperature";
+    static final String KEY_CURRENT = "page_current";
+    static final String KEY_GRAPH = "page_graph";
+    private static final String REFRESH_DEFAULT = "2";
+    private static final String FAHRENHEIT = "f";
+    private static final String MILLIAMPS = "ma";
+    private static final String GRAPH_HIDDEN = "hidden";
     /** Opening the page adds a point to the graph too, unless the last one is this fresh. */
     private static final long SAMPLE_ON_OPEN_MS = 5 * 60 * 1000L;
     /** Lineage's Charging control page in LineageParts */
@@ -80,6 +89,71 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         if (mChargeCurrent == null && mChargeLimit == null) {
             getPreferenceScreen().removePreference(findPreference("care"));
         }
+        for (String key : new String[] {KEY_REFRESH, KEY_TEMPERATURE, KEY_CURRENT, KEY_GRAPH}) {
+            // Stored once the listener returns: show the page with it right after
+            findPreference(key).setOnPreferenceChangeListener((p, value) -> {
+                mHandler.post(this::pageChanged);
+                return true;
+            });
+        }
+    }
+
+    private String page(String key, String otherwise) {
+        return getPreferenceManager().getSharedPreferences().getString(key, otherwise);
+    }
+
+    private long refreshMs() {
+        try {
+            final int seconds = Integer.parseInt(page(KEY_REFRESH, REFRESH_DEFAULT));
+            return seconds >= 1 && seconds <= 10 ? seconds * 1000L : 2000L;
+        } catch (NumberFormatException e) {
+            return 2000L;
+        }
+    }
+
+    private boolean graphShown() {
+        return !GRAPH_HIDDEN.equals(page(KEY_GRAPH, "shown"));
+    }
+
+    /** A choice in This page changed: the readings in the new units, the graph in or out. */
+    private void pageChanged() {
+        if (!mResumed) {
+            return;
+        }
+        mHeader.setGraphShown(graphShown());
+        if (graphShown()) {
+            loadHistory(false);
+        }
+        if (mLast != null) {
+            show(mLast);
+        }
+        refresh();
+    }
+
+    /**
+     * The graph's last 24 hours, off the main thread: a file of up to a thousand lines. Adds a
+     * point first if asked and the last one is old.
+     */
+    private void loadHistory(boolean sample) {
+        final Context app = requireContext().getApplicationContext();
+        final boolean shown = graphShown();
+        mReader.execute(() -> {
+            if (sample && System.currentTimeMillis() - History.lastTime(app)
+                    > SAMPLE_ON_OPEN_MS) {
+                History.record(app, Reading.battery(app));
+            }
+            if (!shown) {
+                return;
+            }
+            final long end = System.currentTimeMillis();
+            final java.util.List<History.Point> points =
+                    History.load(app, end - HeaderPreference.SPAN_MS);
+            mHandler.post(() -> {
+                if (mResumed) {
+                    mHeader.setPoints(points, end);
+                }
+            });
+        });
     }
 
     @Override
@@ -87,13 +161,11 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         super.onResume();
         final Context context = requireContext();
         SampleJob.schedule(context);
-        if (System.currentTimeMillis() - History.lastTime(context) > SAMPLE_ON_OPEN_MS) {
-            History.record(context, Reading.battery(context));
-        }
-        mHeader.reload();
+        mResumed = true;
+        mHeader.setGraphShown(graphShown());
+        loadHistory(true);
         showChargeLimit();
         showChargeCurrent();
-        mResumed = true;
         refresh();
     }
 
@@ -128,7 +200,7 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
                 });
             });
         }
-        mHandler.postDelayed(mRefresh, REFRESH_MS);
+        mHandler.postDelayed(mRefresh, refreshMs());
     }
 
     /**
@@ -150,7 +222,9 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
         final String volts = r.millivolts == Reading.UNKNOWN ? getString(R.string.value_unknown)
                 : getString(R.string.value_volts, r.millivolts / 1000f);
         final String amps = r.microamps == Reading.UNKNOWN ? getString(R.string.value_unknown)
-                : signed(R.string.value_amps, r.microamps / 1e6f, 100);
+                : MILLIAMPS.equals(page(KEY_CURRENT, "a"))
+                        ? signed(R.string.value_milliamps, r.microamps / 1000f, 1)
+                        : signed(R.string.value_amps, r.microamps / 1e6f, 100);
         mVoltageCurrent.setValue(getString(R.string.value_pair, volts, amps));
 
         final String watts = r.millivolts == Reading.UNKNOWN || r.microamps == Reading.UNKNOWN
@@ -158,7 +232,9 @@ public class BatteryDetailsFragment extends SettingsBasePreferenceFragment {
                 : signed(R.string.value_watts, r.millivolts / 1000f * r.microamps / 1e6f, 10);
         final String celsius = r.tenthsCelsius == Reading.UNKNOWN
                 ? getString(R.string.value_unknown)
-                : getString(R.string.value_celsius, r.tenthsCelsius / 10f);
+                : FAHRENHEIT.equals(page(KEY_TEMPERATURE, "c"))
+                        ? getString(R.string.value_fahrenheit, r.tenthsCelsius / 10f * 9 / 5 + 32)
+                        : getString(R.string.value_celsius, r.tenthsCelsius / 10f);
         mPowerTemperature.setValue(getString(R.string.value_pair, watts, celsius));
 
         mCharger.setValue(charger(r));

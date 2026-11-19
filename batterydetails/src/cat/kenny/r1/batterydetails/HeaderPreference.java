@@ -21,6 +21,7 @@ public class HeaderPreference extends Preference {
     private CharSequence mStatus;
     private List<History.Point> mPoints;
     private long mEnd;
+    private boolean mGraphShown = true;
 
     public HeaderPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -36,11 +37,19 @@ public class HeaderPreference extends Preference {
         }
     }
 
-    /** Reads the last 24 hours from the history again. */
-    void reload() {
-        mEnd = System.currentTimeMillis();
-        mPoints = History.load(getContext(), mEnd - SPAN_MS);
+    /** The last 24 hours up to {@code end}, as History.load read them off the main thread. */
+    void setPoints(List<History.Point> points, long end) {
+        mPoints = points;
+        mEnd = end;
         notifyChanged();
+    }
+
+    /** The graph and its labels, or the level and the status alone. */
+    void setGraphShown(boolean shown) {
+        if (shown != mGraphShown) {
+            mGraphShown = shown;
+            notifyChanged();
+        }
     }
 
     @Override
@@ -48,7 +57,11 @@ public class HeaderPreference extends Preference {
         super.onBindViewHolder(holder);
         ((TextView) holder.findViewById(R.id.percent)).setText(mPercent);
         ((TextView) holder.findViewById(R.id.status)).setText(mStatus);
-        if (mPoints != null) {
+        final int graph = mGraphShown ? View.VISIBLE : View.GONE;
+        holder.findViewById(R.id.graph).setVisibility(graph);
+        holder.findViewById(R.id.graph_labels).setVisibility(graph);
+        holder.findViewById(R.id.graph_empty).setVisibility(View.GONE);
+        if (mGraphShown && mPoints != null) {
             ((GraphView) holder.findViewById(R.id.graph))
                     .setPoints(mPoints, mEnd - SPAN_MS, mEnd);
             // One point is just a dot, say why.
