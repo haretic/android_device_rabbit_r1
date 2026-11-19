@@ -200,6 +200,7 @@ public final class ZtJoinActivity extends Page {
         clearFieldProblem(mName);
         if (mId.length() != CHARS) {
             noteText(mProblem, getText(R.string.zt_incomplete), true);
+            revealAfterLayout(mNext);
             return;
         }
         final String id = mId.toString();
@@ -208,7 +209,9 @@ public final class ZtJoinActivity extends Page {
         } catch (IllegalArgumentException e) {
             noteText(mProblem, getText(R.string.zt_bad_id), true);
             // The ID is what is wrong: on the key that takes it back
-            mBody.findViewById(R.id.key_back).requestFocus();
+            final View erase = mBody.findViewById(R.id.key_back);
+            erase.requestFocus();
+            revealAfterLayout(erase);
             return;
         }
         final String name = mName.getText().toString().trim();

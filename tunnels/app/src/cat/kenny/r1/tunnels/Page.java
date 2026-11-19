@@ -245,6 +245,25 @@ abstract class Page extends Activity {
         return view;
     }
 
+    /**
+     * Brings the focused key back in sight once a note above it has taken its room: the note
+     * changes the page's height, not the focus, so nothing else scrolls to it.
+     */
+    protected final void revealAfterLayout(final View target) {
+        mBody.getViewTreeObserver().addOnGlobalLayoutListener(
+                new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        mBody.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        if (target.isAttachedToWindow() && getCurrentFocus() == target) {
+                            target.requestRectangleOnScreen(new android.graphics.Rect(
+                                    0, 0, target.getWidth(), target.getHeight()), true);
+                        }
+                    }
+                });
+        mBody.requestLayout();
+    }
+
     /** What is wrong in a field, said right under it, and the wheel put on it to fix it. */
     protected final void fieldProblem(EditText edit, CharSequence text) {
         final View error = ((View) edit.getParent()).findViewById(R.id.field_error);

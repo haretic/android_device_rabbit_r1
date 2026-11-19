@@ -195,6 +195,7 @@ public final class MullvadAccountActivity extends Page {
         }
         if (mDigits.length() != DIGITS) {
             noteText(mStatus, getText(R.string.pad_incomplete), true);
+            revealAfterLayout(mNext);
             return;
         }
         mBusy = true;
@@ -267,7 +268,9 @@ public final class MullvadAccountActivity extends Page {
         failed(EngineUi.error(this, error));
         if (error == Engine.Error.ACCOUNT_INVALID) {
             // The number is what is wrong: on the key that takes it back
-            mBody.findViewById(R.id.key_back).requestFocus();
+            final View erase = mBody.findViewById(R.id.key_back);
+            erase.requestFocus();
+            revealAfterLayout(erase);
         }
     }
 
