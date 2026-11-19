@@ -3143,7 +3143,7 @@ t_webdeskstart() {
 	r2_fresh cat.kenny.r1.webdesk/.WebDeskActivity webdesk-off || { app_end; return; }
 	build=$(dev 'getprop ro.haretic.version')
 	expected_focus=start
-	# 117 has the confirmed default-title bug; the following candidate fixes Start focus.
+	# 117 has the confirmed default-title bug; later builds focus the Turn on control (id/start).
 	[ "$build" != haretic-20261119-1753-nightly ] || expected_focus=title
 	if [ "$(focus_field webdesk-off 5)" = "cat.kenny.r1.webdesk:id/$expected_focus" ] \
 		&& [ -n "$(app_id_text webdesk-off off_text)" ] \
@@ -3343,7 +3343,9 @@ t_usbshortcuts() {
 	fi
 	app_title usb-hub 'USB Devices'
 	side_hold; sleep .4
-	if focus_win | grep -Fq 'cat.kenny.r1.usbemu/'; then bad 'usbshortcuts: hub hold stayed in app or clicked a row'
+	if focus_win | grep -Fq 'cat.kenny.r1.usbemu/'; then
+		ui usb-hub-hold; shot usb-hub-hold
+		bad 'APP usbshortcuts: hub hold stayed in app or clicked a row'
 	else ok 'usbshortcuts: hub hold leaves without activating a row'; fi
 	[ "$(dev 'getprop sys.r1.usbemu.st.session')" = "$state" ] && ok 'usbshortcuts: session state unchanged' || bad 'usbshortcuts: unexpected USB session'
 	echo 'SKIP usbshortcuts sending shortcuts: Shortcuts is session-only; no USB session started'
@@ -3436,7 +3438,9 @@ t_wheelpractice() {
 	done
 	if [ "$ready" = 1 ]; then
 		side_hold; sleep .4
-		if r2_activity PracticeActivity; then bad 'APP wheelpractice: hold did not leave'; else ok 'wheelpractice: hold leaves'; fi
+		# The successful destination is the Help page, not merely any other activity.
+		if r2_activity WheelActivity; then ok 'wheelpractice: hold returns to Help'
+		else ui practice-hold; shot practice-hold; bad 'APP wheelpractice: hold did not return to Help'; fi
 	else bad 'wheelpractice: Practice did not reopen for hold'; fi
 	app_end
 }
@@ -3703,6 +3707,16 @@ tunnels_press_key() {
 	bad "tunnels: no safe keypad stop on $id"; return 1
 }
 
+tunnels_key_visible() {
+	local snap=$1 id=$2 visible full
+	visible=$(sweep_bounds "$snap" "$id")
+	dev 'dumpsys activity cat.kenny.r1.tunnels/.ZtJoinActivity' > "$SHOTS/smoke-$snap-visibility.txt"
+	full=$(sweep_canvas_bounds "$SHOTS/smoke-$snap-visibility.txt" "$id")
+	if awk -v a="$full" -v b="$visible" 'BEGIN{split(a,x," ");split(b,y," ");exit !(x[4]>x[2]&&x[3]>x[1]&&y[4]-y[2]>=x[4]-x[2]&&y[3]-y[1]>=x[3]-x[1])}'; then
+		ok "tunnels: validation keeps $id fully visible (native $full; visible $visible)"
+	else shot "$snap-clipped"; bad "APP tunnels: validation clips $id (native $full; visible $visible)"; fi
+}
+
 tunnels_finish() {
 	# No force-stop, service command, switch, or VPN permission dialog is involved.
 	app_end
@@ -3832,6 +3846,7 @@ t_tunnels() {
 	if tunnels_page tunnels-pad ZeroTier 'Step 1 of 2' \
 		&& [ "$(app_id_text tunnels-pad number)" = 'aaaa aaaa bbbb bbb_' ]; then
 		ok 'tunnels: Next cannot advance with 15 hex characters'
+		tunnels_key_visible tunnels-pad key_next
 	else bad 'tunnels: incomplete ID advanced or keypad input failed'; tunnels_finish; return; fi
 	# Next is after the pad. Seek earlier keys upward rather than scrolling into the name
 	# and QR rows below it, which hides the ID readout from accessibility's visible dump.
@@ -3862,6 +3877,7 @@ t_tunnels() {
 		&& [ "$(app_id_text tunnels-pad number)" = '0000 0000 0000 0000' ] \
 		&& tunnels_zero_error; then
 		ok 'tunnels: 16 zeros are refused with the network-ID message'
+		tunnels_key_visible tunnels-error key_back
 	else bad 'tunnels: zero ID was not refused on step 1 with its message'; fi
 	# The pad's Back handler clears the unsaved Draft, including the earlier review ID.
 	if tunnels_activity ZtJoinActivity \
@@ -3984,6 +4000,12 @@ t_filesfocus() {
 		|| ! xnodes filesfocus | cut -f7 | grep -qx a; then
 		echo "SKIP $cur: external-storage directory URI did not show the fixture"; sweep_end; return
 	fi
+	# Build 122 should focus the first real row as soon as this loaded directory is shown.
+	f=$(activity_focus filesfocus-first com.android.documentsui/.files.FilesActivity)
+	case "$f" in
+		*id/item_root*) ok "Files: loaded directory initially focuses a real row ($f)" ;;
+		*) shot filesfocus-first; bad "Files: initial focus is ${f:-missing}, not a real row" ;;
+	esac
 	# Explicit URI starts at this root, independent of the last directory. Two actual steps.
 	wheel down 2 >/dev/null; sleep 0.6
 	f=$(activity_focus filesfocus com.android.documentsui/.files.FilesActivity)
