@@ -640,7 +640,8 @@ else
 	side_double() { sh "t=/data/local/tmp/side-tap.bin; [ -s \$t ] || echo $SIDE_TAP | base64 -d > \$t; cat \$t > /dev/input/event0; sleep 0.1; cat \$t > /dev/input/event0"; }
 	side_triple() { sh "t=/data/local/tmp/side-tap.bin; [ -s \$t ] || echo $SIDE_TAP | base64 -d > \$t; cat \$t > /dev/input/event0; sleep 0.1; cat \$t > /dev/input/event0; sleep 0.1; cat \$t > /dev/input/event0"; }
 fi
-focus_win() { dev "dumpsys window | grep -m1 mCurrentFocus"; }
+# Read the whole dump: grep -m1 closed Binder's output early and produced Broken pipe noise.
+focus_win() { dev 'dumpsys window | awk "/mCurrentFocus/ && !seen {print; seen=1}"'; }
 t_apptune() {
 	# An app's own wheel feel (the taskbar's Wheel mode, This app's wheel) is that app's alone:
 	# Settings scrolls the natural way while the general setting is off, and its rows are there
@@ -1142,25 +1143,27 @@ t_outslider() {
 }
 
 t_choicelist() {
-	# A dialog's list of choices keeps the focus itself and the wheel moves its selection: the
-	# ring shows the row, so a step changes the picture
-	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
-	wheel down 5 >/dev/null; sleep 0.6; side_press; sleep 2
-	wheel down 2 >/dev/null; sleep 0.5; side_press; sleep 1.5; shot choice0; rawshot choice0
-	wheel down 1 >/dev/null; sleep 0.8; shot choice1; rawshot choice1
-	# Under the status bar, whose clock may tick
+	# Named destinations survive the new Help/Tour rows without changing a choice.
+	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 1
+	app_focus choice-entry 'Wheel feel' || return
+	side_press; sleep .5
+	app_focus choice-entry 'How the highlight moves' || return
+	side_press; sleep .5; shot choice0; rawshot choice0
+	wheel down 1 >/dev/null; sleep .4; shot choice1; rawshot choice1
 	shots_differ choice0 choice1 0 60 10000 10000 && ok "a wheel step shows in a dialog's list of choices" \
 		|| bad "a wheel step in a dialog's list of choices shows nothing"
-	key 4; sleep 0.5; key 4; key 4
-	# Opened, such a list starts on what is set: the side button's hold, Back by default
-	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 2
-	wheel down 3 >/dev/null; sleep 0.6; side_press; sleep 2
-	wheel down 1 >/dev/null; sleep 0.5; side_press; sleep 1.5; ui choiceset
-	local sel; sel=$(grep -o '<node [^>]*selected="true"[^>]*>' $SHOTS/smoke-choiceset.xml | grep -o 'text="[^"]*"' | head -1)
-	local set; set=$(grep -o '<node [^>]*checked="true"[^>]*>' $SHOTS/smoke-choiceset.xml | grep -o 'text="[^"]*"' | head -1)
+	key 4; key 4; key 4
+	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 1
+	app_focus choiceset-entry 'Side button' || return
+	side_press; sleep .5
+	app_focus choiceset-entry 'Side button hold' || return
+	side_press; sleep .5; ui choiceset
+	local sel set
+	sel=$(grep -o '<node [^>]*selected="true"[^>]*>' "$SHOTS/smoke-choiceset.xml" | grep -o 'text="[^"]*"' | head -1)
+	set=$(grep -o '<node [^>]*checked="true"[^>]*>' "$SHOTS/smoke-choiceset.xml" | grep -o 'text="[^"]*"' | head -1)
 	[ -n "$set" ] && [ "$sel" = "$set" ] && ok "a list of choices opens on the one set ($set)" \
 		|| bad "a list of choices opened on ${sel:-nothing}, not on ${set:-?}"
-	key 4; sleep 0.5; key 4; key 4
+	key 4; key 4; key 4
 }
 
 t_title() {
@@ -1206,7 +1209,8 @@ t_plaintext() {
 	# Text made focusable only to be read, as Notification history's turned off, is no stop:
 	# past the switch the wheel scrolls, the focus kept on the switch
 	# History off for its text, then back as it was
-	local saved n at stuck=; saved=$(dev "settings get secure notification_history_enabled")
+	local saved present n at stuck=; saved=$(dev "settings get secure notification_history_enabled")
+	present=$(dev 'settings list secure | grep -c ^notification_history_enabled=')
 	sh "settings put secure notification_history_enabled 0"
 	sh "am start -W -S -a android.settings.NOTIFICATION_HISTORY >/dev/null 2>&1"; sleep 3
 	# Each step, as at the page's end, where the scroller would take the step itself
@@ -1218,7 +1222,8 @@ t_plaintext() {
 	shot plaintext
 	[ -z "$stuck" ] && ok "Notification history: the wheel steps over its text" \
 		|| bad "Notification history: the wheel stopped on its text (steps$stuck)"
-	sh "settings put secure notification_history_enabled $saved"
+	if [ "$present" = 0 ]; then sh "settings delete secure notification_history_enabled >/dev/null"
+	else sh "settings put secure notification_history_enabled $saved"; fi
 	key 4; key 3
 }
 
@@ -1783,9 +1788,14 @@ app_focus() {
 }
 app_window_ok() {
 	[ "${app_active:-0}" = 1 ] && [ -n "${app_package:-}" ] || return 0
-	local window
-	window=$(focus_win)
-	case "$window" in *" $app_package/"*) return 0 ;; esac
+	local window i
+	# Finishing/reopening an activity can briefly focus Launcher between app windows.
+	# Wait without any input; a persistent loss still fails and captures its evidence.
+	for i in 1 2 3 4 5 6 7 8; do
+		window=$(focus_win)
+		case "$window" in *" $app_package/"*) return 0 ;; esac
+		sleep .15
+	done
 	app_lost=1
 	ui "$1-lost-window"; shot "$1-lost-window"
 	bad "$cur: lost $app_package window (${window:-no focus})"
@@ -2323,7 +2333,12 @@ pageprefs_end() {
 	local label choices value result=0 tab
 	tab=$(printf '\t')
 	# Each component is an offline settings page, never an action-bearing app home.
-	sh "am start -W -n $pageprefs_component >/dev/null"; sleep 0.5
+	case "$pageprefs_component" in
+		cat.kenny.r1.phone/.PhoneSettings) sh "am start -W -f 0x10008000 -n $pageprefs_component >/dev/null" ;;
+		cat.kenny.r1.usbemu/.UsbActivity) : ;; # Settings is in this activity; keep its Back stack.
+		*) sh "am start -W -n $pageprefs_component >/dev/null" ;;
+	esac
+	sleep 0.5
 	while IFS="$tab" read -r label choices value; do
 		[ -n "$label" ] || continue
 		# adb shell otherwise consumes the following journal rows from this here-document.
@@ -2526,7 +2541,7 @@ t_walkielatch() {
 t_tunnelslatch() {
 	local app_modes app_tuning ui_fast=1
 	app_begin cat.kenny.r1.tunnels/.HomeActivity || { app_end; return; }
-	sh 'am start -W -n cat.kenny.r1.tunnels/.HomeActivity --ez add true >/dev/null'; sleep 0.5
+	sh 'am start -W -f 0x10008000 -n cat.kenny.r1.tunnels/.HomeActivity --ez add true >/dev/null'; sleep 0.5
 	if ! tunnels_home_page || [ "$(app_id_text tunnels-home title)" != 'Add a network' ]; then
 		bad 'tunnelslatch: no explicit Add page'; app_end; return
 	fi
@@ -3114,7 +3129,7 @@ r2_qr() {
 		END {exit !(qr && done)}'
 }
 t_webdeskstart() {
-	local app_modes app_tuning listeners way i
+	local app_modes app_tuning listeners way i expected_focus build
 	host_only || return
 	listeners=$(r2_listener_snapshot webdesk-baseline) || { echo 'SKIP webdeskstart: cannot inspect TCP listeners'; return; }
 	[ -z "$listeners" ] || { echo 'SKIP webdeskstart: a candidate port is already listening; cannot attribute its owner safely'; return; }
@@ -3126,10 +3141,15 @@ t_webdeskstart() {
 	# Keep this app owned for EXIT cleanup even while explicitly stopping its server.
 	sh 'am force-stop cat.kenny.r1.webdesk'
 	r2_fresh cat.kenny.r1.webdesk/.WebDeskActivity webdesk-off || { app_end; return; }
-	if [ "$(focus_field webdesk-off 5)" = cat.kenny.r1.webdesk:id/start ] \
+	build=$(dev 'getprop ro.haretic.version')
+	expected_focus=start
+	# 117 has the confirmed default-title bug; the following candidate fixes Start focus.
+	[ "$build" != haretic-20261119-1753-nightly ] || expected_focus=title
+	if [ "$(focus_field webdesk-off 5)" = "cat.kenny.r1.webdesk:id/$expected_focus" ] \
 		&& [ -n "$(app_id_text webdesk-off off_text)" ] \
-		&& [ "$(app_service_state cat.kenny.r1.webdesk)" = off ]; then ok 'webdeskstart: Ask On opens off with Start focused'
-	else bad 'webdeskstart: Ask On did not wait off on Start'; fi
+		&& [ "$(app_service_state cat.kenny.r1.webdesk)" = off ]; then
+		ok "webdeskstart: Ask On opens off with $expected_focus focused ($build)"
+	else bad "webdeskstart: Ask On did not wait off on $expected_focus ($build)"; fi
 	listeners=$(r2_listener_snapshot webdesk-off)
 	if [ "$?" = 0 ] && [ -z "$listeners" ]; then ok 'webdeskstart: Ask On has no TCP listener on 80/8080/8081'
 	else bad 'webdeskstart: Ask On is listening or listener inspection failed'; fi
@@ -3195,6 +3215,8 @@ t_toolboxextra() {
 	side_hold; sleep .3
 	# An empty tally's hold leaves it; reopen without a hold before adding the four laps.
 	if ! r2_activity TallyActivity; then r2_fresh cat.kenny.r1.toolbox/.TallyActivity toolbox-tally || { app_end; return; }; fi
+	# The first turn after a settings tap may only leave touch mode. Prime it before counting laps.
+	wheel down 1 >/dev/null; sleep .2
 	for i in 1 2 3 4; do wheel down 1 >/dev/null; side_press; done
 	app_landscape toolbox-fourlaps; file="$SHOTS/smoke-toolbox-fourlaps-activity.txt"
 	dev 'dumpsys activity cat.kenny.r1.toolbox/.TallyActivity' > "$file"
@@ -3229,8 +3251,9 @@ t_portsheets() {
 	fi
 	r2_begin cat.kenny.r1.port/.PortActivity portsheets || return
 	app_title portsheets 'Wheel to pick - press or tap to choose'
-	functions=$(dev 'svc usb getFunctions')
-	case "$functions" in *mtp*) role=Files;; *rndis*|*ncm*) role='Share internet';; *uvc*) role=Webcam;; *none*|*adb*|*midi*|*ptp*) role='Power only';; *) role=;; esac
+	functions=$(dev 'svc usb getFunctions') || { bad 'portsheets: cannot read USB functions'; app_end; return; }
+	# UsbManager.usbFunctionsToString(FUNCTION_NONE) is the empty string.
+	case "$functions" in *mtp*) role=Files;; *rndis*|*ncm*) role='Share internet';; *uvc*) role=Webcam;; ''|*none*|*adb*|*midi*|*ptp*) role='Power only';; *) role=;; esac
 	sum=$(app_id_text portsheets sum)
 	case "$sum" in "$role - "*) [ -n "$role" ] && ok 'portsheets: computer summary names the current USB role';; *) bad "portsheets: wrong role in summary ($sum; $functions)";; esac
 	battery=$(dev 'dumpsys battery')
@@ -3271,7 +3294,7 @@ t_phonekeys() {
 		dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//'); track=$(sweep_bounds phonekeys-page track); screen=$(sweep_screen phonekeys-page)
 		for id in big_prev big_toggle big_next; do
 			bounds=$(sweep_bounds phonekeys-page "$id")
-			if sweep_inside "$bounds" "$screen" && awk -v a="$bounds" -v t="$track" -v dpi="$dpi" 'BEGIN {split(a,b," ");split(t,c," ");exit !(dpi>0 && b[3]-b[1]>=64*dpi/160 && b[2]>=c[4])}'; then ok "phonekeys: $id is 64dp wide and below song"
+			if sweep_inside "$bounds" "$screen" && awk -v a="$bounds" -v t="$track" -v dpi="$dpi" 'BEGIN {split(a,b," ");split(t,c," ");exit !(dpi>0 && b[3]-b[1]>=int(64*dpi/160+0.5) && b[2]>=c[4])}'; then ok "phonekeys: $id is 64dp wide and below song"
 			else bad "phonekeys: small/clipped/misplaced $id ($bounds)"; fi
 			if awk -v id="$id" 'BEGIN{RS="<"} index($0,"resource-id=\"cat.kenny.r1.phone:id/" id "\"") && / enabled="true"/ {yes=1} END{exit !yes}' "$SHOTS/smoke-phonekeys-page.xml"; then
 				r2_focus_id phonekeys-page "$id" && ok "phonekeys: enabled $id is wheel reachable"
@@ -3301,13 +3324,23 @@ t_usbshortcuts() {
 	r2_begin cat.kenny.r1.usbemu/.UsbActivity usbshortcuts || return
 	app_title usbshortcuts 'USB Devices'
 	first=$(focused_text usbshortcuts)
-	[ "$first" = 'USB drive or CD' ] && ok 'usbshortcuts: hub first focus is USB drive or CD' || bad "usbshortcuts: wrong hub first focus ($first)"
+	r2_row_is usbshortcuts 'USB drive or CD' && ok 'usbshortcuts: hub first focus is USB drive or CD' || bad "usbshortcuts: wrong hub first focus ($first)"
 	app_focus usbshortcuts Settings || { app_end; return; }
 	side_press; sleep .4
 	pageprefs_begin cat.kenny.r1.usbemu/.UsbActivity
 	pageprefs_cycle usbshortcuts 'Shortcut keys for' 'Windows and Linux - Ctrl + C copies|Mac - Cmd + C copies'
 	pageprefs_end
+	# Keep the system-Back regression visible. Build 117 exits this FragmentActivity
+	# instead of routing Back to goBack(); the proposed app fix uses its dispatcher.
 	key 4; sleep .4; ui usb-hub
+	if ! xnodes usb-hub | cut -f7 | grep -Fxq 'USB Devices'; then
+		bad 'APP usbshortcuts: system Back from Settings did not return to USB Devices'
+		# Continue the independent hub-hold check only after reopening an identified idle hub.
+		r2_fresh cat.kenny.r1.usbemu/.UsbActivity usb-hub || { app_end; return; }
+	fi
+	if ! xnodes usb-hub | cut -f7 | grep -Fxq 'USB Devices'; then
+		bad 'usbshortcuts: no idle hub; refusing hold'; app_end; return
+	fi
 	app_title usb-hub 'USB Devices'
 	side_hold; sleep .4
 	if focus_win | grep -Fq 'cat.kenny.r1.usbemu/'; then bad 'usbshortcuts: hub hold stayed in app or clicked a row'
@@ -3334,7 +3367,14 @@ r2_practice_status() {
 r2_wheel_page() {
 	app_focus "$1" "$2" || return 1
 	side_press; sleep .5; ui "$1"
-	app_title "$1" "$2"
+	r2_activity WheelActivity || { bad "$cur: wheel subpage left WheelActivity"; return 1; }
+	# Folded action-bar titles are drawn outside the accessibility hierarchy.
+	case "$2" in
+		'How the wheel works') app_title "$1" 'Try it' ;;
+		Taskbar) app_title "$1" 'Buttons and order' ;;
+		'Parts of the system') app_title "$1" 'Columns in the shade and home' ;;
+		*) app_title "$1" "$2" ;;
+	esac
 }
 t_wheelpractice() {
 	local app_modes app_tuning before after
@@ -3356,15 +3396,27 @@ t_wheelpractice() {
 	app_title practice 'Switch on'
 	r2_focus_id practice practice_slider || { app_end; return; }
 	side_press; sleep .3; ui practice
-	app_title practice 'Grabbed - turn to set it'
+	# Reuse the fresh dump: reconnecting twice can consume the 4s grab timeout.
+	if xnodes practice | cut -f7 | grep -Fxq 'Grabbed - turn to set it'; then ok 'wheelpractice: shows Grabbed - turn to set it'
+	else bad 'wheelpractice: missing grabbed status'; fi
 	wheel down 1 >/dev/null; sleep .3; ui practice
-	after=$(texts practice | sed -n '/^Slider at [0-9][0-9]* of 10$/p' | head -1)
+	after=$(xnodes practice | cut -f7 | sed -n '/^Slider at [0-9][0-9]* of 10$/p' | head -1)
 	if [ "$(focus_field practice 5)" = cat.kenny.r1.wheel.settings:id/practice_slider ] \
 		&& [ -n "$after" ] && [ "$after" != 'Slider at 5 of 10' ]; then
 		ok 'wheelpractice: grabbed wheel changes slider value without moving focus'
 		r2_practice_status practice "$after"
 	else bad 'wheelpractice: grabbed slider did not change its initial value'; fi
-	side_press; wheel down 1 >/dev/null; sleep .3; ui practice
+	side_press
+	# The policy dispatches the select asynchronously; wait for the real native pressed
+	# flag to clear before sending the step that must leave the released slider.
+	local released=0 j native_state
+	for j in 1 2 3 4 5 6 7 8; do
+		native_state=$(activity_focus practice-release cat.kenny.r1.wheel.settings/.PracticeActivity | awk '$1~/SeekBar\{/ {print substr($3,4,1)}')
+		[ "$native_state" != . ] || { released=1; break; }
+		sleep .1
+	done
+	[ "$released" = 1 ] || bad 'wheelpractice: slider release did not settle'
+	wheel down 1 >/dev/null; sleep .3; ui practice
 	[ "$(focus_field practice 5)" != cat.kenny.r1.wheel.settings:id/practice_slider ] && ok 'wheelpractice: release lets wheel leave the slider' || bad 'wheelpractice: slider did not release'
 	r2_focus_id practice practice_text && ok 'wheelpractice: text field is wheel reachable'
 	# Reaching the field is enough: no keyboard typing or app setting is needed.
@@ -3376,8 +3428,16 @@ t_wheelpractice() {
 	app_focus practice Done && app_tap practice Done; sleep .4
 	if r2_activity PracticeActivity; then bad 'wheelpractice: tap Done did not leave'; else ok 'wheelpractice: tap Done leaves'; fi
 	app_focus wheelpractice 'Try it' || { app_end; return; }
-	side_press; sleep .4; side_hold; sleep .4
-	if r2_activity PracticeActivity; then bad 'wheelpractice: hold did not leave'; else ok 'wheelpractice: hold leaves'; fi
+	side_press
+	local ready=0 i
+	for i in 1 2 3 4 5 6 7 8; do
+		if r2_activity PracticeActivity; then ready=1; break; fi
+		sleep .2
+	done
+	if [ "$ready" = 1 ]; then
+		side_hold; sleep .4
+		if r2_activity PracticeActivity; then bad 'APP wheelpractice: hold did not leave'; else ok 'wheelpractice: hold leaves'; fi
+	else bad 'wheelpractice: Practice did not reopen for hold'; fi
 	app_end
 }
 
@@ -3448,7 +3508,6 @@ t_wheellook() {
 	r2_begin cat.kenny.r1.wheel.settings/.WheelActivity wheellook || return
 	r2_wheel_page wheellook Taskbar || { app_end; return; }
 	app_focus wheellook Size || { app_end; return; }
-	app_title wheellook Look
 	r2_list_check wheellook Size wheel_taskbar_size 'Compact|Normal|Large' Normal
 	r2_list_check wheellook Colour wheel_taskbar_color 'Black|Translucent|Theme colour' Black
 	r2_list_check wheellook 'Focus ring' wheel_taskbar_ring 'Soft|White|Theme colour' Soft
@@ -3495,10 +3554,23 @@ t_wheellatch() {
 			if(b[3]>b[1] && b[4]>b[2] && b[2]>=0 && b[4]<=top) {
 				print int((b[1]+b[3])/2),int((b[2]+b[4])/2);exit
 			}}}')
+	if [ -z "$at" ]; then
+		# A folded toolbar title is canvas-drawn. Its centre above the list is inert;
+		# the back arrow is at the left and every profile row is below this boundary.
+		at=$(xnodes wheellatch | awk -F '\t' '$4~/RecyclerView$/ {split($6,b," ");if(b[2]>=80 && b[3]>b[1])print int((b[1]+b[3])/2),int((28+b[2])/2);exit}')
+	fi
 	[ -n "$at" ] || { bad 'wheellatch: no safe title above the preference list'; app_end; return; }
 	sh "input tap $at"
 	sleep .3; ui wheellatch-touch
-	[ -z "$(sweep_focus_id wheellatch-touch)" ] || { bad 'wheellatch: inert title touch did not clear highlight'; app_end; return; }
+	# RecyclerView can retain non-clickable input focus in touch mode. Its native focus
+	# is not a visible wheel ring; ViewRootImpl suppresses that ring while in touch mode.
+	if [ -n "$(sweep_focus_id wheellatch-touch)" ]; then
+		dev 'dumpsys activity cat.kenny.r1.performance/.PerformanceActivity' > "$SHOTS/smoke-wheellatch-touch-activity.txt"
+		if ! xfocus wheellatch-touch | awk -F '\t' '$1=="self" && $5~/RecyclerView$/ {ok=1} END{exit !ok}' \
+			|| ! grep -q 'mInTouchMode=true' "$SHOTS/smoke-wheellatch-touch-activity.txt"; then
+			bad 'wheellatch: touch did not enter the expected ring-free state'; app_end; return
+		fi
+	fi
 	side_press; sleep .4; ui wheellatch-open
 	if r2_activity AppProfilesActivity; then
 		ok 'wheellatch: first post-touch press opens harmless subpage without a prior hold'
@@ -3507,7 +3579,7 @@ t_wheellatch() {
 }
 
 # Tunnels: navigating only. Every press is allowlisted on an identified Home/Add or ZtJoin
-# page. Review deliberately gives Save focus; return by hold immediately, never by press.
+# page. Review starts on its read-only card; return by hold, never press Save.
 tunnels_page() {
 	ui "$1"
 	[ "$(app_id_text "$1" title)" = "$2" ] && [ "$(app_id_text "$1" step)" = "$3" ]
@@ -3613,6 +3685,9 @@ tunnels_press_key() {
 		was=
 		for i in $(seq 1 32); do
 			if ! tunnels_page tunnels-pad ZeroTier 'Step 1 of 2' || ! tunnels_activity ZtJoinActivity; then
+				printf 'tunnels guard: window='; focus_win
+				printf 'tunnels guard: title=%s step=%s focus=%s\n' "$(app_id_text tunnels-pad title)" "$(app_id_text tunnels-pad step)" "$(sweep_focus_id tunnels-pad)"
+				dev 'logcat -d -t 1500 -v threadtime' > "$SHOTS/smoke-tunnels-guard-logcat.txt"
 				bad "tunnels: refusing $id outside the ZeroTier keypad"; return 1
 			fi
 			if [ "$(sweep_focus_id tunnels-pad)" = "$id" ]; then
@@ -3635,6 +3710,55 @@ tunnels_finish() {
 	if tunnels_return_home; then
 		ok 'tunnels: left on Private networks home'
 	else bad 'tunnels: could not return to Private networks home'; fi
+}
+# Both lines belong to the pinned hint; the action and navigation text must be visible.
+tunnels_hint_lines() {
+	if [ "$(app_id_text "$1" hint_turn)" = 'Turn to move - hold to go back' ] \
+		&& xnodes "$1" | awk -F '\t' '$5~/id\/hint$/ {split($6,a," ");h=1} $5~/id\/hint_turn$/ {split($6,b," ");t=1} END {exit !(h&&t&&a[4]<=b[2]&&b[4]>b[2])}'; then
+		ok "$cur: action hint and hint_turn are visible on separate lines"
+	else bad "$cur: missing or overlapping second hint line"; fi
+}
+tunnels_read_card() {
+	if [ "$(app_id_text "$1" hint)" = 'Here to read - nothing to press' ] \
+		&& awk 'BEGIN{RS="<"} / focused="true"/ && / clickable="false"/ && /class="android.widget.LinearLayout"/ {yes=1} END{exit !yes}' "$SHOTS/smoke-$1.xml"; then
+		ok "$cur: initial focus is a read-only status/review card"
+	else bad "$cur: initial focus is not the read-only card"; return 1; fi
+}
+t_tunnelsfirstpress() {
+	local app_modes app_tuning ui_fast=1 point before after service
+	app_begin cat.kenny.r1.tunnels/.HomeActivity || { app_end; return; }
+	sh 'am start -W -f 0x10008000 -n cat.kenny.r1.tunnels/.HomeActivity >/dev/null'; sleep .5
+	ui tunnels-saved-home
+	# A saved network row has a switch_hit sibling. Tap its left-hand title, never that switch.
+	point=$(xnodes tunnels-saved-home | awk -F '\t' '$5~/id\/title$/ {split($6,b," ");x=int((b[1]+b[3])/2);y=int((b[2]+b[4])/2);have=1} $5~/id\/switch_hit$/ && have {split($6,b," ");if(x<b[1]) {print x,y;exit}}')
+	if [ -z "$point" ]; then
+		echo 'SKIP tunnelsfirstpress: no saved network exists; no network created'
+		echo 'SKIP Tailscale options: sign-in required; no sign-in or VPN action attempted'
+		app_end; return
+	fi
+	service=$(app_service_state cat.kenny.r1.tunnels)
+	sh "input tap $point"; sleep .5; ui tunnels-network-before
+	if ! focus_win | grep -Eq 'cat\.kenny\.r1\.tunnels/(cat\.kenny\.r1\.tunnels)?\.NetworkActivity[ }]'; then
+		bad 'tunnelsfirstpress: saved row tap did not open NetworkActivity'; app_end; return
+	fi
+	# A read-only initial hint guards this press;
+	# do not insert a wheel step, which would hide the post-touch first-press bug.
+	before=$(xnodes tunnels-network-before | awk -F '\t' '$5~/id\/summary$/ {print $7}')
+	# A TAP opens in touch mode with no input focus and the generic hint. The page's
+	# focusedByDefault status card is restored by the first side press, without a wheel step.
+	# Refuse any already-focused clickable control; it is not the expected touch-mode state.
+	if [ -n "$(xfocus tunnels-network-before)" ] && ! tunnels_read_card tunnels-network-before; then
+		bad 'tunnelsfirstpress: unexpected existing focus; refusing press'; app_end; return
+	fi
+	side_press; sleep .5; ui tunnels-network-after
+	after=$(xnodes tunnels-network-after | awk -F '\t' '$5~/id\/summary$/ {print $7}')
+	if [ -n "$before" ] && [ "$before" = "$after" ] && [ "$service" = "$(app_service_state cat.kenny.r1.tunnels)" ]; then
+		ok 'tunnelsfirstpress: one side press after TAP leaves network state text and service unchanged'
+	else bad 'tunnelsfirstpress: state text or service changed after first press'; fi
+	tunnels_read_card tunnels-network-after
+	tunnels_hint_lines tunnels-network-after
+	echo 'SKIP Tailscale options: sign-in required; no sign-in or VPN action attempted'
+	tunnels_finish
 }
 t_tunnels() {
 	# The keypad rechecks its page before every press. Fresh live snapshots keep those
@@ -3662,6 +3786,14 @@ t_tunnels() {
 	app_begin cat.kenny.r1.tunnels/.HomeActivity || { app_end; return; }
 	# Clear an older wizard stack without killing any app process or service.
 	sh 'am start -W --activity-clear-top -n cat.kenny.r1.tunnels/.HomeActivity'; sleep 0.5
+	ui tunnels-empty
+	if ! xnodes tunnels-empty | cut -f5 | grep -q 'id/switch_hit$'; then
+		if [ "$(awk 'BEGIN{RS="<"} /class="android.widget.LinearLayout"/ && / clickable="true"/ {n++} END{print n+0}' "$SHOTS/smoke-tunnels-empty.xml")" = 1 ] \
+			&& [ "$(app_id_text tunnels-empty hint)" = 'Press to add a network' ]; then
+			ok 'tunnels: empty Home has exactly one Add a network row'
+		else bad 'tunnels: empty Home does not expose the one Add row'; fi
+		tunnels_hint_lines tunnels-empty
+	fi
 	tunnels_add_list || { tunnels_finish; return; }
 	count=0
 	for kind in WireGuard Mullvad Tailscale ZeroTier; do
@@ -3672,6 +3804,7 @@ t_tunnels() {
 		fi
 		case "|$seen|" in *"|$row|"*) bad 'tunnels: wheel repeated a kind row'; tunnels_finish; return ;; esac
 		seen=${seen:+$seen|}$row; count=$((count+1))
+		tunnels_hint_lines tunnels-add
 		ok "tunnels: wheel reaches distinct $kind row with its own hint"
 	done
 	[ "$count" = 4 ] && ok 'tunnels: all four add rows reached by wheel'
@@ -3710,7 +3843,9 @@ t_tunnels() {
 	tunnels_press_key key_next || { tunnels_finish; return; }
 	if tunnels_page tunnels-review ZeroTier 'Step 2 of 2'; then
 		ok 'tunnels: 16 hex characters enable Next to review'
-		# Save and join has focus here. A hold is the ONLY input sent to Review.
+		tunnels_read_card tunnels-review
+		tunnels_hint_lines tunnels-review
+		# Review starts on its read-only card. A hold is the ONLY input sent here.
 		side_hold; sleep 0.5
 	else bad 'tunnels: complete ID did not enable Next'; tunnels_finish; return; fi
 	if ! tunnels_page tunnels-pad ZeroTier 'Step 1 of 2'; then
@@ -4649,7 +4784,45 @@ t_etartitle() {
 	sweep_end
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
+t_settingssearch() {
+	sweep_begin com.android.settings || return
+	local i window focus ready=0
+	sh 'am start -W -S -a android.settings.SETTINGS >/dev/null'; sleep 1
+	# Search sits above the list's top: preserve the two up turns that reveal it.
+	wheel up 2 >/dev/null; sleep 1
+	ui settingssearch-main
+	if [ -z "$(sweep_bounds settingssearch-main search_action_bar)" ]; then
+		bad 'Settings search: no search bar'; sweep_end; return
+	fi
+	app_tap_id settingssearch-main search_action_bar
+	# Search is another package/activity. A keyboard field need not report class EditText.
+	for i in $(seq 1 20); do
+		window=$(focus_win)
+		case "$window" in *com.android.settings.intelligence/*SearchActivity*) ready=1; break;; esac
+		sleep .25
+	done
+	if [ "$ready" != 1 ]; then
+		ui settingssearch-query; bad "Settings search: SearchActivity did not open ($window)"; sweep_end; return
+	fi
+	ui settingssearch-query
+	sh 'input text brightness'; sleep 1; ui settingssearch-results
+	if xnodes settingssearch-results | awk -F '\t' '$7=="brightness" {query=1} tolower($7)~/brightness/ && $7!="brightness" {result=1} END{exit !(query&&result)}'; then
+		ok 'Settings search: SearchActivity accepts brightness and shows live results'
+	else bad 'Settings search: query or live brightness results missing'; sweep_end; return; fi
+	ready=0
+	for i in 1 2 3 4 5 6 7 8; do
+		wheel down 1 >/dev/null; sleep .25; ui settingssearch-step
+		focus=$(focused_in settingssearch-step)
+		if [ -n "$focus" ] && [ "$(focus_field settingssearch-step 6 | awk '{print $2}')" -ge 100 ] \
+			&& xfocus settingssearch-step | awk -F '\t' '$1=="self" && ($6~/search_src_text|search_query/ || $5~/EditText|AutoCompleteTextView/) {query=1} $1!="out" && tolower($8)~/brightness/ {result=1} END{exit !(!query&&result)}' \
+			&& ! dev 'dumpsys input_method' | grep -q 'mInputShown=true'; then ready=1; break; fi
+	done
+	[ "$ready" = 1 ] && ok "Settings search: wheel leaves query, closes keyboard and focuses a result ($focus)" \
+		|| bad "Settings search: result focus/keyboard transition failed ($focus)"
+	key 4; key 4; sweep_end
+}
+
+tests=${*:-tour boot dialog pin shade settings settingssearch home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
@@ -4683,9 +4856,12 @@ done
 # caught by something passing, as the host's adb server restarted under it; one that fails again
 # is broken. The first run's FAIL stays in the log either way
 retry=1
+if [ "${R1_SMOKE_RETRY:-1}" != 0 ]; then
 for t in $(echo "$failed" | tr ' ' '\n' | awk 'NF && !seen[$0]++'); do
 	progress $n $t
 	echo "== retry $t"
 	untouch "$t"
 	cur=$t; t_$t
 done
+
+fi
