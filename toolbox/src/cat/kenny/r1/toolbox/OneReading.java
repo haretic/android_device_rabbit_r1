@@ -33,6 +33,14 @@ abstract class OneReading extends ToolActivity {
         mUnit = findViewById(R.id.unit);
         mLine = findViewById(R.id.line);
         mMore = findViewById(R.id.more);
+        // The wheel's two ends, tapped, are a click each way
+        turnKey(R.id.end_up, -1, repeats());
+        turnKey(R.id.end_down, 1, repeats());
+    }
+
+    /** Whether a finger kept on an end goes on clicking, as for a value to run up. */
+    protected boolean repeats() {
+        return true;
     }
 
     protected final void title(int title, String up, String down) {

@@ -89,6 +89,7 @@ public final class TunerActivity extends OneReading {
         if (a != mA) {
             mA = a;
             Words.prefs(this).edit().putInt("a4", a).apply();
+            tick();
             show();
         }
     }

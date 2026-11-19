@@ -3,8 +3,12 @@ package cat.kenny.r1.toolbox;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -16,6 +20,7 @@ import android.widget.TextView;
 abstract class ToolActivity extends Activity {
 
     private boolean mHeld;
+    private final Handler mKeys = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle state) {
@@ -26,6 +31,30 @@ abstract class ToolActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        playing(false);
+    }
+
+    /** Whether this is a tool, which the setting to keep the screen on is for. */
+    protected boolean isTool() {
+        return true;
+    }
+
+    /**
+     * Whether the tool plays or runs now. The screen stays on while it does, as a metronome or
+     * a tone stops once the screen goes off; and while it is open at all where the settings
+     * say so.
+     */
+    protected final void playing(boolean on) {
+        if (isTool() && (on || Words.setting(this, Words.SCREEN_ON, 2) == 1)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    @Override
     protected void onPostCreate(Bundle state) {
         super.onPostCreate(state);
         if (usesWheel()) {
@@ -33,6 +62,57 @@ abstract class ToolActivity extends Activity {
             new TouchWheel(this, findViewById(android.R.id.content), KeyEvent.KEYCODE_POWER,
                     TouchWheel.TAP);
         }
+    }
+
+    /**
+     * A key on the screen that is a wheel click for a finger: the wheel's ends beside the
+     * wheel, tapped. Kept down it goes on clicking where it repeats. A key with no text on
+     * it is not one, and leaves the finger to the screen.
+     */
+    protected final void turnKey(int id, int clicks, boolean repeats) {
+        final TextView key = findViewById(id);
+        key.setOnClickListener(view -> {
+            if (key.getText().length() != 0) {
+                onTurn(clicks);
+            }
+        });
+        final Runnable again = new Runnable() {
+            @Override
+            public void run() {
+                onTurn(clicks);
+                mKeys.postDelayed(this, 90);
+            }
+        };
+        key.setOnTouchListener((view, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (key.getText().length() == 0) {
+                        return false;
+                    }
+                    view.setPressed(true);
+                    view.performClick();
+                    if (repeats) {
+                        mKeys.postDelayed(again, 450);
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    mKeys.removeCallbacks(again);
+                    view.setPressed(false);
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    mKeys.removeCallbacks(again);
+                    view.setPressed(false);
+                    return true;
+                default:
+                    return true;
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        mKeys.removeCallbacksAndMessages(null);
+        super.onPause();
     }
 
     /** Whether the wheel turns something here, instead of moving the focus. */

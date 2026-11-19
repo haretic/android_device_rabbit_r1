@@ -85,8 +85,8 @@
     </plurals>
     <string name="metronome_running">Running for <xliff:g id="time">%1$s</xliff:g>, bar <xliff:g id="bar">%2$d</xliff:g></string>
     <string name="metronome_stopped">Stopped.</string>
-    <string name="metronome_hint">Press to start. The wheel sets the tempo.</string>
-    <string name="metronome_hint_running">Press to stop. The wheel sets the tempo, a hold the beats to the bar.</string>
+    <string name="metronome_hint">Press to start, hold goes back. Wheel sets tempo. To set the bar tap the beats, or hold once started.</string>
+    <string name="metronome_hint_running">Press to stop. Wheel sets tempo. Hold or tap the beats to change the bar.</string>
 
     <string name="tuner">Tuner</string>
     <string name="tuner_row">listening</string>
@@ -110,6 +110,7 @@
     <string name="tone_off">off</string>
     <string name="tone_on">playing</string>
     <string name="tone_note_playing">The note <xliff:g id="note">%1$s</xliff:g>. Playing quietly.</string>
+    <string name="tone_note_playing_loud">The note <xliff:g id="note">%1$s</xliff:g>. Playing.</string>
     <string name="tone_note">The note <xliff:g id="note">%1$s</xliff:g>.</string>
     <string name="tone_wave_cm">One wave is <xliff:g id="length">%1$d</xliff:g> cm long in air.</string>
     <string name="tone_wave_m">One wave is <xliff:g id="length">%1$s</xliff:g> m long in air.</string>
@@ -130,4 +131,38 @@
     <string name="stopwatch_hint">Press to start. Hold goes back.</string>
     <string name="stopwatch_hint_running">Press to stop. A wheel click down marks a lap.</string>
     <string name="stopwatch_hint_stopped">Press to go on, hold to reset.</string>
+
+    <!-- The settings page, last in the list -->
+    <string name="settings">Settings</string>
+    <string name="settings_row">screen, sounds and the level\'s buzz</string>
+    <string name="settings_title">Toolbox settings</string>
+    <string name="settings_hint">Press for the next choice of the one the wheel is on. Hold to go back.</string>
+    <string name="set_screen">Keep the screen on</string>
+    <string-array name="set_screen_choices">
+        <item>While a tool plays or runs</item>
+        <item>While a tool is open</item>
+    </string-array>
+    <string name="set_click">Metronome sound</string>
+    <string-array name="set_click_choices">
+        <item>Click</item>
+        <item>Wood block</item>
+        <item>Beep</item>
+    </string-array>
+    <string name="set_tone_level">Tone loudness</string>
+    <string-array name="set_tone_level_choices">
+        <item>Quiet</item>
+        <item>Medium</item>
+        <item>Loud</item>
+    </string-array>
+    <string name="set_tone_wave">Tone wave</string>
+    <string-array name="set_tone_wave_choices">
+        <item>Sine</item>
+        <item>Triangle</item>
+        <item>Square</item>
+    </string-array>
+    <string name="set_level_buzz">Buzz at dead level</string>
+    <string-array name="set_level_buzz_choices">
+        <item>Off</item>
+        <item>On</item>
+    </string-array>
 </resources>

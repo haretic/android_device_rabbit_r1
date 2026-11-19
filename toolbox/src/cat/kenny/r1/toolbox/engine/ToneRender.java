@@ -3,7 +3,11 @@ package cat.kenny.r1.toolbox.engine;
 
 /** Keeps the oscillator phase continuous while controls and the gate ramp. */
 public final class ToneRender {
+    /** The wave's shape: a pure sine, a softer-edged triangle, a buzzing square */
+    public static final int SINE = 0, TRIANGLE = 1, SQUARE = 2;
+    public static final int WAVES = 3;
     private final int sampleRate;
+    private volatile int wave = SINE;
     private final int glideFrames;
     private final int fadeFrames;
     private volatile float targetFrequency = 440;
@@ -41,6 +45,10 @@ public final class ToneRender {
             throw new IllegalArgumentException("fraction");
         }
         targetLevel = Math.max(0, Math.min(1, fraction));
+    }
+
+    public void setWave(int shape) {
+        wave = shape == TRIANGLE || shape == SQUARE ? shape : SINE;
     }
 
     public void start() {
@@ -85,7 +93,11 @@ public final class ToneRender {
                 }
             }
             double envelope = 0.5 - 0.5 * Math.cos(Math.PI * fadePosition / fadeFrames);
-            out[i] = (short) Math.round(Math.sin(phase) * level * envelope * 32767);
+            final double sine = Math.sin(phase);
+            // The square at a little over half: as loud to the ear as the sine
+            final double shape = wave == TRIANGLE ? Math.asin(sine) * (2 / Math.PI)
+                    : wave == SQUARE ? (sine >= 0 ? 0.55 : -0.55) : sine;
+            out[i] = (short) Math.round(shape * level * envelope * 32767);
             if (playing) {
                 fadePosition = Math.min(fadeFrames, fadePosition + 1);
             } else {

@@ -75,6 +75,31 @@ final class Words {
         prefs(context).edit().putString("tally", tally.save()).apply();
     }
 
+    // ------------------------------------------------------------------ the settings page's
+
+    /** Keep the screen on: 0 while a tool plays or runs, 1 for as long as a tool is open. */
+    static final String SCREEN_ON = "screen_on";
+    /** The metronome's beat, one of ClickTrack's sounds */
+    static final String CLICK_SOUND = "click_sound";
+    /** How loud the tone is: 0 quiet, 1 medium, 2 loud */
+    static final String TONE_LEVEL = "tone_level";
+    /** The tone's wave, one of ToneRender's */
+    static final String TONE_WAVE = "tone_wave";
+    /** The level buzzes as it comes to dead level: 1 yes */
+    static final String LEVEL_BUZZ = "level_buzz";
+
+    /** A setting's choice, held to the range it has. */
+    static int setting(Context context, String key, int count) {
+        final int value = prefs(context).getInt(key, 0);
+        return value < 0 || value >= count ? 0 : value;
+    }
+
+    /** What a choice of TONE_LEVEL plays at, of full scale. Medium was the one level before. */
+    static float toneLevel(Context context) {
+        final int level = prefs(context).getInt(TONE_LEVEL, 1);
+        return level == 0 ? 0.12f : level == 2 ? 0.5f : 0.25f;
+    }
+
     static int levelMode(Context context) {
         final int mode = prefs(context).getInt("level_mode", LevelMath.FLAT);
         return mode < LevelMath.FLAT || mode > LevelMath.PLUMB ? LevelMath.FLAT : mode;

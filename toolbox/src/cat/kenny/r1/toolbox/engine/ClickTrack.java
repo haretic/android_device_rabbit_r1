@@ -5,9 +5,12 @@ import java.util.Arrays;
 
 /** Schedules beats against an absolute fractional frame clock to avoid tempo drift. */
 public final class ClickTrack {
+    /** The sounds a beat can make: a click, a wood block, a beep */
+    public static final int CLICK = 0, WOOD = 1, BEEP = 2;
+    public static final int SOUNDS = 3;
     private final int sampleRate;
-    private final short[] ordinary;
-    private final short[] accent;
+    private short[] ordinary;
+    private short[] accent;
     private volatile float tempo = 120;
     private volatile int beatsPerBar = 4;
     private volatile boolean running;
@@ -23,12 +26,30 @@ public final class ClickTrack {
             throw new IllegalArgumentException("sampleRate");
         }
         this.sampleRate = sampleRate;
-        ordinary = burst(1000, 0.45);
-        accent = burst(1500, 0.60);
+        setSound(CLICK);
     }
 
-    private short[] burst(double hz, double peak) {
-        int length = Math.max(3, (int) Math.round(sampleRate * 0.012));
+    /** What a beat sounds like, CLICK, WOOD or BEEP; the first in a bar higher. */
+    public void setSound(int sound) {
+        switch (sound) {
+            case WOOD:
+                ordinary = burst(620, 0.55, 0.030, 7);
+                accent = burst(900, 0.65, 0.030, 7);
+                break;
+            case BEEP:
+                ordinary = burst(880, 0.40, 0.060, 1.5);
+                accent = burst(1760, 0.45, 0.060, 1.5);
+                break;
+            default:
+                ordinary = burst(1000, 0.45, 0.012, 4);
+                accent = burst(1500, 0.60, 0.012, 4);
+        }
+        // A beat sounding now ends as it began
+        click = null;
+    }
+
+    private short[] burst(double hz, double peak, double duration, double decay) {
+        int length = Math.max(3, (int) Math.round(sampleRate * duration));
         double[] values = new double[length];
         double maximum = 0;
         for (int i = 0; i < length; i++) {
@@ -38,7 +59,7 @@ public final class ClickTrack {
             double envelope = 0.5 * (1 - Math.cos(Math.PI * attack));
             envelope *= 0.5 * (1 - Math.cos(Math.PI * release));
             values[i] = Math.sin(2 * Math.PI * hz * seconds)
-                    * Math.exp(-4.0 * i / (length - 1)) * envelope;
+                    * Math.exp(-decay * i / (length - 1)) * envelope;
             maximum = Math.max(maximum, Math.abs(values[i]));
         }
         short[] result = new short[length];

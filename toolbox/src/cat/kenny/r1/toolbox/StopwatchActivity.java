@@ -38,10 +38,17 @@ public final class StopwatchActivity extends OneReading {
     protected void onResume() {
         mWatch = load(this);
         super.onResume();
+        playing(mWatch.running());
     }
 
     private void save() {
         Words.prefs(this).edit().putString("stopwatch", mWatch.save()).apply();
+    }
+
+    @Override
+    protected boolean repeats() {
+        // A lap is one tap
+        return false;
     }
 
     @Override
@@ -64,6 +71,7 @@ public final class StopwatchActivity extends OneReading {
         } else {
             mWatch.start(now());
         }
+        playing(mWatch.running());
         save();
         confirm();
         show();

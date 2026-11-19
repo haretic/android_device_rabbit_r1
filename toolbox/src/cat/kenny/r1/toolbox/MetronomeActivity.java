@@ -3,10 +3,14 @@ package cat.kenny.r1.toolbox;
 
 import android.os.Bundle;
 import android.text.format.DateUtils;
+import android.view.KeyEvent;
 
 import cat.kenny.r1.toolbox.engine.ClickTrack;
 
-/** Metronome: the wheel sets the tempo, the button starts and stops, a hold changes the bar. */
+/**
+ * Metronome: the wheel sets the tempo, the button starts and stops, a hold while it runs
+ * changes the bar. Stopped, a hold goes back as on every page; the beats tapped change the bar.
+ */
 public final class MetronomeActivity extends OneReading {
 
     static final int MIN = 30;
@@ -36,7 +40,23 @@ public final class MetronomeActivity extends OneReading {
             mTrack.setTempo(mTempo);
             mTrack.setBeatsPerBar(mBeats);
         }
+        mLine.setMinHeight(Math.round(48 * getResources().getDisplayMetrics().density));
+        mLine.setBackgroundResource(android.R.drawable.list_selector_background);
+        mLine.setOnClickListener(v -> changeBar(1));
+        mLine.setFocusable(false);
+        // A tap changes the bar; a slide still turns the tool as it did on this surface.
+        new TouchWheel(this, mLine, KeyEvent.KEYCODE_POWER, TouchWheel.TAP,
+                () -> mLine.performClick());
         hint(R.string.metronome_hint);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // As the settings page left it
+        synchronized (mTrack) {
+            mTrack.setSound(Words.setting(this, Words.CLICK_SOUND, ClickTrack.SOUNDS));
+        }
     }
 
     @Override
@@ -50,6 +70,7 @@ public final class MetronomeActivity extends OneReading {
             mTrack.stop();
         }
         mSpeaker.join();
+        playing(false);
         hint(R.string.metronome_hint);
     }
 
@@ -64,6 +85,7 @@ public final class MetronomeActivity extends OneReading {
             mTrack.setTempo(tempo);
         }
         Words.prefs(this).edit().putInt("tempo", tempo).apply();
+        tick();
         show();
     }
 
@@ -89,29 +111,39 @@ public final class MetronomeActivity extends OneReading {
                     return true;
                 }
             });
+            playing(true);
             hint(R.string.metronome_hint_running);
         }
         show();
         return true;
     }
 
-    @Override
-    protected boolean onHold() {
+    /** On to the next of the beats to the bar. */
+    private void changeBar(int clicks) {
         synchronized (mTrack) {
-            if (!mTrack.running()) {
-                // Stopped, a hold is the way back, as everywhere
-                return false;
-            }
             int at = 0;
             while (at < BARS.length && BARS[at] != mBeats) {
                 at++;
             }
-            mBeats = BARS[(at + 1) % BARS.length];
+            mBeats = BARS[Math.floorMod(at + clicks, BARS.length)];
             mTrack.setBeatsPerBar(mBeats);
         }
         Words.prefs(this).edit().putInt("beats", mBeats).apply();
         confirm();
         show();
+    }
+
+    @Override
+    protected boolean onHold() {
+        final boolean running;
+        synchronized (mTrack) {
+            running = mTrack.running();
+        }
+        if (!running) {
+            // Nothing playing to change: the way back, as everywhere
+            return false;
+        }
+        changeBar(1);
         return true;
     }
 

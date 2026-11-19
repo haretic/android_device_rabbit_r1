@@ -21,6 +21,7 @@ final class TouchWheel implements View.OnTouchListener {
     private final int mSlop;
     private final boolean mHolds, mLive;
     private final int mPress;
+    private final Runnable mTap;
     private float mFrom, mAt;
     private boolean mSliding, mHeld;
 
@@ -32,7 +33,12 @@ final class TouchWheel implements View.OnTouchListener {
     static final int TAP_ONLY = 2;
 
     TouchWheel(Activity activity, View surface, int pressKey, int mode) {
+        this(activity, surface, pressKey, mode, null);
+    }
+
+    TouchWheel(Activity activity, View surface, int pressKey, int mode, Runnable tap) {
         mActivity = activity;
+        mTap = tap;
         mPress = pressKey;
         mHolds = mode == TAP;
         mLive = mode == LIVE;
@@ -98,8 +104,12 @@ final class TouchWheel implements View.OnTouchListener {
                         key(mPress, KeyEvent.ACTION_UP, 0, 0);
                     }
                 } else if (!mSliding && !mHeld) {
-                    key(mPress, KeyEvent.ACTION_DOWN, 0, 0);
-                    key(mPress, KeyEvent.ACTION_UP, 0, 0);
+                    if (mTap != null) {
+                        mTap.run();
+                    } else {
+                        key(mPress, KeyEvent.ACTION_DOWN, 0, 0);
+                        key(mPress, KeyEvent.ACTION_UP, 0, 0);
+                    }
                 }
                 return true;
             case MotionEvent.ACTION_CANCEL:

@@ -65,11 +65,19 @@ public final class ToolboxActivity extends ToolActivity {
                 "cat.kenny.r1.walkie", ".WalkieActivity");
         app(rows, R.drawable.ic_webdesk, R.string.webdesk, R.string.webdesk_row,
                 "cat.kenny.r1.webdesk", ".WebDeskActivity");
+        // Last, for what the tools do that is set once
+        set(row(rows, R.drawable.ic_settings, R.string.settings, ToolboxSettingsActivity.class),
+                getString(R.string.settings_row), "");
         mLevel = new LevelSensor(this, this::showLevel);
         mMeter = SoundActivity.newMeter(this);
         if (state == null) {
             mLevelRow.requestFocus();
         }
+    }
+
+    @Override
+    protected boolean isTool() {
+        return false;
     }
 
     private View row(ViewGroup rows, int icon, int title, Class<?> tool) {

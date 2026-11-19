@@ -9,11 +9,14 @@
         android:layout_height="wrap_content" android:text="▴" android:textColor="@color/text_faint"
         android:importantForAccessibility="no" />
     <TextView android:id="@+id/mode_flat" style="@style/Dim" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:text="@string/level_flat" />
+        android:layout_height="wrap_content" android:minHeight="48dp" android:minWidth="56dp"
+        android:gravity="center" android:background="?android:attr/selectableItemBackground" android:text="@string/level_flat" />
     <TextView android:id="@+id/mode_edge" style="@style/Dim" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:text="@string/level_edge" />
+        android:layout_height="wrap_content" android:minHeight="48dp" android:minWidth="56dp"
+        android:gravity="center" android:background="?android:attr/selectableItemBackground" android:text="@string/level_edge" />
     <TextView android:id="@+id/mode_plumb" style="@style/Dim" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:text="@string/level_plumb" />
+        android:layout_height="wrap_content" android:minHeight="48dp" android:minWidth="56dp"
+        android:gravity="center" android:background="?android:attr/selectableItemBackground" android:text="@string/level_plumb" />
     <TextView style="@style/Dim" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:text="▾" android:textColor="@color/text_faint"
         android:importantForAccessibility="no" />

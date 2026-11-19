@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A tool that is one big reading: the reading, a line about it, the tool's own picture, and
+     what the wheel's two directions do beside the wheel -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:fitsSystemWindows="true">
+    <TextView android:id="@+id/title" style="@style/Title" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:gravity="center_vertical">
+        <ScrollView android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingStart="24dp">
+            <Space android:layout_width="0dp" android:layout_height="0dp"
+                android:layout_weight="1" />
+            <LinearLayout android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:baselineAligned="true">
+                <TextView android:id="@+id/number" style="@style/Number"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="@dimen/tool_number" />
+                <TextView android:id="@+id/unit" style="@style/Number"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:textSize="18sp" />
+            </LinearLayout>
+            <TextView android:id="@+id/line" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" />
+            <FrameLayout android:id="@+id/stage" android:layout_width="match_parent"
+                android:layout_height="@dimen/tool_stage" android:layout_marginTop="14dp" />
+            <TextView android:id="@+id/more" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" android:lineSpacingMultiplier="1.25"
+                android:textColor="@color/text_dim" />
+            <Space android:layout_width="0dp" android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+        </ScrollView>
+        <LinearLayout android:id="@+id/ends" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_marginEnd="14dp"
+            android:layout_marginStart="8dp" android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView android:id="@+id/end_up" style="@style/Body"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:minWidth="48dp" android:minHeight="48dp" android:gravity="center"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:textColor="@color/text_faint" android:textSize="22sp"
+                android:importantForAccessibility="yes" />
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:layout_marginBottom="4dp"
+                android:rotation="90" android:src="@drawable/hint_button"
+                android:importantForAccessibility="no" />
+            <TextView android:id="@+id/end_down" style="@style/Body"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:minWidth="48dp" android:minHeight="48dp" android:gravity="center"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:textColor="?android:attr/colorAccent" android:textSize="22sp"
+                android:importantForAccessibility="yes" />
+        </LinearLayout>
+    </LinearLayout>
+    <include layout="@layout/hint" />
+</LinearLayout>

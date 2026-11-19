@@ -30,5 +30,7 @@
             android:label="@string/tone" />
         <activity android:name=".StopwatchActivity" android:exported="false"
             android:label="@string/stopwatch" />
+        <activity android:name=".ToolboxSettingsActivity" android:exported="false"
+            android:label="@string/settings_title" />
     </application>
 </manifest>

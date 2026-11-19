@@ -28,6 +28,9 @@ public final class TallyActivity extends ToolActivity {
         mCount = findViewById(R.id.count);
         mSince = findViewById(R.id.since);
         mLaps = findViewById(R.id.laps);
+        // Beside the wheel, by finger: a tap on + counts one, on − takes one back
+        turnKey(R.id.tally_less, -1, false);
+        turnKey(R.id.tally_more, 1, false);
     }
 
     @Override
