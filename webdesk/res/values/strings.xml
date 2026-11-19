@@ -48,4 +48,15 @@
     <string name="note_waiting">Remote Control is on, waiting for a computer</string>
     <string name="note_connected">A computer is using this r1</string>
     <string name="note_open">Tap to see what it is doing or to disconnect.</string>
+    <!-- Its settings, on the page under what the computer may do -->
+    <string name="keep_screen_on">Keep the screen on</string>
+    <string name="keep_screen_on_sub">while a computer is connected</string>
+    <string name="off_after">Turn off when unused</string>
+    <string name="off_after_sub">with no computer for this long</string>
+    <string name="off_minutes"><xliff:g id="minutes">%1$d</xliff:g> min</string>
+    <plurals name="off_hours">
+        <item quantity="one"><xliff:g id="hours">%1$d</xliff:g> hour</item>
+        <item quantity="other"><xliff:g id="hours">%1$d</xliff:g> hours</item>
+    </plurals>
+    <string name="foot_after">The code changes each time. Remote Control turns itself off after <xliff:g id="time">%1$s</xliff:g> with no computer.</string>
 </resources>

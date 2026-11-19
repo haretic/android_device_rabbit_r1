@@ -66,7 +66,11 @@ public final class DeskService extends Service implements HttpServer.Handler {
     static final String CAP_CLIPBOARD = "clipboard";
     private static final String COOKIE = "desk";
     private static final long GONE_MS = 2 * 60_000;
-    private static final long OFF_MS = 60 * 60_000;
+    /** How long it waits for a computer before it is off, as the page lets it be set. */
+    static final String PREF_OFF_AFTER = "off_after";
+    static final int[] OFF_MINUTES = {15, 30, 60, 180};
+    /** Whether the r1's screen stays on while a computer is connected. */
+    static final String PREF_SCREEN_ON = "screen_on";
     private static final int CLIPBOARD_MAX = 16 * 1024;
     private static final long FILE_MAX = 256L * 1024 * 1024;
     private static final long UPLOAD_MAX = 512L * 1024 * 1024;
@@ -98,7 +102,13 @@ public final class DeskService extends Service implements HttpServer.Handler {
     private Screen mScreen;
     private SharedPreferences mPrefs;
     private PowerManager.WakeLock mWake;
+    /** The screen kept on for the computer, while connected and asked for. */
+    private PowerManager.WakeLock mScreenWake;
+    private ConnectivityManager.NetworkCallback mNetwork;
     private NsdManager.RegistrationListener mNsd;
+    private String mNsdAddress, mWantedAddress;
+    private boolean mNsdRemoving;
+    private android.net.Network mDefaultNetwork;
     private volatile int mPort;
     private volatile long mSeen;
     private volatile boolean mOn;
@@ -109,6 +119,14 @@ public final class DeskService extends Service implements HttpServer.Handler {
             (prefs, key) -> {
                 if (CAP_SCREEN.equals(key) && !allowed(this, CAP_SCREEN)) {
                     mInput.cancel();
+                }
+                if (PREF_SCREEN_ON.equals(key)) {
+                    mMain.post(this::keepScreen);
+                }
+                if (PREF_OFF_AFTER.equals(key)) {
+                    // A new choice counts from now: cycling past a shorter one must not turn
+                    // the desk off under the finger
+                    mAlone = System.currentTimeMillis();
                 }
             };
     private volatile long mAlone;
@@ -143,6 +161,21 @@ public final class DeskService extends Service implements HttpServer.Handler {
         return context.getSharedPreferences("desk", MODE_PRIVATE);
     }
 
+    static boolean screenOn(Context context) {
+        return prefs(context).getBoolean(PREF_SCREEN_ON, false);
+    }
+
+    /** One of the choices the page offers, an hour unless another was chosen. */
+    static int offMinutes(Context context) {
+        final int minutes = prefs(context).getInt(PREF_OFF_AFTER, 60);
+        for (int one : OFF_MINUTES) {
+            if (one == minutes) {
+                return minutes;
+            }
+        }
+        return 60;
+    }
+
     static boolean allowed(Context context, String cap) {
         // The clipboard is the one that is off until asked for: it may hold a password
         return prefs(context).getBoolean(cap, !CAP_CLIPBOARD.equals(cap));
@@ -162,6 +195,9 @@ public final class DeskService extends Service implements HttpServer.Handler {
         mPrefs.registerOnSharedPreferenceChangeListener(mCapabilities);
         mWake = getSystemService(PowerManager.class)
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "webdesk:session");
+        mScreenWake = getSystemService(PowerManager.class).newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE,
+                "webdesk:screen");
         mAlone = System.currentTimeMillis();
         final NotificationManager notes = getSystemService(NotificationManager.class);
         notes.createNotificationChannel(new NotificationChannel("desk",
@@ -177,6 +213,7 @@ public final class DeskService extends Service implements HttpServer.Handler {
             return;
         }
         advertise();
+        watchNetwork();
         sRunning = this;
         mMain.postDelayed(mTick, 15_000);
         changed();
@@ -202,9 +239,21 @@ public final class DeskService extends Service implements HttpServer.Handler {
             } catch (IllegalArgumentException e) {
                 // Never got as far as registered
             }
+            mNsd = null;
         }
         if (mWake.isHeld()) {
             mWake.release();
+        }
+        if (mScreenWake.isHeld()) {
+            mScreenWake.release();
+        }
+        if (mNetwork != null) {
+            try {
+                getSystemService(ConnectivityManager.class).unregisterNetworkCallback(mNetwork);
+            } catch (IllegalArgumentException e) {
+                // Never registered
+            }
+            mNetwork = null;
         }
         changed();
         super.onDestroy();
@@ -224,10 +273,12 @@ public final class DeskService extends Service implements HttpServer.Handler {
             if (expired) {
                 disconnected();
             }
-            if (!mPairing.paired() && now - mAlone > OFF_MS) {
+            if (!mPairing.paired() && now - mAlone > offMinutes(DeskService.this) * 60_000L) {
                 stopSelf();
                 return;
             }
+            // Retry a failed name registration/unregistration without a busy callback loop.
+            advertise(mWantedAddress);
             mMain.postDelayed(this, 15_000);
         }
     };
@@ -274,6 +325,10 @@ public final class DeskService extends Service implements HttpServer.Handler {
     String address() {
         final ConnectivityManager cm = getSystemService(ConnectivityManager.class);
         final LinkProperties link = cm.getLinkProperties(cm.getActiveNetwork());
+        return address(link);
+    }
+
+    private static String address(LinkProperties link) {
         if (link == null) {
             return null;
         }
@@ -318,10 +373,71 @@ public final class DeskService extends Service implements HttpServer.Handler {
                     getSystemService(NotificationManager.class).notify(1, note());
                 }
             }
+            keepScreen();
             if (sListener != null) {
                 sListener.run();
             }
         });
+    }
+
+    /** On the main thread: the screen held on only while a computer is there and it is asked. */
+    private void keepScreen() {
+        final boolean want = sRunning == this && mOn && mPairing.paired() && screenOn(this);
+        if (want && !mScreenWake.isHeld()) {
+            mScreenWake.acquire();
+        } else if (!want && mScreenWake.isHeld()) {
+            mScreenWake.release();
+        }
+    }
+
+    /**
+     * Wi-Fi that comes or changes while it is on: the page shows the address as it is now, and
+     * the name r1.local is taken once there is a network to take it on.
+     */
+    private void watchNetwork() {
+        mNetwork = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(android.net.Network network) {
+                mMain.post(() -> {
+                    if (!network.equals(mDefaultNetwork)) {
+                        mDefaultNetwork = network;
+                        // Withdraw the old address until this network supplies its own.
+                        advertise(null);
+                    }
+                    changed();
+                });
+            }
+
+            @Override
+            public void onLinkPropertiesChanged(android.net.Network network,
+                    LinkProperties properties) {
+                mMain.post(() -> {
+                    if (network.equals(mDefaultNetwork)) {
+                        advertise(address(properties));
+                    }
+                    changed();
+                });
+            }
+
+            @Override
+            public void onLost(android.net.Network network) {
+                mMain.post(() -> {
+                    if (network.equals(mDefaultNetwork)) {
+                        mDefaultNetwork = null;
+                        advertise(null);
+                    }
+                    changed();
+                });
+            }
+        };
+        try {
+            mDefaultNetwork = getSystemService(ConnectivityManager.class).getActiveNetwork();
+            getSystemService(ConnectivityManager.class).registerDefaultNetworkCallback(mNetwork,
+                    mMain);
+        } catch (RuntimeException e) {
+            Log.w(TAG, "not told of the network changing", e);
+            mNetwork = null;
+        }
     }
 
     private void did(String kind, String detail) {
@@ -369,7 +485,29 @@ public final class DeskService extends Service implements HttpServer.Handler {
 
     /** The name "r1.local" on the network, for computers that look names up that way. */
     private void advertise() {
-        final String address = address();
+        advertise(address());
+    }
+
+    /** Serialise replacement: DNS-SD must retire the old registration before taking the name. */
+    private void advertise(String address) {
+        mWantedAddress = address;
+        if (!mOn) {
+            return;
+        }
+        if (mNsd != null) {
+            if (java.util.Objects.equals(address, mNsdAddress) || mNsdRemoving) {
+                return;
+            }
+            mNsdRemoving = true;
+            try {
+                getSystemService(NsdManager.class).unregisterService(mNsd);
+                return;
+            } catch (IllegalArgumentException e) {
+                // A failed/pending registration may no longer belong to NSD.
+                mNsd = null;
+                mNsdRemoving = false;
+            }
+        }
         if (address == null) {
             return;
         }
@@ -384,20 +522,47 @@ public final class DeskService extends Service implements HttpServer.Handler {
                 @Override
                 public void onRegistrationFailed(NsdServiceInfo service, int error) {
                     Log.w(TAG, "the name was not taken: " + error);
+                    mMain.post(() -> {
+                        if (mNsd == this) {
+                            mNsd = null;
+                            mNsdAddress = null;
+                            mNsdRemoving = false;
+                        }
+                    });
                 }
 
                 @Override
                 public void onUnregistrationFailed(NsdServiceInfo service, int error) {
+                    Log.w(TAG, "the old name was not released: " + error);
+                    mMain.post(() -> {
+                        if (mNsd == this) {
+                            mNsdRemoving = false;
+                        }
+                    });
                 }
 
                 @Override
                 public void onServiceRegistered(NsdServiceInfo service) {
+                    mMain.post(() -> {
+                        if (mNsd == this) {
+                            advertise(mWantedAddress);
+                        }
+                    });
                 }
 
                 @Override
                 public void onServiceUnregistered(NsdServiceInfo service) {
+                    mMain.post(() -> {
+                        if (mNsd == this) {
+                            mNsd = null;
+                            mNsdAddress = null;
+                            mNsdRemoving = false;
+                            advertise(mWantedAddress);
+                        }
+                    });
                 }
             };
+            mNsdAddress = address;
             getSystemService(NsdManager.class).registerService(info,
                     NsdManager.PROTOCOL_DNS_SD, mNsd);
         } catch (IOException | RuntimeException e) {

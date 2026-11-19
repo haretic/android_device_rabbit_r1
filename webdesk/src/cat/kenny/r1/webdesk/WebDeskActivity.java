@@ -30,6 +30,8 @@ public final class WebDeskActivity extends Activity {
 
     private final Switch[] mToggles = new Switch[CAPS.length];
     private boolean mTurnedOff;
+    private Switch mScreenOn;
+    private TextView mOffAfter;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -53,6 +55,7 @@ public final class WebDeskActivity extends Activity {
             });
             caps.addView(row);
         }
+        options(findViewById(R.id.options));
         findViewById(R.id.turn_off).setOnClickListener(v -> {
             mTurnedOff = true;
             DeskService.stop(this);
@@ -95,6 +98,60 @@ public final class WebDeskActivity extends Activity {
         super.onPause();
     }
 
+    /**
+     * The two settings under what the computer may do. A press or a tap changes one: the
+     * screen kept on while connected, and how long it waits for a computer before it is off.
+     */
+    private void options(ViewGroup options) {
+        final View screen = getLayoutInflater().inflate(R.layout.cap, options, false);
+        ((ImageView) screen.findViewById(R.id.icon)).setImageResource(R.drawable.ic_screen);
+        ((TextView) screen.findViewById(R.id.title)).setText(R.string.keep_screen_on);
+        final TextView screenSub = screen.findViewById(R.id.sub);
+        screenSub.setText(R.string.keep_screen_on_sub);
+        screenSub.setVisibility(View.VISIBLE);
+        mScreenOn = screen.findViewById(R.id.toggle);
+        mScreenOn.setVisibility(View.VISIBLE);
+        screen.setFocusable(true);
+        screen.setClickable(true);
+        screen.setOnClickListener(v -> {
+            final boolean on = !DeskService.screenOn(this);
+            DeskService.prefs(this).edit().putBoolean(DeskService.PREF_SCREEN_ON, on).apply();
+            mScreenOn.setChecked(on);
+        });
+        options.addView(screen);
+
+        final View off = getLayoutInflater().inflate(R.layout.cap, options, false);
+        ((ImageView) off.findViewById(R.id.icon)).setImageResource(R.drawable.ic_timer);
+        ((TextView) off.findViewById(R.id.title)).setText(R.string.off_after);
+        final TextView offSub = off.findViewById(R.id.sub);
+        offSub.setText(R.string.off_after_sub);
+        offSub.setVisibility(View.VISIBLE);
+        mOffAfter = off.findViewById(R.id.time);
+        mOffAfter.setVisibility(View.VISIBLE);
+        off.setFocusable(true);
+        off.setClickable(true);
+        off.setOnClickListener(v -> {
+            final int now = DeskService.offMinutes(this);
+            int next = DeskService.OFF_MINUTES[0];
+            for (int i = 0; i < DeskService.OFF_MINUTES.length; i++) {
+                if (DeskService.OFF_MINUTES[i] == now) {
+                    next = DeskService.OFF_MINUTES[(i + 1) % DeskService.OFF_MINUTES.length];
+                    break;
+                }
+            }
+            DeskService.prefs(this).edit().putInt(DeskService.PREF_OFF_AFTER, next).apply();
+            show();
+        });
+        options.addView(off);
+    }
+
+    /** "15 min", "1 hour", "3 hours": how long it waits for a computer. */
+    private String minutes(int minutes) {
+        return minutes < 60 ? getString(R.string.off_minutes, minutes)
+                : getResources().getQuantityString(R.plurals.off_hours, minutes / 60,
+                        minutes / 60);
+    }
+
     private void show() {
         final DeskService desk = DeskService.running();
         final boolean paired = desk != null && desk.paired();
@@ -103,11 +160,15 @@ public final class WebDeskActivity extends Activity {
         findViewById(R.id.waiting).setVisibility(paired ? View.GONE : View.VISIBLE);
         findViewById(R.id.connected).setVisibility(paired ? View.VISIBLE : View.GONE);
         disconnect.setVisibility(paired ? View.VISIBLE : View.GONE);
-        ((TextView) findViewById(R.id.foot)).setText(paired ? R.string.foot_connected
-                : R.string.foot);
+        final int offAfter = DeskService.offMinutes(this);
+        ((TextView) findViewById(R.id.foot)).setText(paired ? getString(R.string.foot_connected)
+                : offAfter == 60 ? getString(R.string.foot)
+                : getString(R.string.foot_after, minutes(offAfter)));
         for (int i = 0; i < CAPS.length; i++) {
             mToggles[i].setChecked(DeskService.allowed(this, CAPS[i]));
         }
+        mScreenOn.setChecked(DeskService.screenOn(this));
+        mOffAfter.setText(minutes(offAfter));
         if (paired) {
             showConnected(desk);
             return;
