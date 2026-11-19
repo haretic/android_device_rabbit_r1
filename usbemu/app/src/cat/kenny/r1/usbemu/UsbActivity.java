@@ -78,8 +78,14 @@ public final class UsbActivity extends FragmentActivity {
     private ScrollView scroll;
     private ImageView back;
     private Typeface regular, medium;
-    private View initialFocus, scrollModeButton;
+    private View initialFocus, scrollModeButton, stopButton;
     private boolean scrollMode;
+    // The side button as the select key: its down seen here, and held (a hold comes flagged).
+    // Both end with the gesture's up, so a press whose down the window took to leave touch
+    // mode never inherits an earlier hold.
+    private boolean sideDown, sideHeld;
+    /** What the shortcuts page last sent, as it says it */
+    private String lastShortcut = "";
     // The touchpad screen, left by holding both its exit circles for EXIT_HOLD_MS
     private static final int EXIT_HOLD_MS = 3000;
     private TouchpadView pad;
@@ -153,7 +159,7 @@ public final class UsbActivity extends FragmentActivity {
     private void closeInput() { inputEpoch++; if (hid != null) hid.close(); hid = null; inputGeneration = ""; inputUsed = false; }
     private void syncInput() {
         String generation = Control.prop("st.generation");
-        boolean pointing = Control.input() && (page.equals("session") || page.equals("pointer") || page.equals("typing"))
+        boolean pointing = Control.input() && (page.equals("session") || page.equals("pointer") || page.equals("typing") || page.equals("shortcuts"))
                 || Control.touchpad() && page.equals("session");
         if (!pointing || generation.equals("0") || generation.isEmpty()) { closeInput(); return; }
         if (hid == null || !generation.equals(inputGeneration)) {
@@ -208,7 +214,7 @@ public final class UsbActivity extends FragmentActivity {
 
     private void render(boolean retainFocus) {
         if (!Control.busy(this) && (page.equals("session") && !Control.running()
-                || (page.equals("pointer") || page.equals("typing")) && !Control.input())) page = "hub";
+                || (page.equals("pointer") || page.equals("typing") || page.equals("shortcuts")) && !Control.input())) page = "hub";
         String job = Control.prefs(this).getString("job", "");
         String screen = Control.busy(this) && !job.equals("scan") ? "progress:" + job : page;
         if (screen.equals("session") && Control.touchpad()) { touchpadScreen(); return; }
@@ -217,7 +223,7 @@ public final class UsbActivity extends FragmentActivity {
         Object focusKey = retainFocus && screen.equals(renderedScreen) && focused != null ? focused.getTag() : null;
         int scrollY = retainFocus && screen.equals(renderedScreen) && scroll != null ? scroll.getScrollY() : 0;
         renderedScreen = screen;
-        targets.clear(); initialFocus = null; touchpad = null; scrollModeButton = null;
+        targets.clear(); initialFocus = null; touchpad = null; scrollModeButton = null; stopButton = null;
         landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         // All dimensions are mockup pixels, independent of the 1.16 Android density.
         scale = getResources().getDisplayMetrics().widthPixels / (landscape ? 640f : 480f);
@@ -245,7 +251,7 @@ public final class UsbActivity extends FragmentActivity {
         scroll.setFocusable(false); scroll.setPadding(0, 0, 0, px(landscape ? 28 : 37));
         int top = screen.startsWith("progress:") ? 96 : page.equals("hub") ? (landscape ? 86 : 91)
                 : page.equals("session") ? (Control.input() || Control.prop("st.session").equals("sound") ? 92 : landscape ? 91 : 96)
-                : page.equals("pointer") || page.equals("typing") ? 92 : page.equals("confirm") ? 98 : page.equals("import") ? 95 : 96;
+                : page.equals("pointer") || page.equals("typing") || page.equals("shortcuts") ? 92 : page.equals("confirm") ? 98 : page.equals("import") ? 95 : 96;
         int bottom = landscape ? (page.equals("session") && !Control.input() && !Control.prop("st.session").equals("sound") ? 55 : 52)
                 : page.equals("hub") ? 63 : 61;
         FrameLayout.LayoutParams content = new FrameLayout.LayoutParams(-1, -1);
@@ -265,6 +271,7 @@ public final class UsbActivity extends FragmentActivity {
             case "session": sessionPage(); break;
             case "pointer": pointerPage(); break;
             case "typing": typingPage(); break;
+            case "shortcuts": shortcutsPage(); break;
             case "swap": imagesPage(true); break;
             case "confirm": confirmPage(); break;
             case "settings": settingsPage(); break;
@@ -289,6 +296,9 @@ public final class UsbActivity extends FragmentActivity {
             toolbar.setTouchDelegate(new android.view.TouchDelegate(hit, backTarget));
         });
         View next = initialFocus != null ? initialFocus : targets.isEmpty() ? null : targets.get(0);
+        // Stop leads the wheel's order but never takes the first focus: opened on a running
+        // session, a press would end it. Back is the harmless start, Stop one step on.
+        if (initialFocus == null && next != null && next == stopButton && targets.size() > 1) next = back;
         if (focusKey != null) for (View candidate : targets) if (focusKey.equals(candidate.getTag())) { next = candidate; break; }
         final View focusTarget = next;
         scroll.post(() -> {
@@ -299,6 +309,7 @@ public final class UsbActivity extends FragmentActivity {
     private int footer() {
         if (page.equals("typing")) return R.string.typing_footer;
         if (page.equals("pointer")) return R.string.pointer_footer;
+        if (page.equals("shortcuts")) return R.string.shortcuts_footer;
         if (page.equals("session")) {
             if (Control.input()) return R.string.input_footer;
             if (Control.prop("st.session").equals("sound")) return adb() ? R.string.sound_footer : R.string.sound_footer_no_adb;
@@ -337,6 +348,7 @@ public final class UsbActivity extends FragmentActivity {
             case "size": return R.string.drive_size;
             case "pointer": return R.string.move_pointer;
             case "typing": return R.string.type_text;
+            case "shortcuts": return R.string.shortcuts;
             case "session": return Control.prop("st.session").equals("sound") ? R.string.sound
                     : Control.input() ? R.string.keyboard : R.string.session_title;
             case "swap": case "confirm": return R.string.change_disc;
@@ -577,6 +589,13 @@ public final class UsbActivity extends FragmentActivity {
                 .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create();
         dialog.setOnShowListener(ignored -> {
             WheelSelect.attach(dialog);
+            // The side button held comes flagged: it closes the dialog, never clicks its button
+            dialog.setOnKeyListener((d, key, e) -> {
+                if ((key != KeyEvent.KEYCODE_DPAD_CENTER && key != KeyEvent.KEYCODE_ENTER)
+                        || (e.getFlags() & KeyEvent.FLAG_LONG_PRESS) == 0) return false;
+                if (e.getAction() == KeyEvent.ACTION_DOWN) d.cancel();
+                return true;
+            });
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
                 String name = input.getText().toString();
                 if (!Images.createName(name)) { input.setError(s(R.string.name_error)); return; }
@@ -796,6 +815,8 @@ public final class UsbActivity extends FragmentActivity {
         ((LinearLayout.LayoutParams) scrolling.getLayoutParams()).topMargin = px(8);
         scrollModeButton = scrolling;
         scrolling.setTag(page + ":scroll-pc"); scrolling.setContentDescription(s(R.string.scroll_pc));
+        View shortcuts = action(panel, s(R.string.shortcuts), false, () -> { lastShortcut = ""; navigate("shortcuts"); }, 48);
+        ((LinearLayout.LayoutParams) shortcuts.getLayoutParams()).topMargin = px(8);
         if (!landscape) note(panel, s(R.string.input_actions_hint), 14, 8);
         if (Control.prop("st.session").contains("_") && !landscape) note(panel, s(R.string.shared_image, Images.session()[1]), 15, 8);
         if (Control.prop("st.session").equals("cd_input")) action(panel, s(R.string.change_disc), false,
@@ -882,6 +903,61 @@ public final class UsbActivity extends FragmentActivity {
         // approved keyboard geometry; other action rows can grow and scroll normally.
         keyboardKey = true; target(key, click); keyboardKey = false;
     }
+    private static final int CTRL = 1, ALT = 4, GUI = 8;
+    /**
+     * The shortcuts page's rows: name, then Windows and Linux keys as shown, modifiers and usage,
+     * then a Mac's. Boot keyboard usages only (0..0x73): media keys are outside what this
+     * keyboard's report can carry. The lock is last, away from the first focus.
+     */
+    private static final int[][] SHORTCUTS = {
+        {R.string.key_copy, R.string.keys_copy_win, CTRL, 0x06, R.string.keys_copy_mac, GUI, 0x06},
+        {R.string.key_paste, R.string.keys_paste_win, CTRL, 0x19, R.string.keys_paste_mac, GUI, 0x19},
+        {R.string.key_cut, R.string.keys_cut_win, CTRL, 0x1b, R.string.keys_cut_mac, GUI, 0x1b},
+        {R.string.key_undo, R.string.keys_undo_win, CTRL, 0x1d, R.string.keys_undo_mac, GUI, 0x1d},
+        {R.string.key_select_all, R.string.keys_select_all_win, CTRL, 0x04, R.string.keys_select_all_mac, GUI, 0x04},
+        {R.string.key_enter, R.string.keys_enter_win, 0, 0x28, R.string.keys_enter_mac, 0, 0x28},
+        {R.string.key_backspace, R.string.keys_backspace_win, 0, 0x2a, R.string.keys_backspace_mac, 0, 0x2a},
+        {R.string.key_escape, R.string.keys_escape, 0, 0x29, R.string.keys_escape, 0, 0x29},
+        {R.string.key_tab, R.string.keys_tab, 0, 0x2b, R.string.keys_tab, 0, 0x2b},
+        {R.string.key_switch, R.string.keys_switch_win, ALT, 0x2b, R.string.keys_switch_mac, GUI, 0x2b},
+        {R.string.key_previous, R.string.keys_previous, 0, 0x50, R.string.keys_previous, 0, 0x50},
+        {R.string.key_next, R.string.keys_next, 0, 0x4f, R.string.keys_next, 0, 0x4f},
+        {R.string.key_lock, R.string.keys_lock_win, GUI, 0x0f, R.string.keys_lock_mac, CTRL | GUI, 0x14},
+    };
+    /**
+     * Shortcuts for the keyboard session: a row each, the wheel steps from row to row and a
+     * press or a tap sends that row's keys once. What was sent last stays said above the list.
+     */
+    private void shortcutsPage() {
+        if (!Control.input()) { navigate("hub"); return; }
+        boolean mac = Control.macShortcuts(this);
+        LinearLayout[] panes = columns(200); LinearLayout about = panes[0], list = panes[1];
+        note(about, s(R.string.shortcuts_hint), 16, 0);
+        note(about, s(mac ? R.string.shortcuts_for_mac : R.string.shortcuts_for_win), 14, 6);
+        TextView status = single(lastShortcut.isEmpty() ? s(R.string.shortcut_none) : lastShortcut, 16, ACCENT);
+        status.setPadding(px(10), 0, px(10), 0); add(about, status, 24, 10);
+        LinearLayout rows = stack(); add(list, rows, -2, landscape ? 0 : 12);
+        for (int[] shortcut : SHORTCUTS) {
+            final String name = s(shortcut[0]), keys = s(mac ? shortcut[4] : shortcut[1]);
+            final int modifiers = mac ? shortcut[5] : shortcut[2], usage = mac ? shortcut[6] : shortcut[3];
+            LinearLayout row = row(); row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(px(18), 0, px(18), 0); row.setBackground(background(CARD, 0, 22));
+            row.setContentDescription(name + s(R.string.text_separator) + keys);
+            TextView label = single(name, 19, INK); label.setTypeface(medium); label.setTag("title");
+            row.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
+            TextView combo = single(keys, 16, ACCENT);
+            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-2, -2); cp.leftMargin = px(10); row.addView(combo, cp);
+            add(rows, row, 54, rows.getChildCount() == 0 ? 0 : 2);
+            target(row, () -> {
+                inputUsed = true;
+                boolean sent = hid != null && hid.press(modifiers, usage);
+                lastShortcut = sent ? s(R.string.shortcut_sent, name, keys) : s(R.string.shortcut_not_sent);
+                status.setText(lastShortcut);
+                if (sent) row.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+            });
+            if (initialFocus == null) initialFocus = row;
+        }
+    }
     /** A wheel step up scrolls the PC up, unless the settings turn it round. */
     private int wheelNotch(int key) {
         int notch = key == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1;
@@ -917,6 +993,10 @@ public final class UsbActivity extends FragmentActivity {
         boolean reverse = Control.reverseScroll(this);
         add(pointer, option(s(R.string.reverse_scroll), s(reverse ? R.string.reverse_scroll_on : R.string.reverse_scroll_off), reverse, () -> {
             Control.prefs(this).edit().putBoolean("reverseScroll", !reverse).apply(); render(true);
+        }), 72, 2);
+        boolean mac = Control.macShortcuts(this);
+        add(pointer, option(s(R.string.shortcut_host), s(mac ? R.string.shortcut_host_mac : R.string.shortcut_host_win), null, () -> {
+            Control.prefs(this).edit().putBoolean("macShortcuts", !mac).apply(); render(true);
         }), 72, 2);
         LinearLayout drives = stack(); add(right, drives, -2, landscape ? 12 : 10);
         boolean first = Control.readOnlyFirst(this);
@@ -994,12 +1074,40 @@ public final class UsbActivity extends FragmentActivity {
             case "images": case "session": case "settings": navigate("hub"); break;
             case "size": navigate("create"); break;
             case "confirm": navigate("swap"); break;
-            case "swap": case "pointer": case "typing": navigate("session"); break;
+            case "swap": case "shortcuts": case "pointer": case "typing": navigate("session"); break;
             default: navigate("images"); break;
         }
     }
     @Override public void onBackPressed() { goBack(); }
+    @Override public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        // A hold that opened a dialog ends there: its up never comes back to this window
+        if (!hasFocus) sideDown = sideHeld = false;
+    }
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        int code = event.getKeyCode();
+        if (code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) {
+            // With the side button asked for, the system sends a hold as the select key
+            // flagged FLAG_LONG_PRESS: down, a flagged repeat, a flagged up. Unhandled, the
+            // focused card took the up as a click, so a hold on Stop stopped the session.
+            boolean flagged = (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0;
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (event.getRepeatCount() == 0) { sideDown = true; sideHeld = false; }
+                else if (flagged && !sideHeld) {
+                    // Also when the down went to leaving touch mode: the hold is still one
+                    sideDown = sideHeld = true; sideHold(event);
+                    return true;
+                } else if (sideHeld) return true;
+            } else {
+                boolean mine = sideDown, held = sideHeld || flagged, done = sideHeld;
+                // The gesture ends here, whatever it was
+                sideDown = sideHeld = false;
+                if (held) { if (mine && !done) sideHold(event); return true; }
+                // An up whose down this window never saw (it left touch mode, or the press
+                // began in a dialog): no click from half a press
+                if (!mine) return true;
+            }
+        }
         if (pad != null) return touchpadKey(event) || super.dispatchKeyEvent(event);
         if (scrollMode && scrollModeButton != null && scrollModeButton.hasFocus() && page.equals("session") && Control.input()) {
             int key = event.getKeyCode();
@@ -1100,6 +1208,21 @@ public final class UsbActivity extends FragmentActivity {
             exitLeft.progress(0); exitRight.progress(0);
         }
     }
+    /**
+     * A hold of the side button: the touchpad asks before stopping, Scroll PC page lets go of
+     * the wheel, anything else goes back as everywhere. The card the down pressed is released
+     * without a click first.
+     */
+    private void sideHold(KeyEvent event) {
+        if (pad == null) super.dispatchKeyEvent(KeyEvent.changeFlags(KeyEvent.changeAction(event, KeyEvent.ACTION_UP),
+                event.getFlags() | KeyEvent.FLAG_CANCELED));
+        if (pad != null) { confirmLeaveTouchpad(); return; }
+        if (scrollMode && scrollModeButton != null) {
+            scrollMode = false; iconLabel((TextView) scrollModeButton, s(R.string.scroll_pc), R.drawable.ic_wheel, ACCENT);
+            return;
+        }
+        goBack();
+    }
     private boolean touchpadKey(KeyEvent event) {
         int key = event.getKeyCode();
         boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
@@ -1108,7 +1231,8 @@ public final class UsbActivity extends FragmentActivity {
                 if (down && hid != null) { inputUsed = true; hid.mouse(0, 0, 0, wheelNotch(key)); }
                 return true;
             case KeyEvent.KEYCODE_ENTER: case KeyEvent.KEYCODE_DPAD_CENTER:
-                if (down && event.getRepeatCount() == 0 && hid != null) { inputUsed = true; hid.click(1); }
+                // On the up: by then a hold has come flagged and been taken as one, not a click
+                if (!down && !event.isCanceled() && hid != null) { inputUsed = true; hid.click(1); }
                 return true;
             case KeyEvent.KEYCODE_BACK:
                 if (!down && !event.isCanceled()) confirmLeaveTouchpad();
@@ -1332,7 +1456,7 @@ public final class UsbActivity extends FragmentActivity {
         button.setBackground(background(primary ? (stop ? CONTAINER : ACCENT) : 0xff262626, stop ? 23 : 19));
         if (click == null) { button.setEnabled(false); button.setAlpha(.45f); }
         target(button, click);
-        if (stop && targets.remove(button)) targets.add(0, button);
+        if (stop && targets.remove(button)) { targets.add(0, button); stopButton = button; }
         int icon = stop ? R.drawable.ic_stop : label.equals(s(R.string.start_cd)) || label.equals(s(R.string.start_drive))
                 ? R.drawable.ic_usb : label.equals(s(R.string.change_anyway)) ? R.drawable.ic_swap : label.equals(s(R.string.keep_size, gb)) ? R.drawable.ic_check
                 : label.equals(s(R.string.create_title)) ? R.drawable.ic_plus : label.equals(s(R.string.import_title)) ? R.drawable.ic_import

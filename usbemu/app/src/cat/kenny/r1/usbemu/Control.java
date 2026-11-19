@@ -74,6 +74,8 @@ final class Control {
     static boolean reverseScroll(Context c) { return prefs(c).getBoolean("reverseScroll", false); }
     /** Writable images open as read-only until Access is switched in review. */
     static boolean readOnlyFirst(Context c) { return prefs(c).getBoolean("readOnlyFirst", false); }
+    /** The shortcuts page sends a Mac's keys (Cmd) instead of Windows and Linux ones (Ctrl). */
+    static boolean macShortcuts(Context c) { return prefs(c).getBoolean("macShortcuts", false); }
     static boolean input() { return prop("st.session").endsWith("input"); }
     static boolean touchpad() { return "touchpad".equals(prop("st.session")); }
     static String label(Context c) {

@@ -59,6 +59,16 @@ final class HidInput implements AutoCloseable {
         }
         return usage == 0 ? null : new byte[] {1, (byte) shift, 0, (byte) usage, 0,0,0,0,0};
     }
+    /**
+     * One shortcut: the modifier bits (Ctrl 1, Shift 2, Alt 4, GUI 8, the left ones) with at
+     * most one key down, then everything up. Usages stay within the boot keyboard's 0..0x73.
+     */
+    boolean press(int modifiers, int usage) {
+        if (usage < 0 || usage > 0x73 || (modifiers & ~0xff) != 0 || queue.remainingCapacity() < 2) return false;
+        offer(new byte[] {1, (byte) modifiers, 0, (byte) usage, 0,0,0,0,0});
+        offer(new byte[] {1,0,0,0,0,0,0,0,0});
+        return !closed;
+    }
     boolean type(String text) {
         // Validate the entire draft before sending; never silently skip text.
         if (text.length() > 60 || queue.remainingCapacity() < text.length() * 2) return false;
