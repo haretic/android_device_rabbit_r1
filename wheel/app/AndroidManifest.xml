@@ -57,6 +57,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Try it, from How the wheel works: real controls to practise the wheel on. Turned, it
+             lays itself out again rather than start over, so what was tried stays -->
+        <activity
+            android:name=".PracticeActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:label="@string/practice_title"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+
         <!-- An app's touch zones, over the app; the taskbar's Wheel mode menu opens it too -->
         <activity
             android:name=".TouchZonesActivity"

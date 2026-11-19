@@ -6,11 +6,10 @@
     <string name="wheel_ui">Use the wheel UI</string>
     <string name="wheel_about">The wheel opens the taskbar at the edge of the screen: home, all apps, your pinned and running apps, notifications, the wheel mode of the app in front and these settings. The wheel moves, the side button picks, a double press of the side button brings the taskbar back from any app.\n\nSwitched off, the r1 looks and works like stock Android.</string>
 
-    <string name="cat_parts">Revised parts</string>
     <string name="part_shade_title">Shade</string>
     <string name="part_shade_summary">Notifications and Controls tabs, tiles as a list. Off: the original shade</string>
     <string name="part_lockscreen_title">Lock screen</string>
-    <string name="part_lockscreen_summary">An Unlock button the side button presses, the PIN picked with the wheel. Off: the original lock screen</string>
+    <string name="part_lockscreen_summary">An Unlock button and the PIN set with the wheel. Off: the original lock screen</string>
     <string name="part_dialogs_title">Dialogs</string>
     <string name="part_dialogs_summary">Buttons as a list, one a row. Off: the original dialogs</string>
     <string name="part_home_title">Home screen</string>
@@ -49,7 +48,7 @@
         <item>0</item><item>3</item><item>4</item><item>6</item><item>8</item>
     </string-array>
     <string name="running_off">None, only pinned apps</string>
-    <string name="running_summary">Up to %1$s besides the pinned ones; apps the system closed leave the bar</string>
+    <string name="running_summary">Up to %1$s besides the pinned ones</string>
 
     <string name="unlock_title">Entering the PIN</string>
     <string-array name="unlock_entries" translatable="false">
@@ -101,7 +100,7 @@
     <string name="labels_title">Labels</string>
     <string name="labels_summary">The name of the focused button beside it</string>
     <string name="power_linger_title">Power options on a long pause</string>
-    <string name="power_linger_summary">Ten seconds on Power shows its options in the bar too. A hold always does; a press opens the power menu</string>
+    <string name="power_linger_summary">Resting on Power for 10 seconds shows its options. A hold on it always does</string>
     <string name="haptics_title">Ticks</string>
     <string name="haptics_summary">A tick for every step of the wheel, in apps too</string>
     <string name="sounds_title">Sounds</string>
@@ -194,7 +193,7 @@
     <string-array name="color_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
     <string name="color_black">Black</string>
     <string name="color_translucent">Translucent</string>
-    <string name="color_accent">Wallpaper colour</string>
+    <string name="color_accent">Theme colour</string>
 
     <string name="ring_title">Focus ring</string>
     <string-array name="ring_entries" translatable="false">
@@ -203,11 +202,11 @@
     <string-array name="ring_values" translatable="false"><item>0</item><item>1</item><item>2</item></string-array>
     <string name="ring_theme">Soft</string>
     <string name="ring_white">White</string>
-    <string name="ring_accent">Wallpaper colour</string>
-    <string name="button_columns_title">Button columns</string>
+    <string name="ring_accent">Theme colour</string>
+    <string name="button_columns_title">Columns in the shade and home</string>
     <string-array name="button_columns_entries">
-        <item>1 - a list</item>
-        <item>2 - a grid</item>
+        <item>One - a list</item>
+        <item>Two - a grid</item>
     </string-array>
     <string-array name="button_columns_values" translatable="false">
         <item>1</item>
@@ -215,11 +214,11 @@
     </string-array>
     <string name="distance_title">Scroll distance</string>
     <string-array name="distance_entries">
+        <item>Shortest</item>
         <item>Short</item>
-        <item>Shorter</item>
         <item>Standard</item>
-        <item>Longer</item>
         <item>Long</item>
+        <item>Longest</item>
     </string-array>
     <string-array name="distance_values" translatable="false">
         <item>50</item>
@@ -272,17 +271,17 @@
     <string name="natural_title">Natural scrolling</string>
     <string name="natural_summary">In Smooth scroll, the page moves the way the wheel turns, as under a finger</string>
     <string name="turn_title">Turn with the screen</string>
-    <string name="turn_summary_on">With the screen upside down or turned right, the wheel still moves towards the top and start of the screen as it did</string>
-    <string name="turn_summary_off">The wheel goes the same way whichever way the screen turns</string>
-    <string name="feel_footer">Scroll distance and spin acceleration apply where the wheel scrolls the app smoothly. The press guard drops the wheel\'s steps a press of the side button nudges.</string>
+    <string name="turn_summary_on">Up on the wheel stays up on the screen, however the screen is turned</string>
+    <string name="turn_summary_off">The wheel keeps its upright direction when the screen is turned</string>
+    <string name="feel_footer">Scroll distance and spin apply where the wheel scrolls a page smoothly. Press guard ignores the small turn a press of the side button can cause.</string>
     <string name="side_button_press">Side button press</string>
     <string name="side_button_hold">Side button hold</string>
     <string name="side_button_triple">Side button triple press</string>
     <string name="side_button_sleep">Turn the screen off</string>
     <string name="wake_double_title">Double press to wake</string>
-    <string name="wake_double_summary_on">One press leaves the screen off, as a press in a pocket would; two wake it. No camera from the screen off.</string>
+    <string name="wake_double_summary_on">Two presses wake the screen, so a bump in a pocket does not. The camera no longer opens from the screen off</string>
     <string name="wake_double_summary_off">One press wakes the screen</string>
-    <string name="side_button_note">A double press always opens the taskbar; with a triple press set it waits a moment for the third. A press wakes the screen when off; in a wheel list it picks the focused item. App wheel modes keep Enter or play/pause.</string>
+    <string name="side_button_note">A double press always opens the taskbar. With a triple press set, it waits a moment for the third. In a list, a press picks the item in the ring; some app wheel modes use it for Enter or play and pause.</string>
     <string name="side_button_nothing">Nothing</string>
     <string name="side_button_back">Back</string>
     <string name="side_button_home">Home</string>
@@ -306,27 +305,27 @@
 
     <!-- Help: short notes, with links to the settings they describe -->
     <string name="help_title">How the wheel works</string>
-    <string name="help_summary">Controls, taskbar, modes and the lock screen</string>
+    <string name="help_summary">What each control does, and a page to try them</string>
     <string name="help_turn_title">Turn - move the highlight</string>
-    <string name="help_turn_summary">The ring shows what you can pick. Change wheel feel and direction here.</string>
+    <string name="help_turn_summary">Moves the highlight ring to the next item; a list scrolls along. Change the wheel\'s feel and direction here.</string>
     <string name="help_press_title">Press - pick</string>
-    <string name="help_press_summary">Press the side button to click the highlighted item. Change the side button here.</string>
-    <string name="help_hold_title">Hold - options</string>
-    <string name="help_hold_summary">Hold for options in wheel lists. In apps, a hold goes back by default. Choose Quick actions here for Back, Item options and more.</string>
+    <string name="help_press_summary">Picks the item in the ring, as a tap would. Change the side button here.</string>
+    <string name="help_hold_title">Hold - go back</string>
+    <string name="help_hold_summary">Goes back a screen. In the taskbar, a hold on an item opens its options instead. Change it here.</string>
     <string name="help_double_press_title">Double press - taskbar</string>
     <string name="help_double_press_summary">Open the taskbar from any app. Change its edge and timing here.</string>
     <string name="help_grab_title">Grab - turn - let go</string>
-    <string name="help_grab_summary">Sliders, time and date pickers, as an alarm\'s time in Clock, and lists of choices in Settings: press to grab, turn to set, press or pause to let go. Press a list without turning to see all its choices.</string>
+    <string name="help_grab_summary">Sliders and time pickers: press to grab, turn to set, press again or wait to let go. Lists of choices in Settings work the same; press without turning to see them all.</string>
     <string name="help_sleep_title">Turn the screen off</string>
-    <string name="help_sleep_summary">Double-tap the status bar along the top of the screen. The side button wakes it again, and three presses of it can turn the screen off too: set that here.</string>
-    <string name="help_back_summary">Taskbar - go back a screen. Show, hide or reorder the bar\'s buttons here.</string>
+    <string name="help_sleep_summary">Double-tap the status bar at the top. The side button wakes it. Three presses can turn it off too: set that here.</string>
+    <string name="help_back_summary">In the taskbar, Back goes back a screen. Show, hide or reorder the bar\'s buttons here.</string>
     <string name="help_buttons_title">More taskbar buttons</string>
     <string name="help_buttons_summary">Home - home screen\nAll apps - app list\nPinned and running apps - switch apps\nNotifications - alerts\nChange buttons and order here.</string>
-    <string name="help_mode_summary">Taskbar - choose this app\'s mode: move the highlight, scroll, zoom, volume or media. Change app modes here.</string>
-    <string name="help_power_summary">Taskbar - press Power for the power menu, hold for its options in the bar. Change this here.</string>
+    <string name="help_mode_summary">Some apps use the wheel their own way: to scroll, zoom, set the volume or skip tracks. In the taskbar, Wheel mode sets it for the app in front. Change each app here.</string>
+    <string name="help_power_summary">In the taskbar, press Power for the power menu, hold for its options in the bar. Change this here.</string>
     <string name="help_pin_title">Lock screen - dial and 123</string>
-    <string name="help_pin_summary">Turn the combination dial with the wheel to enter your PIN. Tap 123 for touch number keys. Turn before typing to return to the dial. Change the PIN control here.</string>
-    <string name="help_tour_summary">Try the controls again, any time</string>
+    <string name="help_pin_summary">Turn the dial with the wheel to enter your PIN, or tap 123 for number keys. Change the PIN control here.</string>
+    <string name="help_tour_summary">Run the step-by-step tour again</string>
 
     <string name="cat_guidance">Guidance</string>
     <string name="hints_title">Hints</string>
@@ -344,11 +343,46 @@
     <string name="hints_again_summary">Let first-time tips appear again when Hints is on</string>
     <string name="hints_again_done">Hints are ready to show again</string>
 
+    <!-- How the wheel works: more notes -->
+    <string name="help_text_title">Text fields</string>
+    <string name="help_text_summary">Press to bring up the keyboard, then type by touch. Turn the wheel to move on; the keyboard goes away.</string>
+    <string name="help_touch_title">Touch</string>
+    <string name="help_touch_summary">Tapping and swiping always work too. A tap hides the ring until the wheel turns again.</string>
+
+    <!-- PracticeActivity: real controls to try the wheel and the side button on -->
+    <string name="practice_title">Try it</string>
+    <string name="practice_summary">Practise on a list, a switch, a slider and a text field</string>
+    <string name="practice_start">Turn the wheel to move, press to pick</string>
+    <string name="practice_turned">Turned - the ring moved</string>
+    <string name="practice_list">A list</string>
+    <string name="practice_list_how">Turn to move the ring, press to pick. Or tap a row.</string>
+    <string name="practice_row_1">Apples</string>
+    <string name="practice_row_2">Pears</string>
+    <string name="practice_row_3">Plums</string>
+    <string name="practice_picked">Picked %1$s</string>
+    <string name="practice_switch">A switch</string>
+    <string name="practice_switch_how">Press to flip it. Or tap it.</string>
+    <string name="practice_switch_on">Switch on</string>
+    <string name="practice_switch_off">Switch off</string>
+    <string name="practice_slider">A slider</string>
+    <string name="practice_slider_how">Press to grab it, turn to set it, press again to let go. Or drag it.</string>
+    <string name="practice_slider_at">Slider at %1$d of 10</string>
+    <string name="practice_slider_grabbed">Grabbed - turn to set it</string>
+    <string name="practice_text">A text field</string>
+    <string name="practice_text_how">Press to bring up the keyboard and type by touch. Turn to move on; the keyboard goes away.</string>
+    <string name="practice_text_hint">Type here</string>
+    <string name="practice_text_typed">Typed %1$d letters</string>
+    <string name="practice_more">Taskbar and back</string>
+    <string name="practice_more_how">Press twice quickly for the taskbar, twice again to close it. Hold the side button to go back: here it leaves Try it.</string>
+    <string name="practice_done">Done</string>
+
     <!-- TourActivity: the first-run tour of the wheel and the side button -->
     <string name="tour_title">Wheel tour</string>
     <string name="tour_summary">How the wheel and the side button work</string>
     <string name="tour_step"><xliff:g id="page">%1$d</xliff:g> of <xliff:g id="pages">%2$d</xliff:g></string>
     <string name="tour_skip">Skip</string>
+    <string name="tour_skip_hint">Press to leave the tour</string>
+    <string name="tour_next_hint">Press to go on</string>
     <string name="tour_part_basics">Wheel and button</string>
     <string name="tour_part_taskbar">Taskbar</string>
     <string name="tour_part_screen">Screen</string>
@@ -357,16 +391,16 @@
     <string name="tour_finish">Done</string>
     <string name="tour_well_done">That\'s it</string>
     <string name="tour_welcome_title">Made for the wheel</string>
-    <string name="tour_welcome_body">A short tour in three parts: *the wheel and side button*, *the taskbar* and *the screen*.\nYou try each control as it comes up. Touch works too.\n*Skip* leaves at any time; the tour stays in Settings.</string>
+    <string name="tour_welcome_body">Each step shows one control. Try it and the tour moves on.\n*Touch always works too*: tap Next to go on.\nTo leave, turn up to *Skip* and press, or tap it. The tour stays in Settings.</string>
     <string name="tour_welcome_hint">Press the side button to start</string>
     <string name="tour_turn_title">Turn to move</string>
     <string name="tour_turn_body">*Turn the wheel* to move the highlight from one item to the next.\nLists scroll along with it.</string>
     <string name="tour_turn_hint">Turn the wheel a few steps</string>
     <string name="tour_press_title">Press to pick</string>
-    <string name="tour_press_body">*Press the side button* to click the highlighted item.</string>
+    <string name="tour_press_body">*Press the side button* to pick the highlighted item, as a tap would.</string>
     <string name="tour_press_hint">Pick a row with the side button</string>
-    <string name="tour_hold_title">Hold for options</string>
-    <string name="tour_hold_body">*Hold the side button* for an item\'s options, like a long press on a touchscreen.\nTry a hold now.</string>
+    <string name="tour_hold_title">Hold to go back</string>
+    <string name="tour_hold_body">*Hold the side button* to go back, in any app.\nIn the taskbar, a hold on an item opens its options instead, like a long press.</string>
     <string name="tour_hold_hint">Hold the side button</string>
     <string name="tour_hold_again">Keep it held a little longer</string>
     <string name="tour_taskbar_title">Press twice for the taskbar</string>
@@ -384,14 +418,14 @@
     <string name="tour_power_body">In the taskbar, *press Power* for the power menu.\n*Hold* the side button on Power for its options right in the bar.</string>
     <string name="tour_power_hint">Press to continue</string>
     <string name="tour_sleep_title">Turn the screen off</string>
-    <string name="tour_sleep_body">The side button wakes the screen but does not turn it off.\n*Double-tap the status bar*, the strip with the time along the top, to turn it off.\nThree presses of the side button can do it too, once set under Side button.\nTry the double-tap, then press the side button to wake the screen.</string>
+    <string name="tour_sleep_body">The side button wakes the screen.\nTo turn it off, *double-tap the status bar*, the strip with the time at the top.\nTry it, then press the side button to wake the screen.</string>
     <string name="tour_sleep_hint">Double-tap the top, or press to go on</string>
     <string name="tour_help_title">Help is always here</string>
-    <string name="tour_help_body">*How the wheel works* sits beside Wheel tour in Settings - System - Taskbar and wheel.\nThe tour can be run again there too.\nOpen help now, then come back.</string>
+    <string name="tour_help_body">*How the wheel works* in Settings - System - Taskbar and Wheel explains every control, with a *Try it* page to practise on.\nOpen it now, then come back.</string>
     <string name="tour_help_hint">Press to open help</string>
     <string name="tour_help_open">Open help</string>
     <string name="tour_done_title">You\'re set</string>
-    <string name="tour_done_body">In Settings - System - Taskbar and wheel you can change what the side button does, switch the wheel UI off for the stock look, and run this tour again.</string>
+    <string name="tour_done_body">Change what the side button does, or switch the wheel UI off for the stock look, in Settings - System - Taskbar and Wheel. The tour is there too.</string>
     <string name="tour_done_hint">Press to finish</string>
     <string name="tour_row_1">Turn the wheel</string>
     <string name="tour_row_2">to move this highlight</string>
@@ -402,7 +436,7 @@
     <string name="page_side_button_title">Side button</string>
     <string name="page_side_button_summary">What a press and a hold do</string>
     <string name="page_taskbar_title">Taskbar</string>
-    <string name="page_taskbar_summary">Its buttons, running apps, edge and timing</string>
+    <string name="page_taskbar_summary">Its buttons, running apps, edge, timing and look</string>
     <string name="page_feel_title">Wheel feel</string>
     <string name="page_feel_summary">Step size, spin and direction</string>
     <string name="page_parts_title">Parts of the system</string>

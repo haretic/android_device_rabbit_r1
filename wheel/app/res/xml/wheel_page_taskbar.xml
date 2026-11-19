@@ -72,4 +72,28 @@
             android:entryValues="@array/animations_values"
             android:persistent="false" />
     </PreferenceCategory>
+
+    <!-- How the bar looks; SystemUI reads these each time the bar opens -->
+    <PreferenceCategory
+        android:key="look"
+        android:title="@string/cat_look">
+        <ListPreference
+            android:key="wheel_taskbar_size"
+            android:title="@string/size_title"
+            android:entries="@array/size_entries"
+            android:entryValues="@array/size_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_color"
+            android:title="@string/color_title"
+            android:entries="@array/color_entries"
+            android:entryValues="@array/color_values"
+            android:persistent="false" />
+        <ListPreference
+            android:key="wheel_taskbar_ring"
+            android:title="@string/ring_title"
+            android:entries="@array/ring_entries"
+            android:entryValues="@array/ring_values"
+            android:persistent="false" />
+    </PreferenceCategory>
 </PreferenceScreen>

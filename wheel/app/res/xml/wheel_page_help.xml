@@ -3,6 +3,15 @@
 <!-- Help in Taskbar and wheel. Only links are wheel stops; notes stay plain text. -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Practice on real controls first: the notes below say what each one does -->
+    <Preference
+        android:key="help_try"
+        android:title="@string/practice_title"
+        android:summary="@string/practice_summary">
+        <intent
+            android:targetPackage="cat.kenny.r1.wheel.settings"
+            android:targetClass="cat.kenny.r1.wheel.settings.PracticeActivity" />
+    </Preference>
     <Preference
         android:key="help_turn"
         android:title="@string/help_turn_title"
@@ -35,6 +44,16 @@
         android:key="help_grab"
         android:title="@string/help_grab_title"
         android:summary="@string/help_grab_summary"
+        android:selectable="false" />
+    <Preference
+        android:key="help_text"
+        android:title="@string/help_text_title"
+        android:summary="@string/help_text_summary"
+        android:selectable="false" />
+    <Preference
+        android:key="help_touch"
+        android:title="@string/help_touch_title"
+        android:summary="@string/help_touch_summary"
         android:selectable="false" />
     <Preference
         android:key="help_sleep"

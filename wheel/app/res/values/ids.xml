@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- PracticeActivity's controls, built in code: ids so they keep their state -->
+<resources>
+    <item name="practice_switch" type="id" />
+    <item name="practice_slider" type="id" />
+    <item name="practice_text" type="id" />
+</resources>

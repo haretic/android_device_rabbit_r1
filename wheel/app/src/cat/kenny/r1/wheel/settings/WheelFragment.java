@@ -40,6 +40,8 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     Map.entry(LineageSettings.Secure.WHEEL_DIALOGS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SETTINGS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_HOME, 1),
+                    // Its switch on the Parts page was neither read nor written without it
+                    Map.entry(LineageSettings.Secure.WHEEL_STYLES, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_GUIDE_HINTS, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_GUIDE_LEGEND, 1),
                     Map.entry(LineageSettings.Secure.WHEEL_SCROLL_DISTANCE, 100),

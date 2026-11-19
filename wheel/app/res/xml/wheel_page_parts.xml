@@ -3,9 +3,15 @@
 <!-- Each revised part of the system or its original, a page of Taskbar and wheel; WheelFragment binds every LineageSettings.Secure key in it. -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory
-        android:key="parts"
-        android:title="@string/cat_parts">
+    <!-- No heading: it would only repeat the page's title. The columns first, a list, so the
+         wheel's first stop is not a switch a stray press would flip -->
+    <PreferenceCategory android:key="parts">
+        <ListPreference
+            android:key="wheel_button_columns"
+            android:title="@string/button_columns_title"
+            android:entries="@array/button_columns_entries"
+            android:entryValues="@array/button_columns_values"
+            android:persistent="false" />
         <SwitchPreferenceCompat
             android:key="wheel_shade"
             android:title="@string/part_shade_title"

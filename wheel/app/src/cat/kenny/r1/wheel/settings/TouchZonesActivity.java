@@ -21,6 +21,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import cat.kenny.r1.wheel.WheelSelect;
+
 import lineageos.providers.LineageSettings;
 
 import java.util.Map;
@@ -49,6 +51,9 @@ public class TouchZonesActivity extends Activity {
             finish();
             return;
         }
+        // Cancel, Start over and Save by the wheel too: a press on the one in the ring, a hold
+        // cancels. The zones themselves are points on the screen, placed by touch
+        WheelSelect.attach(getWindow());
         getWindow().getAttributes().layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
         getWindow().setDecorFitsSystemWindows(false);

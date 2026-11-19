@@ -134,7 +134,13 @@ public class TourActivity extends Activity {
     private Gadget mGadget;
     private LinearLayout.LayoutParams mGadgetParams;
     private LinearLayout.LayoutParams mSpacerParams;
-    private TextView mStep, mTitle, mBody, mHint, mNext;
+    private TextView mStep, mTitle, mBody, mHint, mNext, mSkip;
+    /**
+     * On a page whose exercise is not the wheel itself, a turn rings Next or Skip for the side
+     * button to press, so the wheel alone can leave or move on; unringed, a press is the page's.
+     */
+    private static final int CHOICE_NONE = 0, CHOICE_NEXT = 1, CHOICE_SKIP = 2;
+    private int mChoice;
     private LinearLayout mRows;
     private SeekBar mSlider;
     private final TextView[] mRowViews = new TextView[3];
@@ -215,12 +221,16 @@ public class TourActivity extends Activity {
         final FrameLayout top = new FrameLayout(this);
         mStep = text(13, mTextDim, false);
         top.addView(mStep, new FrameLayout.LayoutParams(-2, -2, Gravity.START | Gravity.CENTER_VERTICAL));
-        final TextView skip = text(14, mAccent, true);
-        skip.setText(R.string.tour_skip);
-        skip.setPadding(dp(12), dp(8), 0, dp(8));
-        skip.setFocusable(false);
-        skip.setOnClickListener(v -> finish());
-        top.addView(skip, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
+        // A finger's size; the wheel reaches it too, a turn up on a page without an exercise
+        mSkip = text(14, mAccent, true);
+        mSkip.setText(R.string.tour_skip);
+        mSkip.setGravity(Gravity.CENTER);
+        mSkip.setMinHeight(dp(48));
+        mSkip.setMinWidth(dp(64));
+        mSkip.setPadding(dp(14), 0, dp(14), 0);
+        mSkip.setFocusable(false);
+        mSkip.setOnClickListener(v -> finish());
+        top.addView(mSkip, new FrameLayout.LayoutParams(-2, -2, Gravity.END | Gravity.CENTER_VERTICAL));
         root.addView(top, new LinearLayout.LayoutParams(-1, -2));
         mMarks = new Marks(this);
         final LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(-1, dp(4));
@@ -281,12 +291,15 @@ public class TourActivity extends Activity {
         bottom.addView(mHint, new LinearLayout.LayoutParams(0, -2, 1));
         // For touch: the original pages go on without the gadget's controls too
         mNext = text(15, mOnAccent, true);
-        mNext.setPadding(dp(18), dp(8), dp(18), dp(8));
+        mNext.setGravity(Gravity.CENTER);
+        mNext.setMinHeight(dp(48));
+        mNext.setMinWidth(dp(88));
+        mNext.setPadding(dp(20), 0, dp(20), 0);
         mNext.setBackground(pill(mAccent));
         mNext.setFocusable(false);
         mNext.setOnClickListener(v -> {
             if (mPage == HELP) {
-                onPress();
+                openHelp();
             } else {
                 next();
             }
@@ -319,6 +332,8 @@ public class TourActivity extends Activity {
         mSliderChanged = false;
         mCompleted = false;
         mSlept = false;
+        mChoice = CHOICE_NONE;
+        updateChoice();
         final int[][] texts = {
                 {R.string.tour_welcome_title, R.string.tour_welcome_body, R.string.tour_welcome_hint},
                 {R.string.tour_turn_title, R.string.tour_turn_body, R.string.tour_turn_hint},
@@ -398,6 +413,11 @@ public class TourActivity extends Activity {
                 return true;
             case KeyEvent.KEYCODE_DPAD_CENTER:
             case KeyEvent.KEYCODE_ENTER:
+                // Each gesture starts and ends clear of the last hold: a DOWN the window takes to
+                // leave touch mode never comes here, its UP does
+                if (down && event.getRepeatCount() == 0) {
+                    mLongPress = false;
+                }
                 if (down && (event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0) {
                     mLongPress = true;
                 } else if (!down) {
@@ -411,6 +431,9 @@ public class TourActivity extends Activity {
                 return true;
             case KeyEvent.KEYCODE_POWER:
                 // The side button as such, where the policy hands it to the window
+                if (down && event.getRepeatCount() == 0) {
+                    mLongPress = false;
+                }
                 if (down && event.isLongPress()) {
                     mLongPress = true;
                     onHold();
@@ -457,6 +480,15 @@ public class TourActivity extends Activity {
         }
         if (mPage != TURN && mPage != PRESS) {
             mGadget.nudge(step);
+            // Up to Skip at the top, down to Next at the bottom
+            final int choice = step < 0 ? CHOICE_SKIP : CHOICE_NEXT;
+            if (choice != mChoice) {
+                mChoice = choice;
+                updateChoice();
+                mHint.setText(choice == CHOICE_SKIP ? R.string.tour_skip_hint
+                        : R.string.tour_next_hint);
+                mHint.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+            }
             return;
         }
         mRow = Math.floorMod(mRow + step, 3);
@@ -468,8 +500,42 @@ public class TourActivity extends Activity {
         }
     }
 
+    /** The ring round Next or Skip that a turn put there, or none. */
+    private void updateChoice() {
+        final GradientDrawable next = pill(mAccent);
+        if (mChoice == CHOICE_NEXT) {
+            next.setStroke(dp(3), mText);
+        }
+        mNext.setBackground(next);
+        if (mChoice == CHOICE_SKIP) {
+            final GradientDrawable ring = pill(Color.TRANSPARENT);
+            ring.setStroke(dp(3), mAccent);
+            mSkip.setBackground(ring);
+        } else {
+            mSkip.setBackground(null);
+        }
+    }
+
+    private void openHelp() {
+        startActivityForResult(new Intent(this, WheelActivity.class).putExtra("page", "help"),
+                REQUEST_HELP);
+    }
+
     private void onPress() {
         if (mCompleted) {
+            return;
+        }
+        // A turn picked Skip or Next: the press is theirs, not the page's
+        if (mChoice == CHOICE_SKIP) {
+            finish();
+            return;
+        }
+        if (mChoice == CHOICE_NEXT) {
+            if (mPage == HELP) {
+                openHelp();
+            } else {
+                next();
+            }
             return;
         }
         switch (mPage) {
@@ -500,8 +566,7 @@ public class TourActivity extends Activity {
                 }
                 break;
             case HELP:
-                startActivityForResult(new Intent(this, WheelActivity.class)
-                        .putExtra("page", "help"), REQUEST_HELP);
+                openHelp();
                 break;
             default:
                 next();
@@ -597,7 +662,7 @@ public class TourActivity extends Activity {
      * pulses once for a press, twice for a double press, and fills for a hold. For the status
      * bar's double tap, the screen's top strip is lit with two rings on it.
      */
-    private static final class Gadget extends View {
+    static final class Gadget extends View {
         static final int NONE = 0, WHEEL = 1, PRESS = 2, DOUBLE = 3, HOLD = 4, STATUS_BAR = 5;
 
         private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

@@ -32,7 +32,7 @@ public final class WheelSelect implements InvocationHandler {
 
     private final Window mWindow;
     private final Window.Callback mCallback;
-    /** A long press already went back, ignore the rest of it. */
+    /** A long press already went back, ignore the rest of it; cleared as the gesture ends. */
     private boolean mSlept;
 
     private WheelSelect(Window window, Window.Callback callback) {
@@ -114,7 +114,11 @@ public final class WheelSelect implements InvocationHandler {
             }
             return;
         }
-        if (mSlept || event.isCanceled()) {
+        // This gesture ends here. After a tap the window can take the next press's DOWN to leave
+        // touch mode, so its UP may be all that comes of it: it must not count as this hold
+        final boolean wentBack = mSlept;
+        mSlept = false;
+        if (wentBack || event.isCanceled()) {
             return;
         }
         if (held) {

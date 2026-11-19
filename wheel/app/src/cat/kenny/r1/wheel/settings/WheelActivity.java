@@ -24,6 +24,11 @@ public class WheelActivity extends CollapsingToolbarBaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WheelSelect.attach(this);
+        // The title on one line, as the performance pages have it: the tall header took a third
+        // of the portrait screen and most of the turned one, and only a finger's scroll folds it
+        if (getAppBarLayout() != null) {
+            getAppBarLayout().setExpanded(false, false);
+        }
         mHelp = "help".equals(getIntent().getStringExtra("page"));
         // Told while a pop still counts the page going: the title once it has gone
         getSupportFragmentManager().addOnBackStackChangedListener(
