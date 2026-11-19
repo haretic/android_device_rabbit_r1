@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A fact that can be changed: its name, and a field the keyboard types into -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:paddingTop="2dp" android:paddingBottom="2dp" android:gravity="center_vertical">
+    <TextView android:id="@+id/key" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:textSize="15sp"
+        android:textColor="@color/text_faint" android:maxLines="1" />
+    <EditText android:id="@+id/edit" android:layout_width="0dp"
+        android:layout_height="40dp" android:layout_weight="1" android:layout_marginStart="12dp"
+        android:paddingStart="10dp" android:paddingEnd="10dp" android:gravity="center_vertical|end"
+        android:background="@drawable/field_bg" android:textSize="15sp"
+        android:textColor="@color/text" android:fontFamily="haretic-text-bold"
+        android:singleLine="true" android:inputType="textCapSentences"
+        android:imeOptions="actionDone|flagNoExtractUi" android:maxLength="40"
+        android:defaultFocusHighlightEnabled="false" />
+</LinearLayout>

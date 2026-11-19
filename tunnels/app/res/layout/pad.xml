@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The account number and the keys to type it: the wheel goes from key to key in reading
+     order, a press or a tap types it -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <TextView android:id="@+id/number" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:minHeight="64dp"
+        android:layout_marginBottom="6dp" android:gravity="center"
+        android:background="@drawable/card_bg" android:textSize="25sp"
+        android:textColor="@color/text" android:letterSpacing="0.06"
+        android:fontFeatureSettings="tnum" android:maxLines="1" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:id="@+id/key1" style="@style/Key" android:text="1" />
+        <TextView android:id="@+id/key2" style="@style/Key" android:text="2" />
+        <TextView android:id="@+id/key3" style="@style/Key" android:text="3" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:id="@+id/key4" style="@style/Key" android:text="4" />
+        <TextView android:id="@+id/key5" style="@style/Key" android:text="5" />
+        <TextView android:id="@+id/key6" style="@style/Key" android:text="6" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:id="@+id/key7" style="@style/Key" android:text="7" />
+        <TextView android:id="@+id/key8" style="@style/Key" android:text="8" />
+        <TextView android:id="@+id/key9" style="@style/Key" android:text="9" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+        <FrameLayout android:id="@+id/key_back" style="@style/Key"
+            android:background="@drawable/key_quiet_bg"
+            android:contentDescription="@string/key_backspace">
+            <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                android:layout_gravity="center" android:src="@drawable/ic_backspace"
+                android:tint="#FFFFFF" android:importantForAccessibility="no" />
+        </FrameLayout>
+        <TextView android:id="@+id/key0" style="@style/Key" android:text="0" />
+        <TextView android:id="@+id/key_next" style="@style/Key"
+            android:background="@drawable/key_go_bg" android:textColor="@color/on_accent"
+            android:textSize="15sp" android:fontFamily="haretic-text-bold"
+            android:text="@string/next" />
+    </LinearLayout>
+</LinearLayout>

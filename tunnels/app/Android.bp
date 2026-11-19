@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: Apache-2.0
+// Private networks: a tunnel to one server, from its settings as a file, a QR code, the
+// clipboard or typed in, and Mullvad's service by its account number. The tunnel itself is
+// r1-tunneld (../daemon), handed the VPN's interface over a socket. Setting the always-on VPN
+// and taking the side button are privileged, hence the platform certificate.
+android_app {
+    name: "R1Tunnels",
+    system_ext_specific: true,
+    certificate: "platform",
+    platform_apis: true,
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    // QR codes read from the camera
+    static_libs: ["zxing-core", "r1zt-bindings", "r1-tailscale-bindings"],
+    jni_libs: ["libr1zt", "libgojni"],
+    compile_multilib: "64",
+    use_embedded_native_libs: false,
+    licenses: ["r1zt_license", "r1_tailscale_license"],
+    optimize: {
+        enabled: false,
+    },
+}

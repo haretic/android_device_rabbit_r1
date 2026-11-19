@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Your devices in one network: a device in the middle, linked to the others round it -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp"
+    android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="1.6"
+        android:pathData="M12,12L12,4M12,12L19.6,9.5M12,12L16.7,18.5M12,12L7.3,18.5M12,12L4.4,9.5" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M9,12a3,3 0 1,0 6,0a3,3 0 1,0 -6,0zM10,4a2,2 0 1,0 4,0a2,2 0 1,0 -4,0zM17.6,9.5a2,2 0 1,0 4,0a2,2 0 1,0 -4,0zM14.7,18.5a2,2 0 1,0 4,0a2,2 0 1,0 -4,0zM5.3,18.5a2,2 0 1,0 4,0a2,2 0 1,0 -4,0zM2.4,9.5a2,2 0 1,0 4,0a2,2 0 1,0 -4,0z" />
+</vector>

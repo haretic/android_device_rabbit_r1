@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- An on/off switch, drawn 46 x 26: the knob right and the track in the accent while on -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <layer-list>
+            <item><shape><size android:width="46dp" android:height="26dp" />
+                <solid android:color="?android:attr/colorAccent" /><corners android:radius="13dp" /></shape></item>
+            <item android:left="23dp" android:top="3dp" android:right="3dp" android:bottom="3dp">
+                <shape android:shape="oval"><solid android:color="@color/on_accent" /></shape></item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item><shape><size android:width="46dp" android:height="26dp" />
+                <solid android:color="#444444" /><corners android:radius="13dp" /></shape></item>
+            <item android:left="3dp" android:top="3dp" android:right="23dp" android:bottom="3dp">
+                <shape android:shape="oval"><solid android:color="#BBBBBB" /></shape></item>
+        </layer-list>
+    </item>
+</selector>

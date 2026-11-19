@@ -175,6 +175,10 @@ PRODUCT_PACKAGES += R1Synth
 # Travel router: a Wi-Fi network passed on under the r1's own name, signed in to once
 PRODUCT_PACKAGES += R1Router
 
+# Private networks: a tunnel to one server, and the Mullvad preset (tunnels/). r1-tunneld
+# (tunnels/daemon) is built into prebuilt/ by r1-tools
+PRODUCT_PACKAGES += R1Tunnels r1-tunneld
+
 # USB-C port: a sheet for what was plugged in, power only while the r1 is locked
 PRODUCT_PACKAGES += R1Port
 

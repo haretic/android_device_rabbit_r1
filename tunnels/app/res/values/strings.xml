@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">Private networks</string>
+    <string name="step_of">Step %1$d of %2$d</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="save">Save</string>
+    <string name="save_connect">Save and connect</string>
+    <string name="change">Change</string>
+    <string name="hint_back">Hold to go back</string>
+
+    <!-- Home -->
+    <string name="home_lead">Reach your own devices from anywhere, or send this r1\'s traffic through a server you trust. Pick what you already use.</string>
+    <string name="kind_wg">WireGuard</string>
+    <string name="kind_wg_sum">A tunnel to one server - from a file or QR code</string>
+    <string name="kind_mullvad">Mullvad</string>
+    <string name="kind_mullvad_sum">A VPN service - only your account number</string>
+    <string name="home_note">One network is on at a time. Nothing leaves this r1 until you turn one on.</string>
+    <string name="hint_set_up">Press to set up %1$s</string>
+    <string name="add_title">Add a network</string>
+    <string name="add_sum">WireGuard, Mullvad, Tailscale or ZeroTier</string>
+    <string name="hint_add">Press to add a network</string>
+    <string name="hint_open">Press to open %1$s</string>
+    <string name="hint_turn_on">Press to turn %1$s on</string>
+    <string name="hint_turn_off">Press to turn %1$s off</string>
+    <string name="net_off">%1$s - off</string>
+    <string name="net_address">r1 - %1$s</string>
+    <string name="state_on">On</string>
+    <string name="state_connecting">Connecting</string>
+    <string name="state_failed">Failed</string>
+    <string name="state_off">Off</string>
+    <string name="consent_needed">Turning it on needs your OK in the dialog.</string>
+
+    <!-- The status of the network that is on -->
+    <string name="kv_server">Server</string>
+    <string name="kv_last_answer">Last answer</string>
+    <string name="kv_data">Sent - received</string>
+    <string name="kv_out">Comes out in</string>
+    <string name="kv_reason">What went wrong</string>
+    <string name="not_yet">Not yet</string>
+    <string name="seconds_ago">%1$d s ago</string>
+    <string name="minutes_ago">%1$d min ago</string>
+    <string name="hours_ago">%1$d h ago</string>
+    <string name="no_answer">No answer from the server</string>
+    <string name="data_value">%1$s - %2$s</string>
+
+    <!-- A network's page -->
+    <string name="show_settings">Show settings</string>
+    <string name="show_settings_sum">The private key stays hidden</string>
+    <string name="place_title">Where traffic comes out</string>
+    <string name="remove">Remove</string>
+    <string name="remove_sum">Takes it off this r1</string>
+    <string name="remove_sum_mullvad">Takes it off this r1 and frees its Mullvad device</string>
+    <string name="remove_confirm">Press again to remove</string>
+    <string name="hint_toggle">Press to turn it on or off - hold to go back</string>
+    <string name="hint_row">Press to open - hold to go back</string>
+    <string name="hint_remove">Press twice to remove - hold to go back</string>
+
+    <!-- Show settings -->
+    <string name="settings_lead">The tunnel\'s settings as this r1 uses them. The private key stays on this r1 and is not shown.</string>
+    <string name="kv_public_key">This r1\'s public key</string>
+    <string name="kv_name">Name</string>
+    <string name="kv_address">This r1\'s address</string>
+    <string name="kv_dns">DNS</string>
+    <string name="kv_account">Mullvad account</string>
+    <string name="kv_location">Comes out in</string>
+    <string name="account_ending">ending in %1$s</string>
+    <string name="trademark">\"WireGuard\" is a registered trademark of Jason A. Donenfeld.</string>
+
+    <!-- WireGuard, step 1 -->
+    <string name="wg_lead">How do you have the tunnel\'s settings?</string>
+    <string name="from_scan">Scan a QR code</string>
+    <string name="from_scan_sum">The camera turns to face you</string>
+    <string name="from_file">Open a file</string>
+    <string name="from_file_sum">A .conf file in Files or on a USB stick</string>
+    <string name="from_paste">Paste</string>
+    <string name="from_paste_sum">From the clipboard</string>
+    <string name="from_type">Type them in</string>
+    <string name="from_type_sum">A new key is made on this r1</string>
+    <string name="hint_scan">Press to scan - hold to go back</string>
+    <string name="hint_file">Press to open a file - hold to go back</string>
+    <string name="hint_paste">Press to paste - hold to go back</string>
+    <string name="hint_type">Press to type them in - hold to go back</string>
+    <string name="clip_empty">The clipboard holds no text.</string>
+    <string name="file_unreadable">The file could not be read.</string>
+
+    <!-- Scanning -->
+    <string name="scan_note">Hold the code inside the corners. It is read on this r1 and goes nowhere else.</string>
+    <string name="scan_camera_why">The camera reads the code. Nothing is recorded or kept.</string>
+    <string name="camera_allow">Allow the camera</string>
+    <string name="camera_allow_sum">To read the code</string>
+    <string name="hint_allow">Press to allow the camera - hold to go back</string>
+    <string name="scan_no_camera">The camera could not be opened.</string>
+    <string name="scan_not_conf">This code does not hold a tunnel\'s settings.</string>
+    <string name="scan_not_account">This code does not hold a 16-digit account number.</string>
+
+    <!-- Typing them in -->
+    <string name="type_lead">Type in what the server\'s owner gave you, and give them this r1\'s public key from the bottom of this page.</string>
+    <string name="field_name">Name</string>
+    <string name="field_name_hint">Home</string>
+    <string name="field_server">Server, as name or address:port</string>
+    <string name="field_server_hint">vpn.example.net:51820</string>
+    <string name="field_server_key">The server\'s public key</string>
+    <string name="field_address">This r1\'s address</string>
+    <string name="field_address_hint">10.8.0.2/32</string>
+    <string name="field_dns">DNS, if the server gave one</string>
+    <string name="field_dns_hint">10.8.0.1</string>
+    <string name="type_key_title">This r1\'s public key</string>
+    <string name="type_key_making">Making a key on this r1...</string>
+    <string name="key_failed">Could not make a key: the tunnel helper did not answer.</string>
+    <string name="type_bad_server">The server is a name or address and its port: vpn.example.net:51820</string>
+    <string name="type_bad_key">The server\'s public key is 44 characters of base64, ending in =</string>
+    <string name="type_bad_address">This r1\'s address is an address and its network: 10.8.0.2/32</string>
+    <string name="type_bad_dns">DNS is an address: 10.8.0.1</string>
+    <string name="type_no_key">Wait for this r1\'s key, or go back and try again.</string>
+    <string name="hint_type_page">Press to type into a field - hold to go back</string>
+
+    <!-- Review -->
+    <string name="review_from_code">Read from the code. <b>Check it</b>, then save.</string>
+    <string name="review_from_file">Read from the file. <b>Check it</b>, then save.</string>
+    <string name="review_from_clip">Read from the clipboard. <b>Check it</b>, then save.</string>
+    <string name="review_typed">As you typed it. <b>Check it</b>, then save.</string>
+    <string name="route_title">What goes through it</string>
+    <string name="route_all">Everything - all apps, all traffic</string>
+    <string name="route_some">Only %1$s - the rest goes direct</string>
+    <string name="stay_title">Stay connected</string>
+    <string name="stay_sum">Reconnect by itself, block traffic if it drops</string>
+    <string name="stay_note">Stay connected uses the system\'s always-on VPN: while it is set, nothing leaves this r1 outside the tunnel, also while it reconnects.</string>
+    <string name="name_needed">Give it a name.</string>
+    <string name="save_failed">It could not be saved on this r1.</string>
+
+    <!-- Mullvad, step 1 -->
+    <string name="mullvad_lead">Type your <b>account number</b>: 16 digits. That is all Mullvad needs. A key is made on this r1.</string>
+    <string name="mullvad_disclaimer">This talks to Mullvad\'s servers with your account number. It is not made or endorsed by Mullvad.</string>
+    <string name="mullvad_scan">Or scan the number from your account page.</string>
+    <string name="key_backspace">Delete the last digit</string>
+    <string name="mullvad_asking">Asking Mullvad...</string>
+    <string name="mullvad_bad_account">Mullvad does not know this account number.</string>
+    <string name="mullvad_wait">Mullvad asks to wait a moment</string>
+    <string name="mullvad_unreachable">Could not reach Mullvad. Check the internet connection.</string>
+    <string name="mullvad_error">Mullvad said no: %1$s</string>
+    <string name="mullvad_no_key">Could not make a key: the tunnel helper did not answer.</string>
+    <string name="hint_pad">Press to type the key - hold to go back</string>
+
+    <!-- Mullvad's devices -->
+    <string name="devices_lead">This account has as many devices as Mullvad allows. Remove one to make room for this r1.</string>
+    <string name="device_sum">Added %1$s</string>
+    <string name="hint_device">Press twice to remove it - hold to go back</string>
+
+    <!-- Mullvad, step 2 -->
+    <string name="place_lead">Paid until &lt;b>%1$s&lt;/b>. This r1 is device %2$d of 5. Where should your traffic come out?</string>
+    <string name="place_lead_edit">Where should your traffic come out?</string>
+    <string name="auto_title">Automatic</string>
+    <string name="auto_sum">Picks a server for you</string>
+    <plurals name="country_sum">
+        <item quantity="one">%1$s - %2$d server</item>
+        <item quantity="other">%1$s - %2$d servers</item>
+    </plurals>
+    <string name="all_countries">All %1$d countries</string>
+    <string name="all_sum_today">List from Mullvad, updated today</string>
+    <string name="all_sum_older">List from Mullvad, updated %1$s</string>
+    <string name="relays_loading">Getting the server list from Mullvad...</string>
+    <string name="relays_failed">Could not get the server list from Mullvad.</string>
+    <string name="hint_place">Press to choose - hold to go back</string>
+
+    <!-- The tunnel -->
+    <string name="channel">Private network</string>
+    <string name="notif_on">%1$s is on</string>
+    <string name="notif_connecting">Connecting to %1$s</string>
+    <string name="fail_resolve">Could not find the server %1$s</string>
+    <string name="fail_consent">Not allowed to start - turn it on again in this app</string>
+    <string name="fail_settings">The settings were not taken: %1$s</string>
+    <string name="fail_helper_start">The tunnel helper did not start</string>
+    <string name="fail_helper_exit">The tunnel helper stopped</string>
+    <string name="fail_helper_stranger">Another program answered for the tunnel helper</string>
+    <string name="fail_helper_refused">The tunnel helper said no: %1$s</string>
+    <string name="fail_revoked">Another VPN took over</string>
+    <string name="fail_relays">No Mullvad server to use</string>
+    <string name="fail_missing">This network is gone</string>
+    <string name="fail_other">Could not connect: %1$s</string>
+    <!-- Home, the two kinds that join a network of your own -->
+    <string name="kind_ts">Tailscale</string>
+    <string name="kind_ts_sum">Your devices, signed in with your account</string>
+    <string name="kind_zt">ZeroTier</string>
+    <string name="kind_zt_sum">A network you join by its ID</string>
+
+    <!-- What an engine says, in words -->
+    <string name="eng_waiting">Waiting for approval</string>
+    <string name="eng_signing_in">Waiting for sign-in</string>
+    <string name="eng_starting">Starting</string>
+    <string name="eng_running">Connected</string>
+    <string name="eng_stopped">Off</string>
+    <string name="err_missing">This network is gone from this r1. Set it up again.</string>
+    <string name="err_revoked">Another VPN took over. Turn this one on again to take it back.</string>
+    <string name="err_config">Its settings are not right. Remove it and set it up again.</string>
+    <string name="err_library">This part of haretic is missing on this r1. An update should bring it back.</string>
+    <string name="err_consent">Not allowed to start. Turn it on again here and say OK in the dialog.</string>
+    <string name="err_settings">The system did not take its settings. Turn it off and on again.</string>
+    <string name="err_dns">A server name could not be found. Check the internet connection.</string>
+    <string name="err_io">The connection broke. Turn it off and on again.</string>
+    <string name="err_storage">This r1 could not save what it needs. Check that storage is not full.</string>
+    <string name="err_core">The network stopped by itself. Turn it off and on again.</string>
+    <string name="err_control">The server stopped answering. Check the internet connection and try again.</string>
+    <string name="err_callback">The network sent more than this r1 can take. Turn it off and on again.</string>
+    <string name="err_timeout">It took too long. Check the internet connection and try again.</string>
+    <string name="err_stop_timeout">The last network did not stop in time. Restart this r1 to clear it.</string>
+    <string name="err_api">The server said no. Check what you typed and try again.</string>
+    <string name="err_unsupported">This r1 cannot do that yet.</string>
+    <string name="err_other">Something went wrong. Turn it off and on again.</string>
+    <string name="kv_state">State</string>
+    <string name="kv_link">Link</string>
+    <string name="link_direct">Direct</string>
+    <string name="link_relay">Through a relay</string>
+    <string name="none_yet">None yet</string>
+    <string name="not_told_yet">Not told yet</string>
+
+    <!-- ZeroTier -->
+    <string name="zt_lead">Type the network\'s <b>ID</b>: 16 characters, 0-9 and a-f, from whoever runs the network.</string>
+    <string name="zt_scan">Scan it</string>
+    <string name="zt_scan_sum">From a QR code that holds the ID</string>
+    <string name="zt_name">Name on this r1</string>
+    <string name="zt_default_name">ZeroTier</string>
+    <string name="zt_bad_id">This is not a network ID. Check it with whoever runs the network.</string>
+    <string name="zt_typed">%1$d of 16</string>
+    <string name="key_backspace_char">Delete the last character</string>
+    <string name="hint_pad_hex">Press to type it - hold to go back</string>
+    <string name="hint_zt_next">Press to go on - hold to go back</string>
+    <string name="zt_trademark">ZeroTier is a trademark of ZeroTier, Inc. This is not made or endorsed by ZeroTier.</string>
+    <string name="scan_not_zt">This code does not hold a 16-character network ID.</string>
+    <string name="zt_review_lead">Check it, then save. The network\'s owner has to approve this r1 before it can reach anything there.</string>
+    <string name="kv_network_id">Network ID</string>
+    <string name="save_join">Save and join</string>
+    <string name="kv_zt_address">This r1\'s address</string>
+    <string name="kv_network_name">Network name</string>
+    <string name="kv_addresses_given">Addresses given</string>
+    <string name="zt_waiting">Waiting for approval - the network\'s owner has to allow this r1 (%1$s) in the network\'s member list. Nothing is needed here.</string>
+    <string name="zt_not_found">No network has this ID. Check it.</string>
+    <string name="zt_ns_requesting">Asking the network to let this r1 in</string>
+    <string name="zt_ns_ok">Joined</string>
+    <string name="zt_ns_denied">Waiting for approval</string>
+    <string name="zt_ns_not_found">No network has this ID</string>
+    <string name="zt_ns_port">This r1 could not open its network port. Turn it off and on again.</string>
+    <string name="zt_ns_too_old">This network needs a newer ZeroTier than this r1 has.</string>
+    <string name="zt_ns_auth">This network asks for a sign-in, which this r1 cannot do yet.</string>
+    <string name="zt_ns_unknown">Asking the network</string>
+    <string name="remove_sum_zt">Leaves the network and takes it off this r1</string>
+
+    <!-- Tailscale, step 1 -->
+    <string name="ts_lead">How should this r1 sign in to Tailscale?</string>
+    <string name="ts_browser">Sign in from another device</string>
+    <string name="ts_browser_sum">Scan a code with your phone and sign in there</string>
+    <string name="ts_key">Use a key</string>
+    <string name="ts_key_sum">One made in Tailscale\'s admin page, for a device nobody signs in on</string>
+    <string name="ts_key_field">The key</string>
+    <string name="ts_key_example">tskey-auth-...</string>
+    <string name="ts_server">Own server</string>
+    <string name="ts_server_off">Off - Tailscale\'s own</string>
+    <string name="ts_server_on">On - type its address below</string>
+    <string name="ts_server_field">Your server\'s address</string>
+    <string name="ts_server_example">https://login.example.net</string>
+    <string name="ts_sign_in">Sign in</string>
+    <string name="ts_need_key">Type the key first.</string>
+    <string name="ts_bad_server">The server\'s address starts with https:// - check it.</string>
+    <string name="ts_trademark">Tailscale is a trademark of Tailscale Inc. This is not made or endorsed by Tailscale.</string>
+    <string name="ts_default_name">Tailscale</string>
+    <string name="ts_starting">Starting Tailscale on this r1...</string>
+    <string name="ts_asking">Asking Tailscale for a sign-in link...</string>
+    <string name="ts_key_checking">Signing in with the key...</string>
+    <string name="ts_open_this">Open this on your phone or computer and sign in. This page moves on by itself.</string>
+    <string name="ts_or_open">Or type this address:</string>
+    <string name="ts_waiting">Waiting for approval - an admin of your Tailscale network has to approve this r1. This page moves on by itself.</string>
+    <string name="ts_waiting_page">Waiting for approval - an admin of your Tailscale network has to approve this r1. Nothing is needed here.</string>
+    <string name="ts_signed_in">Signed in. Connecting...</string>
+    <string name="ts_no_start">Tailscale did not start on this r1. Try again.</string>
+    <string name="ts_no_link">Tailscale\'s server did not answer. Check the internet connection and try again.</string>
+    <string name="ts_too_long">The sign-in took too long. Try again.</string>
+    <string name="ts_key_refused">The key was not taken. Check that it is valid and not used up, then try again.</string>
+    <string name="try_again">Try again</string>
+    <string name="hint_choose">Press to choose - hold to go back</string>
+    <string name="hint_ts_wait">Waiting for you to sign in - hold to go back</string>
+    <string name="hint_url">The address, to type on another device - hold to go back</string>
+
+    <!-- Tailscale, step 2 and its page -->
+    <string name="ts_options">Options</string>
+    <string name="ts_options_lead">You are in your <b>tailnet</b> - Tailscale\'s name for the network of your devices. Both of these can be changed later.</string>
+    <string name="ts_dns">Use Tailscale\'s DNS names</string>
+    <string name="ts_dns_sum">Reach your devices by their names</string>
+    <string name="ts_routes">Reach networks shared by other devices</string>
+    <string name="ts_routes_sum">Such as a home network one of them shares</string>
+    <string name="done">Done</string>
+    <string name="ts_exit">Send all traffic through</string>
+    <string name="ts_exit_nobody">Nobody - only reach your devices</string>
+    <string name="ts_exit_nobody_sum">The rest goes out directly</string>
+    <string name="ts_exit_someone">A device of yours</string>
+    <string name="ts_exit_lead">Which of your devices should all of this r1\'s traffic go out through?</string>
+    <string name="ts_exit_loading">Asking your devices...</string>
+    <string name="ts_exit_none">None of your devices offers this</string>
+    <string name="ts_exit_off">Turn Tailscale on to see your devices that offer this.</string>
+    <string name="ts_exit_failed">Could not change it. Check the connection and try again.</string>
+    <string name="kv_ts_name">This r1\'s addresses</string>
+    <string name="kv_tailnet">Network</string>
+    <string name="kv_reach">Devices online</string>
+    <string name="reach_value">%1$d of %2$d</string>
+    <string name="ts_sign_out">Sign out</string>
+    <string name="ts_sign_out_sum">Signs this r1 out and takes it off this r1</string>
+    <string name="ts_sign_out_confirm">Press again to sign out</string>
+    <string name="ts_signing_out">Signing out...</string>
+    <string name="ts_sign_out_failed">Could not sign out: Tailscale did not answer. Check the connection and try again.</string>
+    <string name="ts_sign_in_again">Sign in again</string>
+    <string name="ts_sign_in_again_sum">This r1 is signed out of Tailscale</string>
+    <string name="ts_option_failed">Could not change it. Check the connection and try again.</string>
+    <string name="hint_sign_out">Press twice to sign out - hold to go back</string>
+    <string name="kv_signed_in_as">Signed in as</string>
+    <string name="kv_device_name">This r1\'s name</string>
+    <string name="err_relays">No server is available. Try again in a moment.</string>
+    <string name="err_helper_start">The connection could not start. Try again.</string>
+    <string name="err_helper_exit">The connection stopped. Turn it off and on again.</string>
+    <string name="err_helper_stranger">The connection could not be checked. Try again.</string>
+    <string name="err_helper_refused">The connection settings were not accepted. Check them and try again.</string>
+</resources>

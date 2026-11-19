@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The app's own picture: a shield with a key across it, drawn on 100 x 100 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="100dp"
+    android:height="100dp" android:viewportWidth="100" android:viewportHeight="100">
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="6" android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M50,8L16,22v24c0,22 14.5,40 34,46 19.5,-6 34,-24 34,-46V22L50,8z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M38,42a10,10 0 1,0 20,0a10,10 0 1,0 -20,0z" />
+    <path android:fillColor="#EC6A37"
+        android:pathData="M44,42a4,4 0 1,0 8,0a4,4 0 1,0 -8,0z" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="6" android:strokeLineCap="round"
+        android:strokeLineJoin="round" android:pathData="M48,52V74M48,64h8M48,72h6" />
+</vector>

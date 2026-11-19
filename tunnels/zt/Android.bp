@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: MIT
+// Sources supplied by external/zerotier-core, pinned 1.16.2 + our metrics-worker patch.
+package { default_applicable_licenses: ["r1zt_license"], }
+license {
+    name: "r1zt_license",
+    license_kinds: ["SPDX-license-identifier-MIT", "SPDX-license-identifier-MPL-2.0",
+        "SPDX-license-identifier-BSD-2-Clause", "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-CC0-1.0", "legacy_unencumbered"],
+    license_text: ["LICENSE-MIT", "licenses/*"],
+}
+cc_library_shared {
+    name: "libr1zt",
+    system_ext_specific: true,
+    compile_multilib: "64",
+    srcs: ["jni/r1zt.cpp", "//external/zerotier-core:r1zt-core-srcs"],
+    header_libs: ["jni_headers"],
+    include_dirs: [
+        "external/zerotier-core/include",
+        "external/zerotier-core/ext",
+        "external/zerotier-core/ext/prometheus-cpp-lite-1.0/core/include",
+        "external/zerotier-core/ext/prometheus-cpp-lite-1.0/simpleapi/include",
+    ],
+    cpp_std: "c++17",
+    rtti: true,
+    cppflags: ["-fexceptions"],
+    // Upstream sources, built as they are: their warnings are not this tree's errors
+    cflags: ["-Wno-error", "-Wno-non-virtual-dtor", "-DZT_AES_NO_ACCEL", "-fvisibility=hidden", "-ffunction-sections", "-fdata-sections"],
+    ldflags: ["-Wl,--gc-sections", "-Wl,-z,max-page-size=16384"],
+    version_script: "jni/exports.map",
+    stl: "libc++_static",
+    shared_libs: ["liblog"],
+}
+java_library {
+    name: "r1zt-bindings",
+    system_ext_specific: true,
+    srcs: ["java/**/*.java"],
+    sdk_version: "current",
+    java_version: "1.8",
+    installable: false,
+}

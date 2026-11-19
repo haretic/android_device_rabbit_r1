@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cat.kenny.r1.tunnels">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- A tunnel's server may stand on the local network, at home or behind a travel router:
+         without this the system drops what the tunnel sends there -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <!-- Reading a tunnel's settings from a QR code, asked for when the scan opens -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The tunnel stays up while the app is closed: the type the system allows active VPN
+         apps, see ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Stay connected: the system's always-on VPN with its lockdown, see
+         VpnManager.setAlwaysOnVpnPackageForUser, which checks both -->
+    <uses-permission android:name="android.permission.CONTROL_ALWAYS_ON_VPN" />
+    <uses-permission android:name="android.permission.CONTROL_VPN" />
+    <!-- The side button comes to the window as a press or a hold, see
+         INPUT_FEATURE_POWER_KEY_SELECTS -->
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher"
+        android:allowBackup="false" android:supportsRtl="true"
+        android:theme="@style/Tunnels">
+        <activity android:name=".HomeActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".NetworkActivity" android:exported="false" />
+        <activity android:name=".ShowSettingsActivity" android:exported="false" />
+        <activity android:name=".WgStartActivity" android:exported="false" />
+        <!-- Kept through turning the r1: the camera stays open, the digits typed stay -->
+        <activity android:name=".ScanActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
+        <activity android:name=".TypeActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity android:name=".ReviewActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity android:name=".MullvadAccountActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
+        <activity android:name=".MullvadDevicesActivity" android:exported="false" />
+        <activity android:name=".MullvadPlaceActivity" android:exported="false" />
+        <!-- ZeroTier: the ID's key pad keeps what was typed through turning the r1 -->
+        <activity android:name=".ZtJoinActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
+        <activity android:name=".ZtReviewActivity" android:exported="false" />
+        <!-- Tailscale: signing in keeps waiting through turning the r1, the code moving beside
+             its words -->
+        <activity android:name=".TsSignInActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
+        <activity android:name=".TsOptionsActivity" android:exported="false" />
+        <activity android:name=".TsExitActivity" android:exported="false" />
+        <!-- The tunnel: the system alone may bind it, and starts it itself as the always-on
+             VPN; it is listed under Settings > Network > VPN by its intent filter -->
+        <service android:name=".TunnelService" android:exported="true"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:foregroundServiceType="systemExempted">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

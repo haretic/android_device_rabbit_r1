@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Facts, a name on the left and its value on the right, one a line -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:layout_marginBottom="8dp"
+    android:background="@drawable/card_bg" android:paddingStart="18dp"
+    android:paddingEnd="18dp" android:paddingTop="10dp" android:paddingBottom="10dp" />

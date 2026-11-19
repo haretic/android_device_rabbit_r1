@@ -56,6 +56,7 @@
         <item>cat.kenny.r1.synth=app</item>
         <item>cat.kenny.r1.router=app</item>
         <item>cat.kenny.r1.port=app</item>
+        <item>cat.kenny.r1.tunnels=app</item>
         <!-- The phone page: held, the wheel is the phone's volume -->
         <item>cat.kenny.r1.phone=app</item>
         <!-- The knob: the wheel's steps go to the other side of the link -->

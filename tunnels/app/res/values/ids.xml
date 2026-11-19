@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <!-- What the side button does on a view, said along the bottom while the wheel is on it -->
+    <item type="id" name="press_hint" />
+    <!-- Typing them in: a field each, so each keeps what was typed through a turn -->
+    <item type="id" name="field_name" />
+    <item type="id" name="field_server" />
+    <item type="id" name="field_key" />
+    <item type="id" name="field_address" />
+    <item type="id" name="field_dns" />
+    <!-- ZeroTier's and Tailscale's set-ups: their fields keep what was typed -->
+    <item type="id" name="field_zt_name" />
+    <item type="id" name="field_ts_key" />
+    <item type="id" name="field_ts_server" />
+</resources>

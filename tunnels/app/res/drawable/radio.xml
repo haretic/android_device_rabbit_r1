@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <layer-list>
+            <item><shape android:shape="oval"><size android:width="22dp" android:height="22dp" />
+                <stroke android:width="2dp" android:color="?android:attr/colorAccent" /></shape></item>
+            <item android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp">
+                <shape android:shape="oval"><solid android:color="?android:attr/colorAccent" /></shape></item>
+        </layer-list>
+    </item>
+    <item><shape android:shape="oval"><size android:width="22dp" android:height="22dp" />
+        <stroke android:width="2dp" android:color="#8A8A8A" /></shape></item>
+</selector>

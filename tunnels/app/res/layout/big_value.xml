@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A value someone reads off the screen and types elsewhere: its name, then large -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:layout_marginBottom="8dp"
+    android:background="@drawable/card_bg" android:paddingStart="18dp"
+    android:paddingEnd="18dp" android:paddingTop="10dp" android:paddingBottom="12dp">
+    <TextView android:id="@+id/big_label" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:textSize="14sp"
+        android:textColor="@color/text_faint" />
+    <TextView android:id="@+id/big_value" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_marginTop="2dp"
+        android:textSize="30sp" android:textColor="@color/text" android:fontFamily="monospace"
+        android:letterSpacing="0.04" android:maxLines="1" />
+</LinearLayout>

@@ -11,6 +11,12 @@
         <permission name="android.permission.ACCESS_LOCAL_NETWORK" fixed="false" />
         <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
     </exception>
+    <!-- Private networks: a tunnel whose server is on the local network; setting one up is
+         the asking -->
+    <exception package="cat.kenny.r1.tunnels">
+        <permission name="android.permission.ACCESS_LOCAL_NETWORK" fixed="false" />
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
     <!-- The port's lock screen card and its note of what a computer may reach -->
     <exception package="cat.kenny.r1.port">
         <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />

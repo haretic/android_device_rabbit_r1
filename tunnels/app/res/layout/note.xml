@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A line of guidance, or what went wrong, under what it is about -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:paddingStart="8dp" android:paddingEnd="6dp" android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+    <ImageView android:id="@+id/note_icon" android:layout_width="20dp"
+        android:layout_height="20dp" android:layout_marginTop="1dp"
+        android:src="@drawable/ic_info" android:tint="?android:attr/colorAccent"
+        android:importantForAccessibility="no" />
+    <TextView android:id="@+id/note_text" android:layout_width="0dp"
+        android:layout_height="wrap_content" android:layout_weight="1"
+        android:layout_marginStart="10dp" android:textSize="15sp"
+        android:textColor="@color/text_sum" />
+</LinearLayout>

@@ -1,0 +1,7 @@
+tag: 1.16.2
+tag object: a5807560866889434b182e6c2fd8eb1edb530d20
+commit: fc5c3ec22090b5b2a0f274e863651fe9ca489bf4
+
+Required downstream patch: no-metrics-file-worker.patch
+Use an external/zerotier-core fork containing exactly upstream-files.txt plus retained licences.
+Do not include nonfree/, upstream java/ JNI, service/, controller or rustybits.

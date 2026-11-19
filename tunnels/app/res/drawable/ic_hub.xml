@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A network you join: one box above, the members below it -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp"
+    android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M9,2h6c0.55,0 1,0.45 1,1v4c0,0.55 -0.45,1 -1,1h-2v3h6c0.55,0 1,0.45 1,1v4h1c0.55,0 1,0.45 1,1v4c0,0.55 -0.45,1 -1,1h-4c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1h1v-3H6v3h1c0.55,0 1,0.45 1,1v4c0,0.55 -0.45,1 -1,1H3c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1h1v-4c0,-0.55 0.45,-1 1,-1h6V8H9C8.45,8 8,7.55 8,7V3c0,-0.55 0.45,-1 1,-1zM10.5,15h3c0.55,0 1,0.45 1,1v4c0,0.55 -0.45,1 -1,1h-3c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1z" />
+</vector>

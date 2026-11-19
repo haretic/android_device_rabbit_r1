@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Settings as text, which the wheel stops on to scroll through -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp" android:padding="14dp"
+    android:background="@drawable/row_bg" android:focusable="true"
+    android:defaultFocusHighlightEnabled="false" android:fontFamily="monospace"
+    android:textSize="13sp" android:textColor="@color/text_sum"
+    android:textIsSelectable="false" />

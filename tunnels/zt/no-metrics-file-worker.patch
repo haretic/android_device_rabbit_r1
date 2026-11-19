@@ -1,0 +1,13 @@
+diff --git a/node/Metrics.cpp b/node/Metrics.cpp
+index dd49d86..c898ec5 100644
+--- a/node/Metrics.cpp
++++ b/node/Metrics.cpp
+@@ -15,7 +15,7 @@ namespace prometheus {
+ namespace simpleapi {
+ std::shared_ptr<Registry> registry_ptr = std::make_shared<Registry>();
+ Registry& registry = *registry_ptr;
+-SaveToFile saver;
++// r1 embedding: no unused process-global metrics file worker.
+ }	// namespace simpleapi
+ }	// namespace prometheus
+ 
