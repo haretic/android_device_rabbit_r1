@@ -27,10 +27,17 @@
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
         android:layout_weight="1">
-        <cat.kenny.r1.synth.PadsView android:id="@+id/pads"
-            android:layout_width="0dp" android:layout_height="match_parent"
+        <!-- The pads, and the loop under them -->
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
             android:layout_weight="1" android:layout_marginStart="18dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="10dp" android:orientation="vertical">
+            <cat.kenny.r1.synth.PadsView android:id="@+id/pads"
+                android:layout_width="match_parent" android:layout_height="0dp"
+                android:layout_weight="1" />
+            <cat.kenny.r1.synth.LoopView android:id="@+id/loop"
+                android:layout_width="match_parent" android:layout_height="40dp"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
         <cat.kenny.r1.synth.KnobView android:id="@+id/knob"
             android:layout_width="84dp" android:layout_height="match_parent" />
     </LinearLayout>

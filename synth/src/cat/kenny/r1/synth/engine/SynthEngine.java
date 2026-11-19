@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package cat.kenny.r1.synth.engine;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 /** Seeded pad voices with bounded storage and an allocation-free audio path. */
@@ -28,6 +29,18 @@ public final class SynthEngine {
     private static final double[] LENGTH = {.180, .160, .220, .900, .500, .045};
     private static final double[] GAIN = {.43, .48, .43, .38, .40, 1.0};
     private static final int VOICES = 32;
+
+    /** The loop: empty, armed (it starts with the first pad), recording, playing back, playing
+     *  back while what the pads play is added, and kept but stopped. */
+    public static final int LOOP_EMPTY = 0, LOOP_ARMED = 1, LOOP_RECORDING = 2,
+            LOOP_PLAYING = 3, LOOP_ADDING = 4, LOOP_STOPPED = 5;
+    /** The loop's length is split into this many marks for the UI's timeline */
+    public static final int LOOP_MARKS = 48;
+    /** Pad edges the loop holds; full, it takes no more presses but still every release */
+    private static final int LOOP_EVENTS = 4096;
+    private static final int LOOP_DOWN = 8;
+    /** A loop is at most this long, and shorter than LOOP_SHORTEST is taken for a slip */
+    private static final double LOOP_LONGEST = 32, LOOP_SHORTEST = .25;
     private final int rate;
     private final double dt;
     private final double smoothing;
@@ -58,6 +71,21 @@ public final class SynthEngine {
     private long random;
     private long clock;
     private int coefficientClock;
+    /** Asked by the UI, taken by the audio thread at the start of a block */
+    private final AtomicInteger loopActions = new AtomicInteger();
+    private final AtomicInteger loopClears = new AtomicInteger();
+    private final AtomicInteger loopPauses = new AtomicInteger();
+    private final AtomicInteger hushes = new AtomicInteger();
+    /** The loop's pad edges, sorted by the frame they fall on; the audio thread's alone */
+    private final int[] loopAt = new int[LOOP_EVENTS];
+    private final int[] loopWhat = new int[LOOP_EVENTS];
+    private final int[] loopMarks = new int[LOOP_MARKS];
+    private final int loopLongest;
+    private int loop = LOOP_EMPTY;
+    private int loopCount, loopNext, loopPos, loopLength;
+    /** What the UI sees of the loop, published at the end of each block */
+    private volatile int loopShown = LOOP_EMPTY;
+    private volatile float loopProgress, loopSeconds;
 
     public SynthEngine(int sampleRate, long seed) {
         if (sampleRate < 22050 || sampleRate > 192000) {
@@ -70,6 +98,7 @@ public final class SynthEngine {
         echoLine = new double[Math.max(1, (int) Math.round(ECHO_SECONDS * rate))];
         // Slower than the gap between repeats, so a fading echo is not taken for silence
         echoDecay = Math.exp(-1.0 / (.5 * rate));
+        loopLongest = (int) Math.round(LOOP_LONGEST * rate);
         random = seed ^ 0x9e3779b97f4a7c15L;
         if (random == 0) random = 1;
         for (int i = 0; i < PADS; i++) pads[i] = new Pad();
@@ -135,6 +164,9 @@ public final class SynthEngine {
     }
 
     public boolean silent() {
+        // A loop that waits, records or plays keeps time even between its sounds
+        if (loopActive() || loopActions.get() != 0 || loopClears.get() != 0
+                || loopPauses.get() != 0 || hushes.get() != 0) return false;
         if (!audioSilent) return false;
         for (int i = 0; i < PADS; i++) {
             long state = input.get(i);
@@ -143,10 +175,58 @@ public final class SynthEngine {
         return true;
     }
 
+    /** The loop's one button: record, close, add, done or play again, as its state has it. */
+    public void loopAction() {
+        loopActions.incrementAndGet();
+    }
+
+    /** Empties the loop and stops what it plays. */
+    public void loopClear() {
+        loopClears.incrementAndGet();
+    }
+
+    /** The app left: the loop stops where it is and keeps what it has, a take is closed. */
+    public void loopPause() {
+        loopPauses.incrementAndGet();
+    }
+
+    /** The speaker stopped: what still rang is dropped, so the next start is not mid-sound. */
+    public void hush() {
+        hushes.incrementAndGet();
+    }
+
+    public int loopState() {
+        return loopShown;
+    }
+
+    /** Waiting for a pad, recording or playing back: it wants the speaker running. */
+    public boolean loopActive() {
+        final int state = loopShown;
+        return state == LOOP_ARMED || state == LOOP_RECORDING || state == LOOP_PLAYING
+                || state == LOOP_ADDING;
+    }
+
+    /** Where the loop is playing, 0 to 1. */
+    public float loopProgress() {
+        return loopProgress;
+    }
+
+    /** How long the loop is, or has been recording for. */
+    public float loopSeconds() {
+        return loopSeconds;
+    }
+
+    /** The pads struck in one LOOP_MARKS-th of the loop, a bit for each. A plain read: a
+     *  stale value is a mark drawn a frame late. */
+    public int loopMarks(int mark) {
+        return loopMarks[mark];
+    }
+
     /** One audio thread owns all oscillators; the UI publishes only controls and hit counters. */
     public void render(short[] out, int frames) {
         if (frames < 0 || frames > out.length) throw new IllegalArgumentException("frames");
         if (frames == 0) return;
+        receiveLoop();
         receivePads();
         boolean quiet = false;
         for (int frame = 0; frame < frames; frame++) {
@@ -157,6 +237,18 @@ public final class SynthEngine {
             if (coefficientClock-- <= 0) {
                 updateCoefficients();
                 coefficientClock = 31;
+            }
+            if (loop == LOOP_PLAYING || loop == LOOP_ADDING) {
+                // The loop strikes and lets go of its pads as the fingers did; the voices run
+                // on over the end, so the turn of the loop is never a cut
+                while (loopNext < loopCount && loopAt[loopNext] <= loopPos) fire(loopNext++);
+                if (++loopPos >= loopLength) {
+                    if (loop == LOOP_ADDING) closeOpenAtEnd();
+                    loopPos = 0;
+                    loopNext = 0;
+                }
+            } else if (loop == LOOP_RECORDING && ++loopPos >= loopLongest) {
+                closeRecording(LOOP_PLAYING);
             }
             for (int p = 0; p < PADS; p++) {
                 Pad pad = pads[p];
@@ -208,6 +300,190 @@ public final class SynthEngine {
             echoPeak = 0;
         }
         audioSilent = quiet && !held;
+        publishLoop();
+    }
+
+    private void publishLoop() {
+        final boolean going = loop == LOOP_PLAYING || loop == LOOP_ADDING;
+        loopProgress = going && loopLength > 0 ? (float) loopPos / loopLength : 0;
+        loopSeconds = (float) (loop == LOOP_RECORDING ? loopPos : loopLength) / rate;
+        loopShown = loop;
+    }
+
+    private void receiveLoop() {
+        if (hushes.getAndSet(0) != 0) hushNow();
+        if (loopPauses.getAndSet(0) != 0) {
+            switch (loop) {
+                case LOOP_ARMED:
+                    loop = LOOP_EMPTY;
+                    break;
+                case LOOP_RECORDING:
+                    closeRecording(LOOP_STOPPED);
+                    break;
+                case LOOP_PLAYING:
+                case LOOP_ADDING:
+                    closeOpenHere();
+                    releaseLoopPads();
+                    loop = LOOP_STOPPED;
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (loopClears.getAndSet(0) != 0) clearLoop();
+        for (int n = loopActions.getAndSet(0); n > 0; n--) {
+            switch (loop) {
+                case LOOP_EMPTY:
+                    loop = LOOP_ARMED;
+                    break;
+                case LOOP_ARMED:
+                    loop = LOOP_EMPTY;
+                    break;
+                case LOOP_RECORDING:
+                    closeRecording(LOOP_PLAYING);
+                    break;
+                case LOOP_PLAYING:
+                    loop = LOOP_ADDING;
+                    break;
+                case LOOP_ADDING:
+                    closeOpenHere();
+                    loop = LOOP_PLAYING;
+                    break;
+                default:
+                    // Stopped: again from its start
+                    loopPos = 0;
+                    loopNext = 0;
+                    loop = LOOP_PLAYING;
+                    break;
+            }
+        }
+        publishLoop();
+    }
+
+    /** Nothing left ringing, the filters and the echo emptied: the next block starts silent. */
+    private void hushNow() {
+        for (Voice voice : voices) voice.active = false;
+        tone.clear();
+        for (Biquad stage : guard) stage.clear();
+        java.util.Arrays.fill(echoLine, 0);
+        echoPeak = 0;
+        for (Pad pad : pads) pad.peak = 0;
+    }
+
+    /** The first pad of an armed loop: the take starts with it. */
+    private void startRecording() {
+        clearLoop();
+        loop = LOOP_RECORDING;
+    }
+
+    /** The take ends here: it plays back from its start, or waits stopped. */
+    private void closeRecording(int then) {
+        closeOpenHere();
+        loopLength = loopPos;
+        if (loopLength < LOOP_SHORTEST * rate || loopCount == 0) {
+            clearLoop();
+            return;
+        }
+        for (int i = 0; i < loopCount; i++) {
+            // A release on the very last frame still falls inside the loop
+            if (loopAt[i] >= loopLength) loopAt[i] = loopLength - 1;
+            if ((loopWhat[i] & LOOP_DOWN) != 0) mark(loopAt[i], loopWhat[i] & 7);
+        }
+        loopPos = 0;
+        loopNext = 0;
+        loop = then;
+    }
+
+    private void clearLoop() {
+        releaseLoopPads();
+        for (Pad pad : pads) pad.open = false;
+        loopCount = 0;
+        loopNext = 0;
+        loopPos = 0;
+        loopLength = 0;
+        for (int i = 0; i < LOOP_MARKS; i++) loopMarks[i] = 0;
+        loop = LOOP_EMPTY;
+    }
+
+    private void mark(int at, int pad) {
+        if (loopLength > 0) {
+            loopMarks[(int) Math.min(LOOP_MARKS - 1, (long) at * LOOP_MARKS / loopLength)] |=
+                    1 << pad;
+        }
+    }
+
+    /** A pad still held as recording ends lets go here in the loop. */
+    private void closeOpenHere() {
+        for (int p = 0; p < PADS; p++) {
+            if (pads[p].open) {
+                record(p, false);
+                pads[p].open = false;
+            }
+        }
+    }
+
+    /** Held over the loop's end while adding: it lets go at the end, as the turn needs. */
+    private void closeOpenAtEnd() {
+        final int next = loopNext, pos = loopPos;
+        loopNext = loopCount;
+        loopPos = loopLength - 1;
+        closeOpenHere();
+        loopNext = next;
+        loopPos = pos;
+    }
+
+    /** A pad edge into the loop where it is now, after what already sounded here. */
+    private boolean record(int pad, boolean down) {
+        // Room is kept for every held pad's release
+        if (loopCount >= (down ? LOOP_EVENTS - PADS : LOOP_EVENTS)) return false;
+        final int at = loopNext;
+        System.arraycopy(loopAt, at, loopAt, at + 1, loopCount - at);
+        System.arraycopy(loopWhat, at, loopWhat, at + 1, loopCount - at);
+        loopAt[at] = loopPos;
+        loopWhat[at] = pad | (down ? LOOP_DOWN : 0);
+        loopCount++;
+        loopNext++;
+        if (down && loop == LOOP_ADDING) mark(loopPos, pad);
+        return true;
+    }
+
+    /** One of the loop's edges, played as a finger's would be. */
+    private void fire(int event) {
+        final int p = loopWhat[event] & 7;
+        final Pad pad = pads[p];
+        if ((loopWhat[event] & LOOP_DOWN) != 0) {
+            pad.loopDown = true;
+            hit(p, false, true);
+            pad.until = period;
+            pad.down = true;
+        } else {
+            pad.loopDown = false;
+            if (pad.down && !pad.userDown) releaseSlices(p);
+            pad.down = pad.userDown;
+        }
+    }
+
+    /** The loop stopped or was cleared: the pads it held are let go, the fingers' kept. */
+    private void releaseLoopPads() {
+        for (int p = 0; p < PADS; p++) {
+            final Pad pad = pads[p];
+            if (pad.loopDown) {
+                pad.loopDown = false;
+                if (pad.down && !pad.userDown) releaseSlices(p);
+                pad.down = pad.userDown;
+            }
+        }
+    }
+
+    private void releaseSlices(int p) {
+        for (Voice voice : voices) {
+            if (voice.active && voice.pad == p && voice.sliceEnd > 0) {
+                // Keep the gain reached by a slice's exit ramp when releasing it.
+                voice.strength *= Math.min(1, Math.max(0,
+                        (voice.sliceEnd - voice.age) / .002));
+                voice.sliceEnd = 0;
+            }
+        }
     }
 
     private void receivePads() {
@@ -216,24 +492,33 @@ public final class SynthEngine {
             long state = input.get(p);
             long hits = state >>> 1;
             boolean down = (state & 1) != 0;
+            boolean was = pad.down;
             if (hits != pad.consumed) {
+                if (loop == LOOP_ARMED) startRecording();
+                boolean taking = loop == LOOP_RECORDING || loop == LOOP_ADDING;
                 // Counters preserve a tap even when both edges arrive between callbacks.
                 long count = Math.min(VOICES, hits - pad.consumed);
-                for (long i = 0; i < count; i++) hit(p, false, down);
+                for (long i = 0; i < count; i++) {
+                    if (taking) {
+                        // Into the loop as heard: at the start of this block
+                        if (pad.open) record(p, false);
+                        pad.open = record(p, true);
+                        if (pad.open && (i < count - 1 || !down)) {
+                            record(p, false);
+                            pad.open = false;
+                        }
+                    }
+                    hit(p, false, down || pad.loopDown);
+                }
                 pad.until = period;
                 pad.consumed = hits;
+            } else if (pad.open && !down) {
+                record(p, false);
+                pad.open = false;
             }
-            if (pad.down && !down) {
-                for (Voice voice : voices) {
-                    if (voice.active && voice.pad == p && voice.sliceEnd > 0) {
-                        // Keep the gain reached by a slice's exit ramp when releasing it.
-                        voice.strength *= Math.min(1, Math.max(0,
-                                (voice.sliceEnd - voice.age) / .002));
-                        voice.sliceEnd = 0;
-                    }
-                }
-            }
-            pad.down = down;
+            pad.userDown = down;
+            pad.down = down || pad.loopDown;
+            if (was && !pad.down) releaseSlices(p);
         }
     }
 
@@ -297,6 +582,10 @@ public final class SynthEngine {
         volatile int slices;
         volatile long consumed;
         boolean down;
+        /** Held by a finger or the side button, and by the loop playing back */
+        boolean userDown, loopDown;
+        /** Pressed into the loop being recorded and not let go there yet */
+        boolean open;
         double until;
         double peak;
     }

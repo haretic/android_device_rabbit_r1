@@ -33,9 +33,16 @@
         android:layout_width="match_parent" android:layout_height="52dp"
         android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
         android:layout_marginBottom="8dp" />
-    <cat.kenny.r1.synth.PadsView android:id="@+id/pads"
-        android:layout_width="match_parent" android:layout_height="0dp"
+    <!-- The pads, and the loop in a column beside them -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
         android:layout_weight="1" android:layout_marginStart="18dp"
-        android:layout_marginEnd="18dp" android:layout_marginBottom="10dp" />
+        android:layout_marginEnd="18dp" android:layout_marginBottom="10dp">
+        <cat.kenny.r1.synth.PadsView android:id="@+id/pads"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" />
+        <cat.kenny.r1.synth.LoopView android:id="@+id/loop"
+            android:layout_width="104dp" android:layout_height="match_parent"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
     <include layout="@layout/hint" />
 </LinearLayout>

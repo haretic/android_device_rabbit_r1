@@ -18,8 +18,9 @@ import cat.kenny.r1.synth.engine.SynthEngine;
 import java.util.Random;
 
 /**
- * The six pads, two across, three across where the view is wide, as turned. A pad under a finger turns to the accent and, held, breaks into
- * slices that shift with every stutter. Each pad carries a small drawing of its sound.
+ * The six pads, two across, three across where the view is wide, as turned. A pad under a
+ * finger turns to the accent and, held, breaks into slices that shift with every stutter.
+ * Each pad carries a small drawing of its sound, and glows as the loop strikes it.
  */
 public final class PadsView extends View {
 
@@ -28,7 +29,7 @@ public final class PadsView extends View {
     }
 
     /** Each sound's drawing is about this tall, in dp (mark()). */
-    private static final float MARK_HEIGHT = 44;
+    private static final float MARK_HEIGHT = 44, MARK_WIDTH = 112;
     private static final int SLICES = 5;
     private static final int INK = 0xff2a1206;
 
@@ -97,9 +98,10 @@ public final class PadsView extends View {
         }
     }
 
-    /** Two across upright; three in a view twice as wide as tall, as with the screen turned. */
+    /** Two across upright; three in a view half again as wide as tall, as with the screen
+     *  turned, the loop's column beside it. */
     private int columns() {
-        return getWidth() >= 2 * getHeight() ? 3 : 2;
+        return 2 * getWidth() >= 3 * getHeight() ? 3 : 2;
     }
 
     private void bounds(int pad, RectF out) {
@@ -192,8 +194,10 @@ public final class PadsView extends View {
             // The drawing above the name, never under it: shrunk to the room a short pad has
             final float markTop = mRect.top + Math.min(18 * mDensity, mRect.height() * 0.12f);
             final float nameTop = mRect.bottom - 18 * mDensity + mPaint.ascent() - 4 * mDensity;
-            final float scale = Math.max(0.3f,
-                    Math.min(1, (nameTop - markTop) / (MARK_HEIGHT * mDensity)));
+            // and to the width a narrow one has
+            final float scale = Math.max(0.3f, Math.min(Math.min(1,
+                    (mRect.width() - 36 * mDensity) / (MARK_WIDTH * mDensity)),
+                    (nameTop - markTop) / (MARK_HEIGHT * mDensity)));
             canvas.save();
             canvas.scale(scale, scale, mRect.left + 18 * mDensity, markTop);
             mark(canvas, pad, mRect.left + 18 * mDensity, markTop, ink);

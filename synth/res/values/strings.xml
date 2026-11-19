@@ -59,9 +59,52 @@
     <string name="hint_stutter">A held pad repeats, the wheel sets how fast. Press for echo.</string>
     <string name="hint_echo">The wheel sets the echo, all the way down is off. Press for scale.</string>
     <string name="hint_scale">The wheel picks the scale the pads play in. Press for presets.</string>
-    <string name="hint_preset">The wheel picks a ready-made sound. Press to play by wheel.</string>
+    <string name="hint_preset">The wheel picks a ready-made sound. Press to play and loop by wheel.</string>
     <string name="knobs">Knobs</string>
-    <string name="hint_play">Wheel picks a pad. Press to play, hold to repeat. Turn past either end or tap Knobs to leave.</string>
+    <string name="hint_play">Wheel picks a pad or the loop. Press to play, hold to repeat. Turn past either end or tap Knobs to leave.</string>
     <string name="hint_play_held">Repeating. Wheel sets how fast. Let go, then turn past either end for knobs.</string>
     <string name="hint_play_top_held">Repeating. Turn up for knobs. Let go to stop.</string>
+    <!-- The loop, under the pads: its states, in the order of SynthEngine's LOOP_ -->
+    <string-array name="loop_states">
+        <item>Loop</item>
+        <item>Ready</item>
+        <item>Recording</item>
+        <item>Looping</item>
+        <item>Adding</item>
+        <item>Stopped</item>
+    </string-array>
+    <!-- Its one button in each state: record, cancel the wait, close the take and hear it,
+         add on top, stop adding, play again -->
+    <string-array name="loop_actions">
+        <item>Record</item>
+        <item>Cancel</item>
+        <item>Play</item>
+        <item>Add</item>
+        <item>Done</item>
+        <item>Play</item>
+    </string-array>
+    <!-- Beside the name, with the wheel on the loop's button in Play -->
+    <string-array name="loop_settings">
+        <item>Record a loop</item>
+        <item>Cancel recording</item>
+        <item>Close the loop</item>
+        <item>Add to the loop</item>
+        <item>Done adding</item>
+        <item>Play the loop</item>
+    </string-array>
+    <string name="loop_clear">Clear</string>
+    <string name="setting_loop_clear">Clear the loop</string>
+    <string name="loop_ready_detail">play a pad</string>
+    <string name="loop_seconds"><xliff:g id="seconds">%1$s</xliff:g> s</string>
+    <string name="loop_description"><xliff:g id="state">%1$s</xliff:g>, <xliff:g id="action">%2$s</xliff:g></string>
+    <!-- With the wheel on the loop's button in Play, one for each state, and on Clear -->
+    <string-array name="loop_hints">
+        <item>Press to record a loop, it starts with the first pad. Turn down for knobs.</item>
+        <item>Ready. Turn up to a pad and press it to start. Press here to cancel.</item>
+        <item>Recording. Press to close the loop and hear it. Turn down for Clear.</item>
+        <item>Looping. Press to play more on top. Turn down for Clear.</item>
+        <item>Adding. Pads you play now join the loop. Press when done, turn down for Clear.</item>
+        <item>Loop stopped. Press to play it again. Turn down for Clear.</item>
+    </string-array>
+    <string name="hint_loop_clear">Press to clear the loop. Turn up to keep it, down for knobs.</string>
 </resources>

@@ -21,7 +21,8 @@ import cat.kenny.r1.synth.engine.SynthEngine;
 /**
  * The synth: six pads under the fingers and the wheel as one knob. The side button moves the
  * knob on from the filter to the pitch, the stutter, the echo, the scale and the presets, and
- * last to playing the pads by wheel. What it was left at is there the next time.
+ * last to playing the pads by wheel, and past the pads the loop. What it was left at is there
+ * the next time.
  */
 public final class SynthActivity extends Activity implements Choreographer.FrameCallback {
 
@@ -32,6 +33,8 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
     private static final int[] HINTS = {R.string.hint_filter, R.string.hint_pitch,
             R.string.hint_stutter, R.string.hint_echo, R.string.hint_scale, R.string.hint_preset,
             R.string.hint_play};
+    /** In Play, past the six pads: the loop's button, then Clear while it has something */
+    private static final int LOOP_ITEM = SynthEngine.PADS, CLEAR_ITEM = SynthEngine.PADS + 1;
     /** A wheel click moves the knob by this much of its travel */
     private static final float STEP = 1f / 24;
     /** The pitch moves by whole notes of the scale, seven either way */
@@ -49,9 +52,15 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         {.40f, .5f - 3f / 14, .20f, .70f, 2},
     };
 
-    private final SynthEngine mEngine = new SynthEngine(Speaker.RATE, System.nanoTime());
+    /** Kept over a turn of the screen, with the loop in it */
+    private SynthEngine mEngine;
     private final Speaker mSpeaker = new Speaker();
     private PadsView mPads;
+    private LoopView mLoop;
+    private String[] mLoopSettings;
+    private String[] mLoopHints;
+    /** The loop's state as last shown */
+    private int mLoopState;
     private KnobView mKnob;
     private TextView mSetting;
     private String[] mKnobs;
@@ -94,6 +103,8 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        mEngine = getLastNonConfigurationInstance() instanceof SynthEngine kept ? kept
+                : new SynthEngine(Speaker.RATE, System.nanoTime());
         final WindowManager.LayoutParams lp = getWindow().getAttributes();
         lp.inputFeatures |= WindowManager.LayoutParams.INPUT_FEATURE_POWER_KEY_SELECTS;
         getWindow().setAttributes(lp);
@@ -103,6 +114,8 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         mPadNames = getResources().getStringArray(R.array.pads);
         mScales = getResources().getStringArray(R.array.scales);
         mPresets = getResources().getStringArray(R.array.presets);
+        mLoopSettings = getResources().getStringArray(R.array.loop_settings);
+        mLoopHints = getResources().getStringArray(R.array.loop_hints);
         mPads = findViewById(R.id.pads);
         mKnob = findViewById(R.id.knob);
         final View root = findViewById(R.id.synth_root);
@@ -128,6 +141,21 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         // screen off instead
         mSetting.setOnClickListener(v -> next());
         findViewById(R.id.knobs).setOnClickListener(v -> to(FILTER));
+        // The loop by finger: its button acts on the touch, Clear on letting go
+        mLoop = findViewById(R.id.loop);
+        mLoopState = mEngine.loopState();
+        mLoop.show(mEngine);
+        mLoop.setListener(new LoopView.Listener() {
+            @Override
+            public void onLoopAction() {
+                loopAction();
+            }
+
+            @Override
+            public void onLoopClear() {
+                loopClear();
+            }
+        });
         mPads.set(mPadNames, (pad, down) -> {
             if (down) {
                 if (mWhich == PLAY) {
@@ -145,8 +173,7 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
         if (state != null) {
             // A turn of the screen keeps Play; only a fresh opening starts on the knobs.
             mWhich = Math.max(FILTER, Math.min(PLAY, state.getInt("which", FILTER)));
-            mSelected = Math.max(0, Math.min(SynthEngine.PADS - 1,
-                    state.getInt("selected", 0)));
+            mSelected = Math.max(0, Math.min(items() - 1, state.getInt("selected", 0)));
         }
         showKnob();
     }
@@ -184,6 +211,11 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
     protected void onStop() {
         getSystemService(DisplayManager.class).unregisterDisplayListener(mDisplays);
         super.onStop();
+    }
+
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        return mEngine;
     }
 
     @Override
@@ -227,6 +259,24 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
                 return mShown && !mEngine.silent();
             });
         }
+    }
+
+    /** The loop's button: record, close the take, add on top, done or play again. */
+    private void loopAction() {
+        mEngine.loopAction();
+        play();
+        tick();
+    }
+
+    private void loopClear() {
+        mEngine.loopClear();
+        play();
+        tick();
+    }
+
+    /** What Play goes through: the pads, the loop's button and Clear while it has something. */
+    private int items() {
+        return SynthEngine.PADS + (LoopView.clearable(mLoopState) ? 2 : 1);
     }
 
     /** Which preset the knobs are at, -1 where they were turned away from all of them. */
@@ -281,8 +331,8 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
                 return preset < 0 || presetCount() < 2 ? 0 : (float) preset / (presetCount() - 1);
             }
             case PLAY:
-                // The first pad at the top, as they are laid out
-                return 1 - (float) mSelected / (SynthEngine.PADS - 1);
+                // The first pad at the top, as they are laid out, the loop last
+                return 1 - (float) mSelected / (items() - 1);
             default:
                 return mEngine.knob(mWhich);
         }
@@ -318,7 +368,9 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
                         : getString(R.string.setting_preset, mPresets[preset]);
             }
             default:
-                return getString(R.string.setting_play, mPadNames[mSelected]);
+                return mSelected == LOOP_ITEM ? mLoopSettings[mLoopState]
+                        : mSelected == CLEAR_ITEM ? getString(R.string.setting_loop_clear)
+                        : getString(R.string.setting_play, mPadNames[mSelected]);
         }
     }
 
@@ -333,15 +385,21 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
             lp.inputFeatures = features;
             getWindow().setAttributes(lp);
         }
+        // Clear goes with what it cleared: the wheel is back on the loop's button
+        mSelected = Math.min(mSelected, items() - 1);
         final String setting = setting();
         mKnob.set(mKnobs[mWhich], mWhich, mKnobs.length, laneValue());
         mKnob.setContentDescription(setting);
         mSetting.setText(setting);
-        mPads.select(mWhich == PLAY ? mSelected : -1);
+        mPads.select(mWhich == PLAY && mSelected < SynthEngine.PADS ? mSelected : -1);
+        mLoop.focus(mWhich != PLAY ? LoopView.NONE : mSelected == LOOP_ITEM ? LoopView.ACTION
+                : mSelected == CLEAR_ITEM ? LoopView.CLEAR : LoopView.NONE);
         findViewById(R.id.knobs).setVisibility(mWhich == PLAY ? View.VISIBLE : View.GONE);
         ((TextView) findViewById(R.id.hint)).setText(mWhich == PLAY && mKeyPad >= 0
-                ? mSelected < 2 ? R.string.hint_play_top_held : R.string.hint_play_held
-                : HINTS[mWhich]);
+                ? getString(mSelected < 2 ? R.string.hint_play_top_held : R.string.hint_play_held)
+                : mWhich == PLAY && mSelected == LOOP_ITEM ? mLoopHints[mLoopState]
+                : mWhich == PLAY && mSelected == CLEAR_ITEM ? getString(R.string.hint_loop_clear)
+                : getString(HINTS[mWhich]));
     }
 
     private void tick() {
@@ -404,10 +462,10 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
                             Math.round(4 * Math.pow(8, mEngine.knob(STUTTER)))));
                     return;
                 }
-                // Down the pads is the wheel turned down; one click past an end, not part of a
-                // flick, goes back to the knobs
+                // Down the pads and on to the loop is the wheel turned down; one click past an
+                // end, not part of a flick, goes back to the knobs
                 final int pad = mSelected - clicks;
-                if (pad < 0 || pad >= SynthEngine.PADS) {
+                if (pad < 0 || pad >= items()) {
                     if (since > FLICK_MS) {
                         to(pad < 0 ? PRESET : FILTER);
                     }
@@ -442,7 +500,7 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
                 break;
             }
             case PLAY:
-                mSelected = Math.round((1 - value) * (SynthEngine.PADS - 1));
+                mSelected = Math.round((1 - value) * (items() - 1));
                 break;
             default:
                 mEngine.setKnob(mWhich, value);
@@ -457,6 +515,10 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
     protected void onResume() {
         super.onResume();
         mShown = true;
+        // Back from a turn of the screen a loop plays on; back from elsewhere it was stopped
+        if (mEngine.loopActive()) {
+            play();
+        }
         Choreographer.getInstance().postFrameCallback(this);
     }
 
@@ -469,6 +531,12 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
             mEngine.padUp(pad);
         }
         mSpeaker.join();
+        // What still rang does not ring on at the next start; leaving stops the loop, a turn
+        // of the screen keeps it going
+        mEngine.hush();
+        if (!isChangingConfigurations()) {
+            mEngine.loopPause();
+        }
         save();
         super.onPause();
     }
@@ -477,6 +545,12 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
     public void doFrame(long nanos) {
         for (int pad = 0; pad < SynthEngine.PADS; pad++) {
             mPads.show(pad, mEngine.level(pad), mEngine.slice(pad));
+        }
+        mLoop.show(mEngine);
+        final int loop = mEngine.loopState();
+        if (loop != mLoopState) {
+            mLoopState = loop;
+            showKnob();
         }
         if (mShown) {
             Choreographer.getInstance().postFrameCallback(this);
@@ -503,7 +577,16 @@ public final class SynthActivity extends Activity implements Choreographer.Frame
                 // Playing by wheel: the button is the pad's own, down and up, and a hold
                 // repeats it as a finger's would
                 if (down) {
-                    if (event.getRepeatCount() == 0 && mKeyPad < 0 && mWhich == PLAY) {
+                    if (event.getRepeatCount() == 0 && mKeyPad < 0 && mWhich == PLAY
+                            && mSelected >= SynthEngine.PADS) {
+                        // On the loop: its button or Clear, as it goes down, for the timing
+                        mPlayKey = true;
+                        if (mSelected == LOOP_ITEM) {
+                            loopAction();
+                        } else {
+                            loopClear();
+                        }
+                    } else if (event.getRepeatCount() == 0 && mKeyPad < 0 && mWhich == PLAY) {
                         mPlayKey = true;
                         mKeyPad = mSelected;
                         mPads.keyDown(mKeyPad, true);
