@@ -168,10 +168,10 @@
     <string name="speaker">The computer plays on the r1 speaker</string>
     <string name="speaker_muted">Speaker muted - press to unmute</string>
     <string name="speaker_live">Speaker on - press to mute</string>
-    <string name="audio_guidance">Choose R1 USB Audio as the computer's output or input. Quick Settings &gt; USB devices also stops it.</string>
+    <string name="audio_guidance">Choose R1 USB Audio as the computer\'s output or input. Quick Settings &gt; USB devices also stops it.</string>
     <string name="audio_ready">Audio bridge ready - 48 kHz, 16-bit stereo</string>
     <string name="audio_waiting">Waiting for computer audio…</string>
-    <string name="audio_error">Audio is unavailable. Check microphone permission and the computer's audio selection, or Stop and retry.</string>
+    <string name="audio_error">Audio is unavailable. Check microphone permission and the computer\'s audio selection, or Stop and retry.</string>
     <string name="select_on_pc">Select it on the computer</string>
     <string name="touchpad">Touchpad - wheel scrolls the computer</string>
     <string name="input_guidance">Move the highlight to the touchpad: wheel scrolls the computer, side button clicks. Touch moves the pointer; tap clicks. Hold the side button to return to Stop.</string>
@@ -187,7 +187,7 @@
     <string name="left">Left</string>
     <string name="done">Done</string>
     <string name="draft_empty">Your text appears here</string>
-    <string name="typing_guidance">Focus a text box on the computer. English (US) - match the computer's layout. Send text sends the draft once, with no Enter. Up to 60 characters.</string>
+    <string name="typing_guidance">Focus a text box on the computer. English (US) - match the computer\'s layout. Send text sends the draft once, with no Enter. Up to 60 characters.</string>
     <string name="send_text">Send text</string>
     <string name="shift">Shift</string>
     <string name="numbers">123</string>
@@ -209,7 +209,7 @@
     <string name="sound_footer">The computer sees a sound card - adb kept on</string>
     <string name="sound_footer_no_adb">The computer sees a sound card</string>
     <string name="touchpad_title">Touchpad</string>
-    <string name="touchpad_hint">Move a finger to move the computer's pointer</string>
+    <string name="touchpad_hint">Move a finger to move the computer\'s pointer</string>
     <string name="pointer_title">Wheel pointer control</string>
     <string name="pointer_hint">Wheel chooses a direction below</string>
     <string name="pointer_done">Done - return to touchpad</string>
@@ -218,7 +218,7 @@
     <string name="input_actions_hint">Press the side button on a left/right action.\nIn Scroll computer page: wheel scrolls - press to exit.</string>
     <string name="typing_hint">Focus the target text box on the computer first.\nNothing is sent until you choose Send text.</string>
     <string name="typing_keys_hint">Wheel moves through keys - side button types.\nUp to 60 English (US) characters.</string>
-    <string name="keyboard_layout">English (US) - match the computer's layout</string>
+    <string name="keyboard_layout">English (US) - match the computer\'s layout</string>
     <string name="playback">Computer playback</string>
     <string name="mic_input">Mic input</string>
     <string name="separate_session">Unavailable - needs a separate session</string>
