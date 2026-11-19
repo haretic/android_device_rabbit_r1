@@ -260,6 +260,10 @@ public final class WebDeskActivity extends Activity {
         }
         ((TextView) findViewById(R.id.off_text)).setText(failed ? R.string.start_failed
                 : R.string.off_text);
+        // The framework restores the focused-by-default view at first window focus.
+        // Keep it aligned with the harmless action show() requests before that event.
+        findViewById(R.id.title).setFocusedByDefault(!off);
+        start.setFocusedByDefault(off);
         if (off) {
             hint.setText(R.string.hint_off);
             // Start is what the page is for now: asked for, so a press of it is the answer
