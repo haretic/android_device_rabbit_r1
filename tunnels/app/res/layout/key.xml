@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- One key of a row of them, such as a letter to jump down a list by -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android" style="@style/Key"
+    android:textSize="17sp" android:fontFamily="haretic-text-bold" />

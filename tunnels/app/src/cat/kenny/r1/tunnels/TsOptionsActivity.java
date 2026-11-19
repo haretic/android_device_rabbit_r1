@@ -13,7 +13,8 @@ import java.util.function.Consumer;
 
 /**
  * Tailscale, step 2: signed in, the two options, both on to start with, each a row whose
- * switch a press or a tap turns; then Done, to the app's page with the network on it.
+ * switch a press or a tap turns; then Done, to the app's page with the network on it. The
+ * page starts on Done, so that a first press does not turn an option.
  */
 public final class TsOptionsActivity extends Page {
     static final String EXTRA_ID = "id";
@@ -31,13 +32,15 @@ public final class TsOptionsActivity extends Page {
         title(R.string.kind_ts);
         steps(2, 2);
         lead(getText(R.string.ts_options_lead));
-        final View dns = optionRow(this, mBody, mNet, true);
+        optionRow(this, mBody, mNet, true);
         optionRow(this, mBody, mNet, false);
         final TextView done = buttons(mBody, R.string.done);
-        pressHint(done, getText(R.string.hint_choose));
+        pressHint(done, getText(R.string.hint_done));
         done.setOnClickListener(v -> home());
         hint(R.string.hint_toggle);
-        dns.requestFocus();
+        // Done, not the topmost switch, is where a press after a tap lands
+        done.setFocusedByDefault(true);
+        done.requestFocus();
     }
 
     /** A switch row for one of the options, on the set-up's page and the network's */

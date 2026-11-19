@@ -28,6 +28,7 @@ public final class TypeActivity extends Page {
     private TextView mPublicKey;
     private QrView mQr;
     private View mProblem;
+    private int mProblemAt;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -60,8 +61,10 @@ public final class TypeActivity extends Page {
         mBody.addView(mQr);
 
         mProblem = note(mBody, R.drawable.ic_info, "");
+        mProblemAt = mBody.indexOfChild(mProblem);
         noteText(mProblem, "", true);
         final TextView next = buttons(mBody, R.string.next);
+        pressHint(next, getText(R.string.hint_next));
         next.setOnClickListener(v -> next());
         hint(R.string.hint_type_page);
         if (state == null) {
@@ -119,8 +122,21 @@ public final class TypeActivity extends Page {
     }
 
     private void next() {
+        for (EditText field : new EditText[] {mName, mServer, mKey, mAddress, mDns}) {
+            clearFieldProblem(field);
+        }
+        noteText(mProblem, "", true);
+        if (mBody.indexOfChild(mProblem) != mProblemAt) {
+            // Back above Next, from under the key where the last message put it
+            mBody.removeView(mProblem);
+            mBody.addView(mProblem, Math.min(mProblemAt, mBody.getChildCount()));
+        }
         if (Draft.typedKey == null) {
+            // Said under the key it waits for, the wheel on it
+            mBody.removeView(mProblem);
+            mBody.addView(mProblem, mBody.indexOfChild(mPublicKey) + 1);
             noteText(mProblem, getText(R.string.type_no_key), true);
+            mPublicKey.requestFocus();
             return;
         }
         final String name = mName.getText().toString().trim();
@@ -178,9 +194,9 @@ public final class TypeActivity extends Page {
         startActivity(new Intent(this, ReviewActivity.class));
     }
 
+    /** What is wrong in a field, right under it, the wheel on it to fix it */
     private void problem(EditText field, int text) {
-        noteText(mProblem, getText(text), true);
-        field.requestFocus();
+        fieldProblem(field, getText(text));
     }
 
     @Override

@@ -17,13 +17,15 @@ import java.util.Locale;
 /**
  * The account's devices, when it has as many as Mullvad allows: one to remove, so that this
  * r1 can be added. A press or a tap arms a device's Remove, a second removes it, and the
- * set-up tries again.
+ * set-up tries again. The page starts on its first line, which only reads, as every device
+ * here is one to remove.
  */
 public final class MullvadDevicesActivity extends Page {
     private static final long CONFIRM_MS = 4000;
 
     private View mStatus;
     private View mArmed;
+    private View mLead;
     private boolean mBusy;
 
     @Override
@@ -34,7 +36,13 @@ public final class MullvadDevicesActivity extends Page {
             return;
         }
         title(R.string.kind_mullvad);
-        lead(getText(R.string.devices_lead));
+        // Still step 1: making room for this r1 on the account
+        steps(1, 2);
+        mLead = stop(lead(getText(R.string.devices_lead)));
+        final int pad = (int) (12 * getResources().getDisplayMetrics().density);
+        mLead.setPadding(pad, pad, pad, pad);
+        ((android.view.ViewGroup.MarginLayoutParams) mLead.getLayoutParams()).bottomMargin = pad / 2;
+        mLead.requestFocus();
         mStatus = note(mBody, R.drawable.ic_info, getText(R.string.mullvad_asking));
         hint(R.string.hint_device);
         load();
@@ -86,7 +94,7 @@ public final class MullvadDevicesActivity extends Page {
         // The status line goes under the list
         mBody.removeView(mStatus);
         mBody.addView(mStatus);
-        if (first != null) {
+        if (first != null && getCurrentFocus() == null) {
             first.requestFocus();
         }
     }
@@ -124,6 +132,9 @@ public final class MullvadDevicesActivity extends Page {
                 Log.w(Store.TAG, "Device not removed: " + e.getClass().getSimpleName());
                 runOnUiThread(() -> {
                     mBusy = false;
+                    // Said under the device it is about, the wheel left on it
+                    mBody.removeView(mStatus);
+                    mBody.addView(mStatus, mBody.indexOfChild(row) + 1);
                     noteText(mStatus, EngineUi.error(this, Mullvad.errorOf(e)), true);
                 });
             }

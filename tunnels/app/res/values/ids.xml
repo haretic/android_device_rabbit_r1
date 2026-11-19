@@ -3,6 +3,8 @@
 <resources>
     <!-- What the side button does on a view, said along the bottom while the wheel is on it -->
     <item type="id" name="press_hint" />
+    <!-- What a turn does there, said under it -->
+    <item type="id" name="turn_hint" />
     <!-- Typing them in: a field each, so each keeps what was typed through a turn -->
     <item type="id" name="field_name" />
     <item type="id" name="field_server" />

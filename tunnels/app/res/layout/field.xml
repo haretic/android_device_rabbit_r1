@@ -6,4 +6,9 @@
     android:orientation="vertical">
     <TextView android:id="@+id/label" style="@style/FieldLabel" />
     <EditText android:id="@+id/edit" style="@style/Field" />
+    <!-- What is wrong in it, right under it -->
+    <TextView android:id="@+id/field_error" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginTop="-4dp"
+        android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingBottom="8dp"
+        android:textSize="14sp" android:textColor="@color/warn" android:visibility="gone" />
 </LinearLayout>

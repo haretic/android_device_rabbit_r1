@@ -4,12 +4,15 @@ package cat.kenny.r1.tunnels;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.drawable.GradientDrawable;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.text.format.Formatter;
 import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
@@ -33,7 +36,8 @@ import java.util.ArrayList;
  * arrives as D-pad up and down and goes from one thing to the next in the page's order,
  * scrolling on where nothing is left to go to; the side button arrives as the select key once
  * the window asks for it, a press acting on what the wheel is on, a hold going back. A finger
- * taps the same things. Along the bottom, where a page has it, what a press does there.
+ * taps the same things. Along the bottom, where a page has it, what a press does there and,
+ * under it, what a turn does.
  */
 abstract class Page extends Activity {
     private static final int REQ_VPN = 41;
@@ -43,6 +47,8 @@ abstract class Page extends Activity {
     protected ViewGroup mBody;
     protected ScrollView mScroll;
     private TextView mHint;
+    private TextView mHintTurn;
+    private LinearLayout mHintLines;
     private View mHintRow;
     private CharSequence mDefaultHint = "";
     private boolean mHeld;
@@ -69,11 +75,45 @@ abstract class Page extends Activity {
         mScroll = findViewById(R.id.scroll);
         mHint = findViewById(R.id.hint);
         mHintRow = findViewById(R.id.hint_row);
+        mHintTurn = findViewById(R.id.hint_turn);
+        mHintLines = findViewById(R.id.hint_lines);
+        arrangeHint();
         if (state != null) {
             mPending = state.getString(PENDING);
         }
         getWindow().getDecorView().getViewTreeObserver()
                 .addOnGlobalFocusChangeListener((was, now) -> showHint(now));
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        arrangeHint();
+    }
+
+    /** On its side the r1 is short: the press and the turn go side by side, on one line */
+    private void arrangeHint() {
+        final boolean wide = isWide();
+        mHintLines.setOrientation(wide ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        final float density = getResources().getDisplayMetrics().density;
+        final LinearLayout.LayoutParams press = wide
+                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1)
+                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+        mHint.setLayoutParams(press);
+        final LinearLayout.LayoutParams turn = new LinearLayout.LayoutParams(
+                wide ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (wide) {
+            turn.setMarginStart((int) (12 * density));
+        }
+        mHintTurn.setLayoutParams(turn);
+    }
+
+    /** Lying on its side, wider than tall */
+    protected final boolean isWide() {
+        return getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE;
     }
 
     @Override
@@ -166,12 +206,108 @@ abstract class Page extends Activity {
         view.setTag(R.id.press_hint, text);
     }
 
+    /** What a turn does while the wheel is on this view, where it is not just moving on. */
+    protected static void turnHint(View view, CharSequence text) {
+        view.setTag(R.id.turn_hint, text);
+    }
+
     private void showHint(View focused) {
         if (mHintRow.getVisibility() != View.VISIBLE) {
             return;
         }
         final Object said = focused != null ? focused.getTag(R.id.press_hint) : null;
-        mHint.setText(said instanceof CharSequence ? (CharSequence) said : mDefaultHint);
+        final CharSequence press;
+        if (said instanceof CharSequence) {
+            press = (CharSequence) said;
+        } else if (focused instanceof EditText) {
+            press = getText(R.string.hint_type_page);
+        } else if (focused != null && !focused.isClickable()) {
+            press = getText(R.string.hint_read);
+        } else {
+            press = mDefaultHint;
+        }
+        mHint.setText(press);
+        mHint.setVisibility(press == null || press.length() == 0 ? View.GONE : View.VISIBLE);
+        final Object turn = focused != null ? focused.getTag(R.id.turn_hint) : null;
+        mHintTurn.setText(turn instanceof CharSequence ? (CharSequence) turn
+                : getText(R.string.turn_move));
+    }
+
+    /**
+     * A card the wheel stops on to read, with nothing to press: where a page would otherwise
+     * start on something that acts, it starts here.
+     */
+    protected final View stop(View view) {
+        view.setFocusable(true);
+        view.setDefaultFocusHighlightEnabled(false);
+        view.setBackgroundResource(R.drawable.stop_bg);
+        pressHint(view, getText(R.string.hint_read));
+        return view;
+    }
+
+    /** What is wrong in a field, said right under it, and the wheel put on it to fix it. */
+    protected final void fieldProblem(EditText edit, CharSequence text) {
+        final View error = ((View) edit.getParent()).findViewById(R.id.field_error);
+        if (error instanceof TextView) {
+            ((TextView) error).setText(text);
+            error.setVisibility(text == null || text.length() == 0 ? View.GONE : View.VISIBLE);
+        }
+        if (text != null && text.length() > 0) {
+            edit.requestFocus();
+            // The field and the line under it both in sight
+            final View field = (View) edit.getParent();
+            field.post(() -> field.requestRectangleOnScreen(
+                    new android.graphics.Rect(0, 0, field.getWidth(), field.getHeight())));
+        }
+    }
+
+    protected final void clearFieldProblem(EditText edit) {
+        fieldProblem(edit, "");
+    }
+
+    /**
+     * A key pad's keys set in rows of so many, in the order given: fewer, wider rows on its
+     * side, so the pad fits under the number it types. The wheel stays on the key it was on.
+     */
+    protected final void arrangeKeys(ViewGroup keys, int[] order, int perRow) {
+        final View focused = getCurrentFocus();
+        final int focusedId = focused != null ? focused.getId() : View.NO_ID;
+        final View[] views = new View[order.length];
+        for (int i = 0; i < order.length; i++) {
+            views[i] = keys.findViewById(order[i]);
+            if (views[i] != null && views[i].getParent() != null) {
+                ((ViewGroup) views[i].getParent()).removeView(views[i]);
+            }
+        }
+        keys.removeAllViews();
+        LinearLayout line = null;
+        for (int i = 0; i < views.length; i++) {
+            if (i % perRow == 0) {
+                line = new LinearLayout(this);
+                keys.addView(line, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            }
+            if (views[i] != null) {
+                line.addView(views[i]);
+            }
+        }
+        if (focusedId != View.NO_ID) {
+            final View again = keys.findViewById(focusedId);
+            if (again != null) {
+                again.requestFocus();
+            }
+        }
+    }
+
+    /** Since when a network has been on, from the time since boot it came up: 14:05, or 18 Nov */
+    protected final String since(long upSinceElapsed) {
+        final long wall = System.currentTimeMillis()
+                - (SystemClock.elapsedRealtime() - upSinceElapsed);
+        if (DateUtils.isToday(wall)) {
+            return DateFormat.getTimeFormat(this).format(new java.util.Date(wall));
+        }
+        return DateUtils.formatDateTime(this, wall,
+                DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NO_YEAR | DateUtils.FORMAT_ABBREV_MONTH);
     }
 
     protected final TextView lead(CharSequence text) {
@@ -283,7 +419,9 @@ abstract class Page extends Activity {
     /** Back and the way on, side by side; the way on is returned, Back goes back. */
     protected final TextView buttons(ViewGroup parent, int go) {
         final View pair = getLayoutInflater().inflate(R.layout.buttons, parent, false);
-        pair.findViewById(R.id.back).setOnClickListener(v -> back());
+        final View back = pair.findViewById(R.id.back);
+        back.setOnClickListener(v -> back());
+        pressHint(back, getText(R.string.hint_go_back));
         final TextView button = pair.findViewById(R.id.go);
         button.setText(go);
         parent.addView(pair);

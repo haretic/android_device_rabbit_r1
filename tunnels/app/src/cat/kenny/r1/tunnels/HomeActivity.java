@@ -3,6 +3,7 @@ package cat.kenny.r1.tunnels;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,8 +74,10 @@ public final class HomeActivity extends Page {
         final List<Net> nets = Store.list(this);
         final Status.Snapshot now = Status.get();
         mBuiltFor = builtFor(now);
-        if (mAdding || nets.isEmpty()) {
+        if (mAdding) {
             kinds();
+        } else if (nets.isEmpty()) {
+            empty();
         } else {
             networks(nets, now);
         }
@@ -147,6 +150,24 @@ public final class HomeActivity extends Page {
         });
     }
 
+    /** Nothing set up yet: a line on what this is for, and Add, which the wheel starts on */
+    private void empty() {
+        lead(getText(R.string.home_empty));
+        addRow();
+        hint(R.string.hint_add);
+    }
+
+    private View addRow() {
+        final View add = row(mBody, R.drawable.ic_add, getText(R.string.add_title),
+                getText(R.string.add_sum));
+        add.setTag("add");
+        chevron(add);
+        pressHint(add, getText(R.string.hint_add));
+        add.setOnClickListener(v -> startActivity(new Intent(this, HomeActivity.class)
+                .putExtra(EXTRA_ADD, true)));
+        return add;
+    }
+
     /** N8: the networks, the current one first with its status */
     private void networks(List<Net> nets, Status.Snapshot now) {
         Net current = null;
@@ -166,12 +187,7 @@ public final class HomeActivity extends Page {
                 networkRow(net, now);
             }
         }
-        final View add = row(mBody, R.drawable.ic_add, getText(R.string.add_title),
-                getText(R.string.add_sum));
-        add.setTag("add");
-        pressHint(add, getText(R.string.hint_add));
-        add.setOnClickListener(v -> startActivity(new Intent(this, HomeActivity.class)
-                .putExtra(EXTRA_ADD, true)));
+        addRow();
         hint(R.string.hint_add);
     }
 
@@ -198,19 +214,39 @@ public final class HomeActivity extends Page {
         icon.setColorFilter(current && now.state == Status.ON ? getColor(R.color.ok_text)
                 : 0xFFFFFFFF);
         pill(row, current ? now.state : Status.OFF);
-        if (!current) {
-            summary(row, getString(R.string.net_off, kindName(net)));
-        } else if (EngineUi.isJoined(net)) {
-            summary(row, EngineUi.rowLine(this, now.engine, now));
-        } else if (now.state == Status.FAILED) {
-            summary(row, EngineUi.error(this, now.error));
-        } else {
-            summary(row, now.address.isEmpty() ? kindName(net)
-                    : getString(R.string.net_address, now.address));
-        }
+        summary(row, line(net, now, current));
         switchOn(row, on);
         pressHint(row.findViewById(R.id.switch_hit), getString(on ? R.string.hint_turn_off
                 : R.string.hint_turn_on, net.name));
+    }
+
+    /**
+     * The row's line: its kind, and its state in a word or two, the pill saying on, connecting
+     * or failed; once on, since when and how much it has carried. What went wrong is in the
+     * card under the row, not here, where it would be cut short.
+     */
+    private CharSequence line(Net net, Status.Snapshot now, boolean current) {
+        final String kind = kindName(net);
+        if (!current) {
+            return getString(R.string.net_off, kind);
+        }
+        if (now.state != Status.ON) {
+            return kind;
+        }
+        final Engine.Snapshot engine = EngineUi.isJoined(net) ? now.engine : null;
+        if (engine != null && engine.state != Engine.State.RUNNING
+                && engine.state != Engine.State.FAILED) {
+            final String state = EngineUi.state(this, engine).toString();
+            return getString(R.string.row_kind_state, kind, state.isEmpty() ? state
+                    : Character.toLowerCase(state.charAt(0)) + state.substring(1));
+        }
+        if (now.upSince <= 0) {
+            return kind;
+        }
+        final long data = now.rx + now.tx;
+        return data > 0 ? getString(R.string.row_since_data, kind, since(now.upSince),
+                Formatter.formatShortFileSize(this, data))
+                : getString(R.string.row_since, kind, since(now.upSince));
     }
 
     /** On or on its way; failed and trying again counts, as only off stops that */

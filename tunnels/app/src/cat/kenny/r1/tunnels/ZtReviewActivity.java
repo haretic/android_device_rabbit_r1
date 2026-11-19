@@ -29,6 +29,8 @@ public final class ZtReviewActivity extends Page {
         steps(2, 2);
         lead(getText(R.string.zt_review_lead));
         final ViewGroup card = card(mBody);
+        // The page starts here, on what to check: Save and join turns it on
+        stop(card);
         kv(card, getText(R.string.kv_name), net.name);
         kv(card, getText(R.string.kv_network_id), EngineUi.grouped(net.networkId));
 
@@ -47,10 +49,10 @@ public final class ZtReviewActivity extends Page {
         mProblem = note(mBody, R.drawable.ic_info, "");
         noteText(mProblem, "", true);
         final TextView save = buttons(mBody, R.string.save_join);
-        pressHint(save, getText(R.string.hint_choose));
+        pressHint(save, getText(R.string.hint_save_join));
         save.setOnClickListener(v -> save());
         hint(R.string.hint_choose);
-        save.requestFocus();
+        card.requestFocus();
     }
 
     private void save() {

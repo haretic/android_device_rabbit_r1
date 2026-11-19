@@ -96,6 +96,8 @@ public final class ScanActivity extends Page {
             steps(1, 3);
         }
         mHints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        lead(getText(mMode == MODE_ACCOUNT ? R.string.scan_lead_account
+                : mMode == MODE_ZT_ID ? R.string.scan_lead_zt : R.string.scan_lead_conf));
         getLayoutInflater().inflate(R.layout.scan, mBody, true);
         mFrame = mBody.findViewById(R.id.frame);
         mPreview = mBody.findViewById(R.id.preview);
@@ -129,7 +131,7 @@ public final class ScanActivity extends Page {
         pressHint(mAllow, getText(R.string.hint_allow));
         mAllow.setOnClickListener(v -> requestPermissions(
                 new String[] {Manifest.permission.CAMERA}, REQ_CAMERA));
-        hint(R.string.hint_back);
+        hint(R.string.hint_scan_wait);
         if (checkSelfPermission(Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             noteText(mProblem, getText(R.string.scan_camera_why), false);
@@ -140,11 +142,14 @@ public final class ScanActivity extends Page {
         }
     }
 
-    /** The picture as tall as fits: shorter where the r1 lies on its side */
+    /**
+     * The picture as tall as fits under the title, the line over it and the bar along the
+     * bottom, with the note under it in sight: shorter where the r1 lies on its side.
+     */
     private void size() {
         final float density = getResources().getDisplayMetrics().density;
         final int screen = getResources().getConfiguration().screenHeightDp;
-        final int dp = Math.max(160, Math.min(380, screen - 190));
+        final int dp = Math.max(150, Math.min(340, screen - (isWide() ? 210 : 250)));
         final ViewGroup.LayoutParams params = mFrame.getLayoutParams();
         params.height = (int) (dp * density);
         mFrame.setLayoutParams(params);

@@ -2,12 +2,12 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
-        <shape><solid android:color="#2A1A12" /><corners android:radius="23dp" />
+        <shape><solid android:color="#2A1A12" /><corners android:radius="24dp" />
             <stroke android:width="2dp" android:color="?android:attr/colorAccent" /></shape>
     </item>
     <item android:state_pressed="true">
-        <shape><solid android:color="#333333" /><corners android:radius="23dp" /></shape>
+        <shape><solid android:color="#333333" /><corners android:radius="24dp" /></shape>
     </item>
     <item><shape><solid android:color="@color/surface2" />
-        <corners android:radius="23dp" /></shape></item>
+        <corners android:radius="24dp" /></shape></item>
 </selector>

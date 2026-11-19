@@ -11,11 +11,11 @@
     <string name="hint_back">Hold to go back</string>
 
     <!-- Home -->
-    <string name="home_lead">Reach your own devices from anywhere, or send this r1\'s traffic through a server you trust. Pick what you already use.</string>
+    <string name="home_lead">Pick the kind of network you already have an account or settings for.</string>
     <string name="kind_wg">WireGuard</string>
-    <string name="kind_wg_sum">A tunnel to one server - from a file or QR code</string>
+    <string name="kind_wg_sum">A server you or your work runs - from its settings file or QR code</string>
     <string name="kind_mullvad">Mullvad</string>
-    <string name="kind_mullvad_sum">A VPN service - only your account number</string>
+    <string name="kind_mullvad_sum">A paid VPN service - all it needs is your account number</string>
     <string name="home_note">One network is on at a time. Nothing leaves this r1 until you turn one on.</string>
     <string name="hint_set_up">Press to set up %1$s</string>
     <string name="add_title">Add a network</string>
@@ -47,18 +47,20 @@
 
     <!-- A network's page -->
     <string name="show_settings">Show settings</string>
-    <string name="show_settings_sum">The private key stays hidden</string>
+    <string name="show_settings_sum">Its server, address and key</string>
     <string name="place_title">Where traffic comes out</string>
     <string name="remove">Remove</string>
     <string name="remove_sum">Takes it off this r1</string>
     <string name="remove_sum_mullvad">Takes it off this r1 and frees its Mullvad device</string>
     <string name="remove_confirm">Press again to remove</string>
-    <string name="hint_toggle">Press to turn it on or off - hold to go back</string>
-    <string name="hint_row">Press to open - hold to go back</string>
-    <string name="hint_remove">Press twice to remove - hold to go back</string>
+    <string name="hint_toggle">Press to turn it on or off</string>
+    <string name="hint_route_fixed">Nothing to change - its settings send everything</string>
+    <string name="hint_toggle_route">Press to switch between everything and only its network</string>
+    <string name="hint_row">Press to open</string>
+    <string name="hint_remove">Press twice to remove</string>
 
     <!-- Show settings -->
-    <string name="settings_lead">The tunnel\'s settings as this r1 uses them. The private key stays on this r1 and is not shown.</string>
+    <string name="settings_lead">What this r1 uses to connect. The private key stays on this r1 and is not shown.</string>
     <string name="kv_public_key">This r1\'s public key</string>
     <string name="kv_name">Name</string>
     <string name="kv_address">This r1\'s address</string>
@@ -69,7 +71,7 @@
     <string name="trademark">\"WireGuard\" is a registered trademark of Jason A. Donenfeld.</string>
 
     <!-- WireGuard, step 1 -->
-    <string name="wg_lead">How do you have the tunnel\'s settings?</string>
+    <string name="wg_lead">Pick how you have the tunnel\'s settings.</string>
     <string name="from_scan">Scan a QR code</string>
     <string name="from_scan_sum">The camera turns to face you</string>
     <string name="from_file">Open a file</string>
@@ -78,28 +80,28 @@
     <string name="from_paste_sum">From the clipboard</string>
     <string name="from_type">Type them in</string>
     <string name="from_type_sum">A new key is made on this r1</string>
-    <string name="hint_scan">Press to scan - hold to go back</string>
-    <string name="hint_file">Press to open a file - hold to go back</string>
-    <string name="hint_paste">Press to paste - hold to go back</string>
-    <string name="hint_type">Press to type them in - hold to go back</string>
+    <string name="hint_scan">Press to scan a code</string>
+    <string name="hint_file">Press to open a file</string>
+    <string name="hint_paste">Press to paste</string>
+    <string name="hint_type">Press to type them in</string>
     <string name="clip_empty">The clipboard holds no text.</string>
     <string name="file_unreadable">The file could not be read.</string>
 
     <!-- Scanning -->
-    <string name="scan_note">Hold the code inside the corners. It is read on this r1 and goes nowhere else.</string>
+    <string name="scan_note">It is read on this r1 and goes nowhere else.</string>
     <string name="scan_camera_why">The camera reads the code. Nothing is recorded or kept.</string>
     <string name="camera_allow">Allow the camera</string>
     <string name="camera_allow_sum">To read the code</string>
-    <string name="hint_allow">Press to allow the camera - hold to go back</string>
+    <string name="hint_allow">Press to allow the camera</string>
     <string name="scan_no_camera">The camera could not be opened.</string>
     <string name="scan_not_conf">This code does not hold a tunnel\'s settings.</string>
     <string name="scan_not_account">This code does not hold a 16-digit account number.</string>
 
     <!-- Typing them in -->
-    <string name="type_lead">Type in what the server\'s owner gave you, and give them this r1\'s public key from the bottom of this page.</string>
+    <string name="type_lead">Type what the server\'s owner gave you. Then give them this r1\'s key from the bottom of this page.</string>
     <string name="field_name">Name</string>
     <string name="field_name_hint">Home</string>
-    <string name="field_server">Server, as name or address:port</string>
+    <string name="field_server">Server address and port</string>
     <string name="field_server_hint">vpn.example.net:51820</string>
     <string name="field_server_key">The server\'s public key</string>
     <string name="field_address">This r1\'s address</string>
@@ -114,7 +116,7 @@
     <string name="type_bad_address">This r1\'s address is an address and its network: 10.8.0.2/32</string>
     <string name="type_bad_dns">DNS is an address: 10.8.0.1</string>
     <string name="type_no_key">Wait for this r1\'s key, or go back and try again.</string>
-    <string name="hint_type_page">Press to type into a field - hold to go back</string>
+    <string name="hint_type_page">Press to type here</string>
 
     <!-- Review -->
     <string name="review_from_code">Read from the code. <b>Check it</b>, then save.</string>
@@ -123,15 +125,15 @@
     <string name="review_typed">As you typed it. <b>Check it</b>, then save.</string>
     <string name="route_title">What goes through it</string>
     <string name="route_all">Everything - all apps, all traffic</string>
-    <string name="route_some">Only %1$s - the rest goes direct</string>
+    <string name="route_some">Only the server\'s network - the rest goes direct</string>
     <string name="stay_title">Stay connected</string>
     <string name="stay_sum">Reconnect by itself, block traffic if it drops</string>
-    <string name="stay_note">Stay connected uses the system\'s always-on VPN: while it is set, nothing leaves this r1 outside the tunnel, also while it reconnects.</string>
+    <string name="stay_note">While this is on, nothing leaves this r1 outside this network, not even while it reconnects.</string>
     <string name="name_needed">Give it a name.</string>
     <string name="save_failed">It could not be saved on this r1.</string>
 
     <!-- Mullvad, step 1 -->
-    <string name="mullvad_lead">Type your <b>account number</b>: 16 digits. That is all Mullvad needs. A key is made on this r1.</string>
+    <string name="mullvad_lead">Type your 16-digit <b>account number</b> - that is all Mullvad needs. A key is made on this r1.</string>
     <string name="mullvad_disclaimer">This talks to Mullvad\'s servers with your account number. It is not made or endorsed by Mullvad.</string>
     <string name="mullvad_scan">Or scan the number from your account page.</string>
     <string name="key_backspace">Delete the last digit</string>
@@ -141,16 +143,16 @@
     <string name="mullvad_unreachable">Could not reach Mullvad. Check the internet connection.</string>
     <string name="mullvad_error">Mullvad said no: %1$s</string>
     <string name="mullvad_no_key">Could not make a key: the tunnel helper did not answer.</string>
-    <string name="hint_pad">Press to type the key - hold to go back</string>
+    <string name="hint_pad">Press to type this digit</string>
 
     <!-- Mullvad's devices -->
-    <string name="devices_lead">This account has as many devices as Mullvad allows. Remove one to make room for this r1.</string>
+    <string name="devices_lead">This account has all the devices Mullvad allows. Press one twice to remove it and make room for this r1.</string>
     <string name="device_sum">Added %1$s</string>
-    <string name="hint_device">Press twice to remove it - hold to go back</string>
+    <string name="hint_device">Press twice to remove it</string>
 
     <!-- Mullvad, step 2 -->
-    <string name="place_lead">Paid until &lt;b>%1$s&lt;/b>. This r1 is device %2$d of 5. Where should your traffic come out?</string>
-    <string name="place_lead_edit">Where should your traffic come out?</string>
+    <string name="place_lead">Pick where your traffic comes out. Paid until &lt;b>%1$s&lt;/b> - this r1 is device %2$d of 5.</string>
+    <string name="place_lead_edit">Pick where your traffic comes out.</string>
     <string name="auto_title">Automatic</string>
     <string name="auto_sum">Picks a server for you</string>
     <plurals name="country_sum">
@@ -162,7 +164,7 @@
     <string name="all_sum_older">List from Mullvad, updated %1$s</string>
     <string name="relays_loading">Getting the server list from Mullvad...</string>
     <string name="relays_failed">Could not get the server list from Mullvad.</string>
-    <string name="hint_place">Press to choose - hold to go back</string>
+    <string name="hint_place">Press to choose</string>
 
     <!-- The tunnel -->
     <string name="channel">Private network</string>
@@ -181,9 +183,9 @@
     <string name="fail_other">Could not connect: %1$s</string>
     <!-- Home, the two kinds that join a network of your own -->
     <string name="kind_ts">Tailscale</string>
-    <string name="kind_ts_sum">Your devices, signed in with your account</string>
+    <string name="kind_ts_sum">Links your own phone, computer and other devices - sign in to start</string>
     <string name="kind_zt">ZeroTier</string>
-    <string name="kind_zt_sum">A network you join by its ID</string>
+    <string name="kind_zt_sum">Joins a network someone runs for you - you need its 16-character ID</string>
 
     <!-- What an engine says, in words -->
     <string name="eng_waiting">Waiting for approval</string>
@@ -224,8 +226,8 @@
     <string name="zt_bad_id">This is not a network ID. Check it with whoever runs the network.</string>
     <string name="zt_typed">%1$d of 16</string>
     <string name="key_backspace_char">Delete the last character</string>
-    <string name="hint_pad_hex">Press to type it - hold to go back</string>
-    <string name="hint_zt_next">Press to go on - hold to go back</string>
+    <string name="hint_pad_hex">Press to type this character</string>
+    <string name="hint_zt_next">Press to go on</string>
     <string name="zt_trademark">ZeroTier is a trademark of ZeroTier, Inc. This is not made or endorsed by ZeroTier.</string>
     <string name="scan_not_zt">This code does not hold a 16-character network ID.</string>
     <string name="zt_review_lead">Check it, then save. The network\'s owner has to approve this r1 before it can reach anything there.</string>
@@ -247,7 +249,7 @@
     <string name="remove_sum_zt">Leaves the network and takes it off this r1</string>
 
     <!-- Tailscale, step 1 -->
-    <string name="ts_lead">How should this r1 sign in to Tailscale?</string>
+    <string name="ts_lead">Pick how this r1 signs in to Tailscale, then press Sign in.</string>
     <string name="ts_browser">Sign in from another device</string>
     <string name="ts_browser_sum">Scan a code with your phone and sign in there</string>
     <string name="ts_key">Use a key</string>
@@ -277,13 +279,13 @@
     <string name="ts_too_long">The sign-in took too long. Try again.</string>
     <string name="ts_key_refused">The key was not taken. Check that it is valid and not used up, then try again.</string>
     <string name="try_again">Try again</string>
-    <string name="hint_choose">Press to choose - hold to go back</string>
-    <string name="hint_ts_wait">Waiting for you to sign in - hold to go back</string>
-    <string name="hint_url">The address, to type on another device - hold to go back</string>
+    <string name="hint_choose">Press to choose</string>
+    <string name="hint_ts_wait">Waiting for you to sign in</string>
+    <string name="hint_url">The address to type on another device</string>
 
     <!-- Tailscale, step 2 and its page -->
     <string name="ts_options">Options</string>
-    <string name="ts_options_lead">You are in your <b>tailnet</b> - Tailscale\'s name for the network of your devices. Both of these can be changed later.</string>
+    <string name="ts_options_lead">Signed in. Pick what this r1 may use from your network, then press Done. Both can be changed later.</string>
     <string name="ts_dns">Use Tailscale\'s DNS names</string>
     <string name="ts_dns_sum">Reach your devices by their names</string>
     <string name="ts_routes">Reach networks shared by other devices</string>
@@ -293,7 +295,7 @@
     <string name="ts_exit_nobody">Nobody - only reach your devices</string>
     <string name="ts_exit_nobody_sum">The rest goes out directly</string>
     <string name="ts_exit_someone">A device of yours</string>
-    <string name="ts_exit_lead">Which of your devices should all of this r1\'s traffic go out through?</string>
+    <string name="ts_exit_lead">Pick the device all of this r1\'s traffic should go out through.</string>
     <string name="ts_exit_loading">Asking your devices...</string>
     <string name="ts_exit_none">None of your devices offers this</string>
     <string name="ts_exit_off">Turn Tailscale on to see your devices that offer this.</string>
@@ -310,7 +312,7 @@
     <string name="ts_sign_in_again">Sign in again</string>
     <string name="ts_sign_in_again_sum">This r1 is signed out of Tailscale</string>
     <string name="ts_option_failed">Could not change it. Check the connection and try again.</string>
-    <string name="hint_sign_out">Press twice to sign out - hold to go back</string>
+    <string name="hint_sign_out">Press twice to sign out</string>
     <string name="kv_signed_in_as">Signed in as</string>
     <string name="kv_device_name">This r1\'s name</string>
     <string name="err_relays">No server is available. Try again in a moment.</string>
@@ -320,4 +322,46 @@
     <string name="err_helper_refused">The connection settings were not accepted. Check them and try again.</string>
     <string name="mullvad_expired">This Mullvad account has no time left. Add time before trying again.</string>
     <string name="mullvad_device_limit">This Mullvad account already has five devices.</string>
+    <!-- The bar along the bottom: what a turn does, under what a press does -->
+    <string name="turn_move">Turn to move - hold to go back</string>
+    <string name="hint_read">Here to read - nothing to press</string>
+    <string name="hint_go_back">Press to go back</string>
+    <string name="hint_next">Press to go on</string>
+    <string name="hint_save">Press to save</string>
+    <string name="hint_save_connect">Press to save and connect</string>
+    <string name="hint_save_join">Press to save and join</string>
+    <string name="hint_sign_in">Press to sign in</string>
+    <string name="hint_done">Press to finish</string>
+    <string name="hint_retry">Press to try again</string>
+    <string name="hint_stop_sign_in">Press to stop signing in</string>
+    <string name="hint_erase">Press to delete the last digit</string>
+    <string name="hint_erase_char">Press to delete the last character</string>
+    <string name="hint_scan_wait">The code is read as soon as it is inside the corners</string>
+
+    <!-- Home, nothing set up yet, and the rows of saved networks -->
+    <string name="home_empty">Add a network to reach your own devices from anywhere, or to send this r1\'s traffic through a VPN.</string>
+    <string name="row_kind_state">%1$s - %2$s</string>
+    <string name="row_since">%1$s - since %2$s</string>
+    <string name="row_since_data">%1$s - since %2$s - %3$s used</string>
+
+    <!-- Typing in: what is missing, next to it -->
+    <string name="pad_incomplete">Type all 16 digits first.</string>
+    <string name="zt_incomplete">Type all 16 characters first.</string>
+
+    <!-- Scanning: what to hold up -->
+    <string name="scan_lead_conf">Hold the code with the tunnel\'s settings inside the corners.</string>
+    <string name="scan_lead_account">Hold the code with your account number inside the corners.</string>
+    <string name="scan_lead_zt">Hold the code with the network ID inside the corners.</string>
+
+    <!-- Mullvad, all countries: jumping by letter -->
+    <string name="cities_more">%1$s and %2$d more</string>
+    <string name="jump_lead">Pick a country. The letters jump down the list.</string>
+    <string name="hint_jump">Press to jump to %1$s</string>
+    <string name="jump_to">Countries starting with %1$s</string>
+
+    <!-- Show settings: the file, tucked away -->
+    <string name="details_show">Show the settings file</string>
+    <string name="details_hide">Hide the settings file</string>
+    <string name="details_sum">In WireGuard\'s own format</string>
+    <string name="hint_details">Press to show or hide it</string>
 </resources>

@@ -43,7 +43,7 @@
         android:src="@drawable/ic_chevron" android:tint="@color/text_faint"
         android:importantForAccessibility="no" android:visibility="gone" />
     <FrameLayout android:id="@+id/switch_hit" android:layout_width="62dp"
-        android:layout_height="44dp" android:layout_marginStart="6dp"
+        android:layout_height="48dp" android:layout_marginStart="6dp"
         android:background="@drawable/switch_hit_bg" android:focusable="false"
         android:clickable="false" android:defaultFocusHighlightEnabled="false"
         android:visibility="gone">

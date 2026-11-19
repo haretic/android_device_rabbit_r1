@@ -21,6 +21,7 @@ import java.util.List;
 public final class ReviewActivity extends Page {
     private EditText mName;
     private View mProblem;
+    private View mNameProblem;
     private View mStayNote;
     private boolean mSaving;
 
@@ -65,10 +66,19 @@ public final class ReviewActivity extends Page {
         if (!net.dns.isEmpty()) {
             kv(card, getText(R.string.kv_dns), String.join(", ", net.dns));
         }
+        // A name left empty is said right under the card it is in
+        mNameProblem = note(mBody, R.drawable.ic_info, "");
+        noteText(mNameProblem, "", true);
 
         final View route = row(mBody, R.drawable.ic_route, getText(R.string.route_title),
                 routeText(net));
-        endText(route, getText(R.string.change));
+        if (net.someRoutes().isEmpty()) {
+            // Its settings send everything: there is nothing to change here
+            pressHint(route, getText(R.string.hint_route_fixed));
+        } else {
+            endText(route, getText(R.string.change));
+            pressHint(route, getText(R.string.hint_toggle_route));
+        }
         route.setOnClickListener(v -> {
             if (net.someRoutes().isEmpty()) {
                 return;
@@ -80,6 +90,7 @@ public final class ReviewActivity extends Page {
                 getText(R.string.stay_sum));
         switchOf(stay, false);
         switchOn(stay, net.stay);
+        pressHint(stay, getText(R.string.hint_toggle));
         stay.setOnClickListener(v -> {
             net.stay = !net.stay;
             switchOn(stay, net.stay);
@@ -90,8 +101,11 @@ public final class ReviewActivity extends Page {
         mProblem = note(mBody, R.drawable.ic_info, "");
         noteText(mProblem, "", true);
         final TextView save = buttons(mBody, R.string.save_connect);
+        pressHint(save, getText(R.string.hint_save_connect));
         save.setOnClickListener(v -> save());
-        route.requestFocus();
+        hint(R.string.hint_choose);
+        // On the name, the one thing here to type: a first press changes nothing
+        mName.requestFocus();
     }
 
     /** Addresses as people write them: without the network, as the mockup has them */
@@ -116,10 +130,11 @@ public final class ReviewActivity extends Page {
         }
         final String name = mName.getText().toString().trim();
         if (name.isEmpty()) {
-            noteText(mProblem, getText(R.string.name_needed), true);
+            noteText(mNameProblem, getText(R.string.name_needed), true);
             mName.requestFocus();
             return;
         }
+        noteText(mNameProblem, "", true);
         mSaving = true;
         net.name = name;
         // This r1's public key, to show later, from the private one in the settings

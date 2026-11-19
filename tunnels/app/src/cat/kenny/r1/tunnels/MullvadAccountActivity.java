@@ -2,6 +2,7 @@
 package cat.kenny.r1.tunnels;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -10,6 +11,7 @@ import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -27,11 +29,17 @@ public final class MullvadAccountActivity extends Page {
     private static final int DIGITS = 16;
     private static final int[] KEYS = {R.id.key0, R.id.key1, R.id.key2, R.id.key3, R.id.key4,
         R.id.key5, R.id.key6, R.id.key7, R.id.key8, R.id.key9};
+    /** The keys in reading order: three to a row standing, six to a row on its side */
+    private static final int[] TALL = {R.id.key1, R.id.key2, R.id.key3, R.id.key4, R.id.key5,
+        R.id.key6, R.id.key7, R.id.key8, R.id.key9, R.id.key_back, R.id.key0, R.id.key_next};
+    private static final int[] WIDE = {R.id.key1, R.id.key2, R.id.key3, R.id.key4, R.id.key5,
+        R.id.key6, R.id.key7, R.id.key8, R.id.key9, R.id.key0, R.id.key_back, R.id.key_next};
 
     private final StringBuilder mDigits = new StringBuilder();
     private TextView mNumber;
     private TextView mNext;
     private View mStatus;
+    private ViewGroup mKeys;
     private boolean mBusy;
 
     @Override
@@ -44,6 +52,7 @@ public final class MullvadAccountActivity extends Page {
         getLayoutInflater().inflate(R.layout.pad, mBody, true);
         mNumber = mBody.findViewById(R.id.number);
         mNext = mBody.findViewById(R.id.key_next);
+        mKeys = mBody.findViewById(R.id.keys);
         for (int i = 0; i < KEYS.length; i++) {
             final char digit = (char) ('0' + i);
             final View key = mBody.findViewById(KEYS[i]);
@@ -51,11 +60,17 @@ public final class MullvadAccountActivity extends Page {
             key.setOnClickListener(v -> type(digit));
         }
         final View erase = mBody.findViewById(R.id.key_back);
-        pressHint(erase, getText(R.string.hint_pad));
+        pressHint(erase, getText(R.string.hint_erase));
         erase.setOnClickListener(v -> erase());
+        pressHint(mNext, getText(R.string.hint_next));
         mNext.setOnClickListener(v -> next());
-        mStatus = note(mBody, R.drawable.ic_info, "");
+        // Asking, and what went wrong, right under the number it is about
+        final ViewGroup pad = (ViewGroup) mNumber.getParent();
+        mStatus = note(pad, R.drawable.ic_info, "");
+        pad.removeView(mStatus);
+        pad.addView(mStatus, pad.indexOfChild(mNumber) + 1);
         noteText(mStatus, "", true);
+        arrange();
         final View scan = row(mBody, R.drawable.ic_scan, getText(R.string.mullvad_scan), "");
         pressHint(scan, getText(R.string.hint_scan));
         scan.setOnClickListener(v -> startActivityForResult(new Intent(this, ScanActivity.class)
@@ -65,11 +80,24 @@ public final class MullvadAccountActivity extends Page {
         mBody.findViewById(R.id.key1).requestFocus();
     }
 
+    private void arrange() {
+        arrangeKeys(mKeys, isWide() ? WIDE : TALL, isWide() ? 6 : 3);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        arrange();
+    }
+
     private void type(char digit) {
         if (mBusy || mDigits.length() >= DIGITS) {
             return;
         }
         mDigits.append(digit);
+        if (!mBusy) {
+            noteText(mStatus, "", true);
+        }
         show();
         if (mDigits.length() == DIGITS) {
             mNext.requestFocus();
@@ -162,7 +190,11 @@ public final class MullvadAccountActivity extends Page {
     }
 
     private void next() {
-        if (mBusy || mDigits.length() != DIGITS) {
+        if (mBusy) {
+            return;
+        }
+        if (mDigits.length() != DIGITS) {
+            noteText(mStatus, getText(R.string.pad_incomplete), true);
             return;
         }
         mBusy = true;
@@ -233,6 +265,10 @@ public final class MullvadAccountActivity extends Page {
             return;
         }
         failed(EngineUi.error(this, error));
+        if (error == Engine.Error.ACCOUNT_INVALID) {
+            // The number is what is wrong: on the key that takes it back
+            mBody.findViewById(R.id.key_back).requestFocus();
+        }
     }
 
     private void failed(CharSequence text) {

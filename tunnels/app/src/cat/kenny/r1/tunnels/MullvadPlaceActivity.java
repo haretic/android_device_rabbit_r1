@@ -23,9 +23,9 @@ import java.util.Locale;
 
 /**
  * Mullvad, step 2 (N10): where the traffic comes out. Automatic, the countries with the most
- * servers and the one chosen, and all of them on a page of their own; each a choice, the
- * wheel going from one to the next and a press or a tap choosing. The same page later changes
- * a saved network's choice.
+ * servers and the one chosen, and all of them on a page of their own, with their first letters
+ * on keys over the list to jump down it by; each a choice, the wheel going from one to the
+ * next and a press or a tap choosing. The same page later changes a saved network's choice.
  *
  * In the set-up, going back removes the device just added to the account, as the key it was
  * added with is not kept.
@@ -35,6 +35,9 @@ public final class MullvadPlaceActivity extends Page {
     static final String EXTRA_ID = "id";
     private static final String EXTRA_ALL = "all";
     private static final String EXTRA_CHOSEN = "chosen";
+    /** Only for the step marker on the list of all: the set-up itself stays with its page */
+    private static final String EXTRA_IN_SETUP = "in_setup";
+    private static final int CITIES_SHOWN = 3;
     private static final int REQ_ALL = 1;
     private static final int SUGGESTED = 3;
 
@@ -74,7 +77,12 @@ public final class MullvadPlaceActivity extends Page {
             mChosenName = mNet.locationName;
         }
         title(R.string.kind_mullvad);
-        if (mSetup) {
+        if (mAll) {
+            if (getIntent().getBooleanExtra(EXTRA_IN_SETUP, false)) {
+                steps(2, 2);
+            }
+            lead(getText(R.string.jump_lead));
+        } else if (mSetup) {
             steps(2, 2);
             final String paid = Draft.paidUntil > 0 ? new SimpleDateFormat(
                     DateFormat.getBestDateTimePattern(Locale.getDefault(), "dMMMM"),
@@ -150,11 +158,13 @@ public final class MullvadPlaceActivity extends Page {
             pressHint(all, getText(R.string.hint_row));
             all.setOnClickListener(v -> startActivityForResult(new Intent(this,
                     MullvadPlaceActivity.class).putExtra(EXTRA_ALL, true)
+                    .putExtra(EXTRA_IN_SETUP, mSetup)
                     .putExtra(EXTRA_CHOSEN, mChosen), REQ_ALL));
         }
         // The status line under the choices
         mList.addView(mStatus);
         final TextView go = buttons(mList, mSetup ? R.string.save_connect : R.string.save);
+        pressHint(go, getText(mSetup ? R.string.hint_save_connect : R.string.hint_save));
         go.setOnClickListener(v -> save());
         mark();
         auto.requestFocus();
@@ -167,9 +177,21 @@ public final class MullvadPlaceActivity extends Page {
         }
         mList.removeAllViews();
         mList.addView(mStatus);
+        final LinearLayout letters = new LinearLayout(this);
+        letters.setOrientation(LinearLayout.VERTICAL);
+        final float density = getResources().getDisplayMetrics().density;
+        letters.setPadding(0, 0, 0, (int) (8 * density));
+        mList.addView(letters, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        final java.util.Map<Character, View> firstOf = new java.util.LinkedHashMap<>();
         View first = null;
         for (Relays.Country country : mRelays.countries()) {
             final View row = countryRow(country);
+            final char letter = country.name.isEmpty() ? '#'
+                    : Character.toUpperCase(country.name.charAt(0));
+            if (!firstOf.containsKey(letter)) {
+                firstOf.put(letter, row);
+            }
             row.setOnClickListener(v -> {
                 setResult(RESULT_OK, new Intent().putExtra(EXTRA_CHOSEN, country.code));
                 finish();
@@ -178,14 +200,60 @@ public final class MullvadPlaceActivity extends Page {
                 first = row;
             }
         }
+        letters(letters, firstOf);
         mark();
         if (first != null) {
             first.requestFocus();
         }
     }
 
+    /**
+     * The first letters, as keys in rows as wide as the page takes: a press or a tap jumps to
+     * the first country with it, the wheel going on down the list from there.
+     */
+    private void letters(LinearLayout into, java.util.Map<Character, View> firstOf) {
+        final int width = getResources().getConfiguration().screenWidthDp - 36;
+        final int perRow = Math.max(4, width / 56);
+        LinearLayout line = null;
+        int i = 0;
+        for (java.util.Map.Entry<Character, View> entry : firstOf.entrySet()) {
+            if (i % perRow == 0) {
+                line = new LinearLayout(this);
+                into.addView(line, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            }
+            final String letter = String.valueOf(entry.getKey());
+            final TextView key = (TextView) getLayoutInflater().inflate(R.layout.key, line,
+                    false);
+            key.setText(letter);
+            key.setContentDescription(getString(R.string.jump_to, letter));
+            pressHint(key, getString(R.string.hint_jump, letter));
+            final View target = entry.getValue();
+            key.setOnClickListener(v -> jump(target));
+            line.addView(key);
+            i++;
+        }
+        // The last row's keys as wide as the others
+        while (line != null && i % perRow != 0) {
+            final View gap = new View(this);
+            line.addView(gap, new LinearLayout.LayoutParams(0, 1, 1));
+            i++;
+        }
+    }
+
+    /** The country at the top of the page, and the wheel on it */
+    private void jump(View row) {
+        row.requestFocus();
+        row.post(() -> mScroll.smoothScrollTo(0, Math.max(0, mList.getTop() + row.getTop()
+                - (int) (4 * getResources().getDisplayMetrics().density))));
+    }
+
     private View countryRow(Relays.Country country) {
-        final String cities = TextUtils.join(", ", country.cities);
+        final List<String> names = new ArrayList<>(country.cities);
+        final String cities = names.size() > CITIES_SHOWN + 1
+                ? getString(R.string.cities_more, TextUtils.join(", ",
+                        names.subList(0, CITIES_SHOWN)), names.size() - CITIES_SHOWN)
+                : TextUtils.join(", ", names);
         final View row = row(mList, R.drawable.ic_flag, country.name, getResources()
                 .getQuantityString(R.plurals.country_sum, country.servers, cities,
                         country.servers));

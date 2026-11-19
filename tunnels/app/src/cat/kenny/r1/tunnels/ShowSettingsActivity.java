@@ -11,8 +11,9 @@ import java.io.IOException;
 
 /**
  * A network's settings as this r1 uses them, the secret keys left out: its facts, this r1's
- * public key as text and as a code for the server's owner, and the settings in wg-quick's
- * format. The wheel stops on the key and on the settings, and scrolls on past them.
+ * public key as text and as a code for the server's owner, and, behind a row of its own, the
+ * settings in wg-quick's format. The wheel stops on the key and on the settings, and scrolls
+ * on past them.
  */
 public final class ShowSettingsActivity extends Page {
     static final String EXTRA_ID = "id";
@@ -74,10 +75,22 @@ public final class ShowSettingsActivity extends Page {
             }).start();
         }
 
+        // The file itself is in WireGuard's own words: tucked behind a row, shown on a press
+        final View details = row(mBody, R.drawable.ic_file, getText(R.string.details_show),
+                getText(R.string.details_sum));
+        details.setTag("details");
+        pressHint(details, getText(R.string.hint_details));
         final TextView conf = (TextView) getLayoutInflater().inflate(R.layout.text_block, mBody,
                 false);
         conf.setText(WgConf.write(net, true));
+        conf.setVisibility(View.GONE);
         mBody.addView(conf);
+        details.setOnClickListener(v -> {
+            final boolean show = conf.getVisibility() != View.VISIBLE;
+            conf.setVisibility(show ? View.VISIBLE : View.GONE);
+            ((TextView) details.findViewById(R.id.title)).setText(show
+                    ? R.string.details_hide : R.string.details_show);
+        });
 
         final TextView mark = (TextView) getLayoutInflater().inflate(R.layout.lead, mBody, false);
         mark.setText(R.string.trademark);
@@ -85,7 +98,7 @@ public final class ShowSettingsActivity extends Page {
         mark.setTextColor(getColor(R.color.text_faint));
         mBody.addView(mark);
 
-        hint(R.string.hint_back);
+        hint(R.string.hint_read);
         mPublicKey.requestFocus();
     }
 

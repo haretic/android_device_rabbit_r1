@@ -20,7 +20,8 @@ import java.lang.ref.WeakReference;
  * A network's own page: whether it is on and how it is going, what goes through it, staying
  * connected, where Mullvad's traffic comes out, its settings, and removing it. Each is a row:
  * the wheel goes from one to the next and a press acts, as a tap does. Removing takes a
- * second press, so a hold, which goes back, never does anything to it.
+ * second press, so a hold, which goes back, never does anything to it. The page starts on
+ * the status card, which only reads, so that a first press does not turn it on or off.
  *
  * ZeroTier's page shows this r1's address large and as a code, for the network's owner to
  * approve it by, and removing it leaves the network. Tailscale's has who all traffic goes out
@@ -93,6 +94,8 @@ public final class NetworkActivity extends Page {
         pressHint(mStateRow, getText(R.string.hint_toggle));
         mStateRow.setOnClickListener(v -> toggle());
         mCard = card(mBody);
+        mCard.setTag("status");
+        stop(mCard);
         if (zt) {
             addressBox();
         }
@@ -128,8 +131,13 @@ public final class NetworkActivity extends Page {
             final View route = row(mBody, R.drawable.ic_route, getText(R.string.route_title),
                     routeText(net));
             route.setTag("route");
-            endText(route, getText(R.string.change));
-            pressHint(route, getText(R.string.hint_row));
+            if (net.someRoutes().isEmpty()) {
+                // Its settings send everything: there is nothing to change here
+                pressHint(route, getText(R.string.hint_route_fixed));
+            } else {
+                endText(route, getText(R.string.change));
+                pressHint(route, getText(R.string.hint_toggle_route));
+            }
             route.setOnClickListener(v -> {
                 if (net.someRoutes().isEmpty()) {
                     return;
@@ -200,7 +208,10 @@ public final class NetworkActivity extends Page {
 
         hint(R.string.hint_row);
         final View again = key != null ? mBody.findViewWithTag(key) : null;
-        (again != null && again.getVisibility() == View.VISIBLE ? again : mStateRow)
+        // The card is where a press after a tap lands too: leaving touch mode takes the view
+        // marked as the default, not the topmost row, which turns the network on or off
+        mCard.setFocusedByDefault(true);
+        (again != null && again.getVisibility() == View.VISIBLE ? again : mCard)
                 .requestFocus();
     }
 
@@ -257,7 +268,12 @@ public final class NetworkActivity extends Page {
             summary(mStateRow, current ? EngineUi.rowLine(this, now.engine, now)
                     : getString(R.string.state_off));
             switchOn(mStateRow, on);
-            EngineUi.card(this, mCard, net, now, true);
+            // The card is a stop of the wheel: never hidden under it, which would move it on
+            if (current && (now.state == Status.FAILED || now.engine != null)) {
+                EngineUi.card(this, mCard, net, now, true);
+            } else {
+                offCard(net, getText(current ? R.string.eng_starting : R.string.state_off));
+            }
             joined(net, current ? now.engine : null);
             return;
         }
@@ -270,9 +286,29 @@ public final class NetworkActivity extends Page {
                     : getString(R.string.net_address, now.address));
         }
         switchOn(mStateRow, on);
-        mCard.setVisibility(current ? View.VISIBLE : View.GONE);
         if (current) {
+            mCard.setVisibility(View.VISIBLE);
             statusCard(mCard, net, now);
+        } else {
+            offCard(net, getText(R.string.state_off));
+        }
+    }
+
+    /** Off, or not started yet: the card says so, and where WireGuard's would connect to */
+    private void offCard(Net net, CharSequence state) {
+        mCard.removeAllViews();
+        mCard.setVisibility(View.VISIBLE);
+        kv(mCard, getText(R.string.kv_state), state);
+        if (!EngineUi.isJoined(net)) {
+            if (net.isMullvad()) {
+                kv(mCard, getText(R.string.kv_out), Net.AUTO.equals(net.location)
+                        || net.locationName.isEmpty() ? getText(R.string.auto_title)
+                        : net.locationName);
+            } else {
+                kv(mCard, getText(R.string.kv_server), net.endpoint());
+            }
+        } else if (EngineUi.isZeroTier(net)) {
+            kv(mCard, getText(R.string.kv_network_id), EngineUi.grouped(net.networkId));
         }
     }
 

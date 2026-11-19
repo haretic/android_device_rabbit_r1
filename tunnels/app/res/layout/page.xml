@@ -25,16 +25,26 @@
     </ScrollView>
     <LinearLayout android:id="@+id/hint_row" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:layout_marginStart="18dp"
-        android:layout_marginEnd="18dp" android:layout_marginBottom="12dp"
-        android:layout_marginTop="6dp" android:minHeight="46dp" android:paddingStart="18dp"
-        android:paddingEnd="18dp" android:paddingTop="8dp" android:paddingBottom="8dp"
+        android:layout_marginEnd="18dp" android:layout_marginBottom="10dp"
+        android:layout_marginTop="4dp" android:minHeight="46dp" android:paddingStart="18dp"
+        android:paddingEnd="18dp" android:paddingTop="7dp" android:paddingBottom="7dp"
         android:gravity="center_vertical" android:background="@drawable/hint_bg"
         android:visibility="gone">
         <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:src="@drawable/hint_button" android:importantForAccessibility="no" />
-        <TextView android:id="@+id/hint" android:layout_width="0dp"
+        <!-- What a press does, and under it (beside it on its side) what a turn does -->
+        <LinearLayout android:id="@+id/hint_lines" android:layout_width="0dp"
             android:layout_height="wrap_content" android:layout_weight="1"
-            android:layout_marginStart="14dp" android:textSize="15sp"
-            android:textColor="@color/text_sum" />
+            android:layout_marginStart="14dp" android:orientation="vertical"
+            android:gravity="center_vertical">
+            <TextView android:id="@+id/hint" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="15sp"
+                android:textColor="@color/text_sum" android:maxLines="2"
+                android:ellipsize="end" />
+            <TextView android:id="@+id/hint_turn" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="13sp"
+                android:textColor="@color/text_faint" android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -24,6 +24,9 @@ public final class WgStartActivity extends Page {
     private static final int REQ_FILE = 2;
 
     private View mProblem;
+    private View mScan;
+    private View mFile;
+    private View mPaste;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -33,15 +36,18 @@ public final class WgStartActivity extends Page {
         lead(getText(R.string.wg_lead));
         final View scan = row(mBody, R.drawable.ic_scan, getText(R.string.from_scan),
                 getText(R.string.from_scan_sum));
+        mScan = scan;
         pressHint(scan, getText(R.string.hint_scan));
         scan.setOnClickListener(v -> startActivityForResult(new Intent(this, ScanActivity.class)
                 .putExtra(ScanActivity.EXTRA_MODE, ScanActivity.MODE_CONF), REQ_SCAN));
         final View file = row(mBody, R.drawable.ic_file, getText(R.string.from_file),
                 getText(R.string.from_file_sum));
+        mFile = file;
         pressHint(file, getText(R.string.hint_file));
         file.setOnClickListener(v -> openFile());
         final View paste = row(mBody, R.drawable.ic_paste, getText(R.string.from_paste),
                 getText(R.string.from_paste_sum));
+        mPaste = paste;
         pressHint(paste, getText(R.string.hint_paste));
         paste.setOnClickListener(v -> paste());
         final View type = row(mBody, R.drawable.ic_edit, getText(R.string.from_type),
@@ -60,8 +66,16 @@ public final class WgStartActivity extends Page {
         try {
             startActivityForResult(open, REQ_FILE);
         } catch (ActivityNotFoundException e) {
-            noteText(mProblem, getText(R.string.file_unreadable), true);
+            problem(mFile, getText(R.string.file_unreadable));
         }
+    }
+
+    /** What went wrong, right under the way it came in by, the wheel left on that way */
+    private void problem(View under, CharSequence text) {
+        mBody.removeView(mProblem);
+        mBody.addView(mProblem, mBody.indexOfChild(under) + 1);
+        noteText(mProblem, text, true);
+        under.requestFocus();
     }
 
     private void paste() {
@@ -70,7 +84,7 @@ public final class WgStartActivity extends Page {
         final CharSequence text = clip != null && clip.getItemCount() > 0
                 ? clip.getItemAt(0).coerceToText(this) : null;
         if (text == null || text.length() == 0) {
-            noteText(mProblem, getText(R.string.clip_empty), true);
+            problem(mPaste, getText(R.string.clip_empty));
             return;
         }
         take(text.toString(), Draft.FROM_CLIP, null);
@@ -109,7 +123,7 @@ public final class WgStartActivity extends Page {
         } catch (IOException | RuntimeException e) {
             runOnUiThread(() -> {
                 if (!isFinishing() && !isDestroyed()) {
-                    noteText(mProblem, getText(R.string.file_unreadable), true);
+                    problem(mFile, getText(R.string.file_unreadable));
                 }
             });
             return;
@@ -140,7 +154,8 @@ public final class WgStartActivity extends Page {
         try {
             net = WgConf.parse(text);
         } catch (WgConf.BadConf e) {
-            noteText(mProblem, e.getMessage(), true);
+            problem(from == Draft.FROM_CLIP ? mPaste : from == Draft.FROM_FILE ? mFile
+                    : mScan, e.getMessage());
             return;
         }
         net.name = name != null && !name.trim().isEmpty() ? name.trim() : net.host;

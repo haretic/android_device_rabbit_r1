@@ -166,7 +166,7 @@ public final class TsSignInActivity extends Page {
         mProblem = note(mChoose, R.drawable.ic_info, "");
         noteText(mProblem, "", true);
         final TextView go = buttons(mChoose, R.string.ts_sign_in);
-        pressHint(go, getText(R.string.hint_choose));
+        pressHint(go, getText(R.string.hint_sign_in));
         go.setOnClickListener(v -> start());
         if (!mAgain) {
             EngineUi.footer(this, mChoose, R.string.ts_trademark);
@@ -224,9 +224,10 @@ public final class TsSignInActivity extends Page {
         final View pair = getLayoutInflater().inflate(R.layout.buttons, mWork, false);
         mBack = pair.findViewById(R.id.back);
         mBack.setOnClickListener(v -> back());
+        pressHint(mBack, getText(R.string.hint_stop_sign_in));
         mRetry = pair.findViewById(R.id.go);
         mRetry.setText(R.string.try_again);
-        pressHint(mRetry, getText(R.string.hint_choose));
+        pressHint(mRetry, getText(R.string.hint_retry));
         mRetry.setOnClickListener(v -> retry());
         mWork.addView(pair);
     }
@@ -237,7 +238,7 @@ public final class TsSignInActivity extends Page {
                 == Configuration.ORIENTATION_LANDSCAPE;
         mQrBox.setOrientation(wide ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
         final float density = getResources().getDisplayMetrics().density;
-        final int qr = (int) ((wide ? 180 : 200) * density);
+        final int qr = (int) ((wide ? 170 : 180) * density);
         final LinearLayout.LayoutParams code = new LinearLayout.LayoutParams(qr, qr);
         code.gravity = wide ? android.view.Gravity.TOP : android.view.Gravity.CENTER_HORIZONTAL;
         code.bottomMargin = (int) (10 * density);
@@ -261,6 +262,9 @@ public final class TsSignInActivity extends Page {
         if (mWorking) {
             return;
         }
+        clearFieldProblem(mServerEdit);
+        clearFieldProblem(mKeyEdit);
+        noteText(mProblem, "", true);
         String control = "";
         if (mOwnServer) {
             control = mServerEdit.getText().toString().trim();
@@ -270,16 +274,14 @@ public final class TsSignInActivity extends Page {
                 control = null;
             }
             if (control == null || control.isEmpty()) {
-                noteText(mProblem, getText(R.string.ts_bad_server), true);
-                mServerEdit.requestFocus();
+                fieldProblem(mServerEdit, getText(R.string.ts_bad_server));
                 return;
             }
         }
         if (mUseKey) {
             final Editable typed = mKeyEdit.getText();
             if (typed.toString().trim().isEmpty()) {
-                noteText(mProblem, getText(R.string.ts_need_key), true);
-                mKeyEdit.requestFocus();
+                fieldProblem(mKeyEdit, getText(R.string.ts_need_key));
                 return;
             }
             wipeKey();
@@ -429,6 +431,10 @@ public final class TsSignInActivity extends Page {
         mQrBox.setVisibility(View.VISIBLE);
         if (first) {
             giveUpIn(SIGN_IN_MS, R.string.ts_too_long);
+            // On the address, under the code: the code and the words over it in sight
+            if (mBack.hasFocus()) {
+                mUrl.requestFocus();
+            }
         }
     }
 

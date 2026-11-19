@@ -14,7 +14,9 @@ import java.util.List;
 /**
  * Tailscale: which of your devices all of this r1's traffic goes out through, or nobody. Each
  * is a choice: the wheel goes from one to the next, a press or a tap chooses it, and once
- * Tailscale has taken it the page goes back. The devices are asked for while it is on.
+ * Tailscale has taken it the page goes back. The devices are asked for while it is on. The
+ * page starts on its first line, which only reads, and goes to the choice made once the list
+ * is in, so that a first press changes nothing.
  */
 public final class TsExitActivity extends Page {
     static final String EXTRA_ID = "id";
@@ -34,7 +36,10 @@ public final class TsExitActivity extends Page {
             return;
         }
         title(R.string.ts_exit);
-        lead(getText(R.string.ts_exit_lead));
+        final View lead = stop(lead(getText(R.string.ts_exit_lead)));
+        final int pad = (int) (12 * getResources().getDisplayMetrics().density);
+        lead.setPadding(pad, pad, pad, pad);
+        ((ViewGroup.MarginLayoutParams) lead.getLayoutParams()).bottomMargin = pad / 2;
         mList = new LinearLayout(this);
         mList.setOrientation(LinearLayout.VERTICAL);
         mBody.addView(mList, new LinearLayout.LayoutParams(
@@ -45,7 +50,7 @@ public final class TsExitActivity extends Page {
         mStatus = note(mBody, R.drawable.ic_info, "");
         hint(R.string.hint_choose);
         mark();
-        nobody.requestFocus();
+        (mNet.exitNodeId.isEmpty() ? nobody : lead).requestFocus();
 
         final TailscaleClient client = client();
         if (client == null) {

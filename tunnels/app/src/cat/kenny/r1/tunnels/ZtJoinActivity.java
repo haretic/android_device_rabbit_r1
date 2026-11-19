@@ -2,6 +2,7 @@
 package cat.kenny.r1.tunnels;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.SpannableStringBuilder;
@@ -10,6 +11,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.UnderlineSpan;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -27,12 +29,17 @@ public final class ZtJoinActivity extends Page {
         R.id.hex_4, R.id.hex_5, R.id.hex_6, R.id.hex_7, R.id.hex_8, R.id.hex_9, R.id.hex_a,
         R.id.hex_b, R.id.hex_c, R.id.hex_d, R.id.hex_e, R.id.hex_f};
     private static final String HEX = "0123456789abcdef";
+    /** The keys in reading order: four to a row standing, six to a row on its side */
+    private static final int[] ORDER = {R.id.hex_0, R.id.hex_1, R.id.hex_2, R.id.hex_3,
+        R.id.hex_4, R.id.hex_5, R.id.hex_6, R.id.hex_7, R.id.hex_8, R.id.hex_9, R.id.hex_a,
+        R.id.hex_b, R.id.hex_c, R.id.hex_d, R.id.hex_e, R.id.hex_f, R.id.key_back, R.id.key_next};
 
     private final StringBuilder mId = new StringBuilder();
     private TextView mNumber;
     private TextView mNext;
     private EditText mName;
     private View mProblem;
+    private ViewGroup mKeys;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -43,6 +50,7 @@ public final class ZtJoinActivity extends Page {
         getLayoutInflater().inflate(R.layout.pad_hex, mBody, true);
         mNumber = mBody.findViewById(R.id.number);
         mNext = mBody.findViewById(R.id.key_next);
+        mKeys = mBody.findViewById(R.id.keys);
         for (int i = 0; i < KEYS.length; i++) {
             final char c = HEX.charAt(i);
             final View key = mBody.findViewById(KEYS[i]);
@@ -50,12 +58,17 @@ public final class ZtJoinActivity extends Page {
             key.setOnClickListener(v -> type(c));
         }
         final View erase = mBody.findViewById(R.id.key_back);
-        pressHint(erase, getText(R.string.hint_pad_hex));
+        pressHint(erase, getText(R.string.hint_erase_char));
         erase.setOnClickListener(v -> erase());
         pressHint(mNext, getText(R.string.hint_zt_next));
         mNext.setOnClickListener(v -> next());
-        mProblem = note(mBody, R.drawable.ic_info, "");
+        // What is wrong in the ID, right under it
+        final ViewGroup pad = (ViewGroup) mNumber.getParent();
+        mProblem = note(pad, R.drawable.ic_info, "");
+        pad.removeView(mProblem);
+        pad.addView(mProblem, pad.indexOfChild(mNumber) + 1);
         noteText(mProblem, "", true);
+        arrange();
 
         final View field = getLayoutInflater().inflate(R.layout.field, mBody, false);
         ((TextView) field.findViewById(R.id.label)).setText(R.string.zt_name);
@@ -80,6 +93,16 @@ public final class ZtJoinActivity extends Page {
         }
         show();
         mBody.findViewById(R.id.hex_0).requestFocus();
+    }
+
+    private void arrange() {
+        arrangeKeys(mKeys, ORDER, isWide() ? 6 : 4);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        arrange();
     }
 
     private void type(char c) {
@@ -174,7 +197,9 @@ public final class ZtJoinActivity extends Page {
     }
 
     private void next() {
+        clearFieldProblem(mName);
         if (mId.length() != CHARS) {
+            noteText(mProblem, getText(R.string.zt_incomplete), true);
             return;
         }
         final String id = mId.toString();
@@ -182,12 +207,13 @@ public final class ZtJoinActivity extends Page {
             ZtAddress.networkId(id);
         } catch (IllegalArgumentException e) {
             noteText(mProblem, getText(R.string.zt_bad_id), true);
+            // The ID is what is wrong: on the key that takes it back
+            mBody.findViewById(R.id.key_back).requestFocus();
             return;
         }
         final String name = mName.getText().toString().trim();
         if (name.isEmpty()) {
-            noteText(mProblem, getText(R.string.name_needed), true);
-            mName.requestFocus();
+            fieldProblem(mName, getText(R.string.name_needed));
             return;
         }
         noteText(mProblem, "", true);
