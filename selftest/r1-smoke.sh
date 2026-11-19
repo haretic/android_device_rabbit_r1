@@ -719,7 +719,7 @@ t_tour() {
 	side_double; sleep 1; side_double; sleep 1; key 4; sleep 1.8; shot tour-8
 	# Power options told of, the status bar's double tap for sleep told of, the help page opened
 	# and left
-	side_press; sleep 1.5; shot tour-sleep; side_press; sleep 1.5; side_press; sleep 2.5
+	side_press; sleep 1.5; shot tour-sleep; side_press; sleep 1.5; shot tour-help; side_press; sleep 2.5
 	focus_win | grep -q WheelActivity && ok "the tour opens the help page" || bad "no help page from the tour ($(focus_win))"
 	key 4; sleep 2; shot tour-9
 	focus_win | grep -q TourActivity && ok "back from help, back in the tour" || bad "help left the tour ($(focus_win))"
@@ -1451,7 +1451,11 @@ t_gallery() {
 		[ -n "$f" ] || { sleep 1; ui gallery-$i; f=$(focused_in gallery-$i); }
 		case "$f" in
 			ConstraintLayout*|ViewGroup*) ;;
-			*) bad "Gallery's step $((i + 1)) left the photos for '${f:-nothing}'"; key 4; key 3; return ;;
+			*) # Kept for the cause, under names a rerun does not write over: the dump before the
+			   # step, the one after and the screen
+			   shot gallery-lost; cp $SHOTS/smoke-gallery-$i.xml $SHOTS/smoke-gallery-lost.xml
+			   cp $SHOTS/smoke-gallery-$((i - 1)).xml $SHOTS/smoke-gallery-lost-before.xml 2>/dev/null
+			   bad "Gallery's step $((i + 1)) left the photos for '${f:-nothing}'"; key 4; key 3; return ;;
 		esac
 		h=$(echo "$f" | awk '{print $5 - $3}')
 		if [ -n "$tall" ] && [ "$h" -lt $((tall - 4)) ]; then
