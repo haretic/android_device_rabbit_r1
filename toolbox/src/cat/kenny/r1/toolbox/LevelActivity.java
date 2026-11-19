@@ -35,6 +35,8 @@ public final class LevelActivity extends ToolActivity {
         mDetail = findViewById(R.id.detail);
         mSensor = new LevelSensor(this, this::show);
         mSensor.math.setMode(Words.levelMode(this));
+        // "This is flat" from an earlier visit, where the settings keep it
+        Words.restoreZeros(this, mSensor.math);
         // By finger a mode is tapped, where the wheel steps to it
         for (int i = 0; i < MODE_VIEWS.length; i++) {
             final int mode = LevelMath.FLAT + i;
@@ -89,6 +91,7 @@ public final class LevelActivity extends ToolActivity {
         } else {
             mSensor.math.zero();
         }
+        Words.saveZero(this, mSensor.math);
         confirm();
         showMode();
         show();

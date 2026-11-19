@@ -56,6 +56,10 @@ public final class SoundActivity extends ToolActivity {
         mAverage = findViewById(R.id.average);
         mBarsView = findViewById(R.id.bars);
         mMeter = newMeter(this);
+        // The wheel turns nothing here, so the base class gives the screen no finger: a tap
+        // anywhere is the button's press too, to hold the reading or to allow the microphone
+        new TouchWheel(this, findViewById(android.R.id.content), android.view.KeyEvent.KEYCODE_POWER,
+                TouchWheel.TAP_ONLY);
     }
 
     @Override

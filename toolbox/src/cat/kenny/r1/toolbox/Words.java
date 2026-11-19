@@ -88,6 +88,41 @@ final class Words {
     /** The level buzzes as it comes to dead level: 1 yes */
     static final String LEVEL_BUZZ = "level_buzz";
 
+    /** The level's zero: 0 forgotten once the level closes, 1 kept until pressed away */
+    static final String LEVEL_KEEP_ZERO = "level_keep_zero";
+    /** The tuner's needle: 0 the thin marker, 1 large, for reading from arm's length */
+    static final String TUNER_NEEDLE = "tuner_needle";
+
+    /** The zeros kept for the level, into its math, where the settings say to keep them. */
+    static void restoreZeros(Context context, LevelMath math) {
+        if (setting(context, LEVEL_KEEP_ZERO, 2) != 1) {
+            return;
+        }
+        for (int mode = LevelMath.FLAT; mode <= LevelMath.PLUMB; mode++) {
+            final String kept = prefs(context).getString("level_zero_" + mode, "");
+            final String[] xy = kept.split(",", -1);
+            if (xy.length != 2) {
+                continue;
+            }
+            try {
+                math.setZero(mode, Float.parseFloat(xy[0]), Float.parseFloat(xy[1]));
+            } catch (NumberFormatException e) {
+                // Not one this page wrote: left off
+            }
+        }
+    }
+
+    /** Keeps the zero of the level's mode now, or forgets it once it is cleared. */
+    static void saveZero(Context context, LevelMath math) {
+        final String key = "level_zero_" + math.mode();
+        final float[] zero = math.zeroOf(math.mode());
+        if (zero == null || setting(context, LEVEL_KEEP_ZERO, 2) != 1) {
+            prefs(context).edit().remove(key).apply();
+        } else {
+            prefs(context).edit().putString(key, zero[0] + "," + zero[1]).apply();
+        }
+    }
+
     /** A setting's choice, held to the range it has. */
     static int setting(Context context, String key, int count) {
         final int value = prefs(context).getInt(key, 0);

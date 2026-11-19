@@ -50,6 +50,14 @@ public final class TunerActivity extends OneReading {
     @Override
     protected void onResume() {
         super.onResume();
+        // As the settings page left it: the large needle on a taller stage
+        final boolean large = Words.setting(this, Words.TUNER_NEEDLE, 2) == 1;
+        mCents.large(large);
+        final android.view.View stage = findViewById(R.id.stage);
+        final android.view.ViewGroup.LayoutParams lp = stage.getLayoutParams();
+        lp.height = Math.round(getResources().getDimension(R.dimen.tool_stage)
+                * (large ? 1.5f : 1f));
+        stage.setLayoutParams(lp);
         listen();
     }
 

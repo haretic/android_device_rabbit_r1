@@ -36,8 +36,8 @@
     <string name="level_plumb_dead">Plumb.</string>
     <string name="level_lay_flat">Lay the r1 on its back for this one.</string>
     <string name="level_stand_up">Stand the r1 on an edge for this one.</string>
-    <string name="level_hint_zero">Press to call this angle zero.</string>
-    <string name="level_hint_unzero">Zeroed. Press to go back to true level.</string>
+    <string name="level_hint_zero">Press to call this angle zero. The wheel picks flat, on edge or plumb.</string>
+    <string name="level_hint_unzero">Zeroed. Press to go back to true level. The wheel picks the kind.</string>
     <string name="level_none">This r1 has no motion sensor to level with.</string>
 
     <string name="sound">Sound Level</string>
@@ -134,7 +134,7 @@
 
     <!-- The settings page, last in the list -->
     <string name="settings">Settings</string>
-    <string name="settings_row">screen, sounds and the level\'s buzz</string>
+    <string name="settings_row">screen, sounds, the level and the tuner</string>
     <string name="settings_title">Toolbox settings</string>
     <string name="settings_hint">Press for the next choice of the one the wheel is on. Hold to go back.</string>
     <string name="set_screen">Keep the screen on</string>
@@ -164,5 +164,15 @@
     <string-array name="set_level_buzz_choices">
         <item>Off</item>
         <item>On</item>
+    </string-array>
+    <string name="set_level_zero">Level zero</string>
+    <string-array name="set_level_zero_choices">
+        <item>Forgotten when the level closes</item>
+        <item>Kept until you press it away</item>
+    </string-array>
+    <string name="set_tuner_needle">Tuner needle</string>
+    <string-array name="set_tuner_needle_choices">
+        <item>Thin</item>
+        <item>Large, to read from further away</item>
     </string-array>
 </resources>

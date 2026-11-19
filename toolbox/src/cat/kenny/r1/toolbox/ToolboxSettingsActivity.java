@@ -23,6 +23,10 @@ public final class ToolboxSettingsActivity extends ToolActivity {
         row(rows, R.string.set_tone_level, R.array.set_tone_level_choices, Words.TONE_LEVEL, 1);
         row(rows, R.string.set_tone_wave, R.array.set_tone_wave_choices, Words.TONE_WAVE, 0);
         row(rows, R.string.set_level_buzz, R.array.set_level_buzz_choices, Words.LEVEL_BUZZ, 0);
+        row(rows, R.string.set_level_zero, R.array.set_level_zero_choices,
+                Words.LEVEL_KEEP_ZERO, 0);
+        row(rows, R.string.set_tuner_needle, R.array.set_tuner_needle_choices,
+                Words.TUNER_NEEDLE, 0);
         hint(R.string.settings_hint);
         if (state == null) {
             first.requestFocus();

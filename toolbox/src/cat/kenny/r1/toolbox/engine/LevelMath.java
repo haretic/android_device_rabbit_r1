@@ -177,6 +177,28 @@ public final class LevelMath {
         return hasZero[mode];
     }
 
+    /** The zero of {@code mode}, as zero() took it: {x, y}, or null without one. */
+    public float[] zeroOf(int mode) {
+        if (mode < FLAT || mode > PLUMB || !hasZero[mode]) {
+            return null;
+        }
+        return new float[] {zeroX[mode], zeroY[mode]};
+    }
+
+    /** A zero kept from before, for {@code mode}; out of range or not finite it is left off. */
+    public void setZero(int mode, float x, float y) {
+        if (mode < FLAT || mode > PLUMB || !Float.isFinite(x) || !Float.isFinite(y)
+                || Math.abs(x) > 90 || Math.abs(y) > 90) {
+            return;
+        }
+        zeroX[mode] = x;
+        zeroY[mode] = mode == FLAT ? y : 0;
+        hasZero[mode] = true;
+        if (mode == this.mode) {
+            resetStability();
+        }
+    }
+
     public boolean steady() {
         return steady;
     }

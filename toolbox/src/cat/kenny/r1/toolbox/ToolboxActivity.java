@@ -114,6 +114,9 @@ public final class ToolboxActivity extends ToolActivity {
         super.onResume();
         if (mLevel.available()) {
             mLevel.math.setMode(cat.kenny.r1.toolbox.engine.LevelMath.FLAT);
+            // The list reads as the level page does, its kept zero included
+            mLevel.math.clearZero();
+            Words.restoreZeros(this, mLevel.math);
             mLevel.start();
         } else {
             set(mLevelRow, getString(R.string.level_none), "");
