@@ -50,5 +50,8 @@
     <string name="shade_old">Notifications from before</string>
     <string name="shade_old_on">On - in the shade, without a sound</string>
     <string name="shade_old_off">Off - only new ones in the shade</string>
+    <string name="big_keys">Large music keys</string>
+    <string name="big_keys_on">On - under the song, easy to tap</string>
+    <string name="big_keys_off">Off - small, beside the song</string>
     <string name="notices_hint">Press or tap one to read all of it and clear it.</string>
 </resources>

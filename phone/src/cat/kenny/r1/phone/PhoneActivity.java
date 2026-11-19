@@ -68,6 +68,9 @@ public final class PhoneActivity extends Activity {
         findViewById(R.id.prev).setOnClickListener(v -> press(Ams.PREVIOUS));
         findViewById(R.id.next).setOnClickListener(v -> press(Ams.NEXT));
         findViewById(R.id.toggle).setOnClickListener(v -> press(Ams.TOGGLE));
+        findViewById(R.id.big_prev).setOnClickListener(v -> press(Ams.PREVIOUS));
+        findViewById(R.id.big_next).setOnClickListener(v -> press(Ams.NEXT));
+        findViewById(R.id.big_toggle).setOnClickListener(v -> press(Ams.TOGGLE));
         findViewById(R.id.volume_row).setOnClickListener(v -> hold(!mHeld));
         findViewById(R.id.volume_row).setOnTouchListener(this::slide);
         findViewById(R.id.settings).setOnClickListener(v -> startActivity(
@@ -93,9 +96,32 @@ public final class PhoneActivity extends Activity {
         }
     }
 
+    /** Whether the music's keys are the large ones under the song, from the settings. */
+    static boolean bigKeys(android.content.Context context) {
+        return context.getSharedPreferences("phone", 0).getBoolean(BIG_KEYS, false);
+    }
+
+    static final String BIG_KEYS = "big_keys";
+
+    /** The play key of the keys shown: the large one or the one beside the song. */
+    private int toggleKey() {
+        return bigKeys(this) ? R.id.big_toggle : R.id.toggle;
+    }
+
+    /** The small keys beside the song, or the large ones under it, as the settings say. */
+    private void keySize() {
+        final boolean big = bigKeys(this);
+        for (int id : new int[] {R.id.prev, R.id.toggle, R.id.next}) {
+            findViewById(id).setVisibility(big ? View.GONE : View.VISIBLE);
+        }
+        findViewById(R.id.big_keys).setVisibility(big ? View.VISIBLE : View.GONE);
+        findViewById(R.id.volume_row).setNextFocusUpId(big ? R.id.big_next : R.id.next);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        keySize();
         PhoneService.sListener = () -> mHandler.post(mRender);
         render();
         mHandler.postDelayed(mClock, 1000);
@@ -172,6 +198,20 @@ public final class PhoneActivity extends Activity {
         ((TextView) findViewById(R.id.volume_hint)).setText(held ? R.string.volume_held
                 : R.string.volume_hint);
         findViewById(R.id.volume_row).setActivated(held);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(android.view.MotionEvent event) {
+        if (mHeld && event.getActionMasked() == android.view.MotionEvent.ACTION_DOWN) {
+            // A finger elsewhere is done with the wheel as the volume: it lets go, as the
+            // hint says a press does, so the wheel moves on the page again
+            final android.graphics.Rect row = new android.graphics.Rect();
+            if (!findViewById(R.id.volume_row).getGlobalVisibleRect(row)
+                    || !row.contains(Math.round(event.getRawX()), Math.round(event.getRawY()))) {
+                hold(false);
+            }
+        }
+        return super.dispatchTouchEvent(event);
     }
 
     @Override
@@ -255,7 +295,9 @@ public final class PhoneActivity extends Activity {
             hold(false);
             mShown = false;
             if (getCurrentFocus() == null) {
-                findViewById(R.id.link).requestFocus();
+                // Turn on starts there; once on, the same button turns it off, so the first
+                // press lands on Settings instead and Turn off is a step up
+                findViewById(link == null ? R.id.link : R.id.settings).requestFocus();
             }
             return;
         }
@@ -265,16 +307,21 @@ public final class PhoneActivity extends Activity {
         final TextView artist = findViewById(R.id.artist);
         artist.setText(music.artist.isEmpty() ? music.player : music.artist);
         artist.setVisibility(artist.getText().length() == 0 ? View.GONE : View.VISIBLE);
-        final ImageView toggle = findViewById(R.id.toggle);
-        toggle.setImageResource(music.playing() ? R.drawable.ic_pause : R.drawable.ic_play);
-        toggle.setContentDescription(getString(music.playing() ? R.string.pause
-                : R.string.play));
+        for (int id : new int[] {R.id.toggle, R.id.big_toggle}) {
+            final ImageView toggle = findViewById(id);
+            toggle.setImageResource(music.playing() ? R.drawable.ic_pause : R.drawable.ic_play);
+            toggle.setContentDescription(getString(music.playing() ? R.string.pause
+                    : R.string.play));
+        }
         key(R.id.prev, music.commands.contains(Ams.PREVIOUS));
         key(R.id.next, music.commands.contains(Ams.NEXT));
         key(R.id.toggle, music.commands.contains(Ams.TOGGLE));
-        if (!mShown && findViewById(R.id.toggle).isFocusable()) {
+        key(R.id.big_prev, music.commands.contains(Ams.PREVIOUS));
+        key(R.id.big_next, music.commands.contains(Ams.NEXT));
+        key(R.id.big_toggle, music.commands.contains(Ams.TOGGLE));
+        if (!mShown && findViewById(toggleKey()).isFocusable()) {
             // The phone is here: the press belongs to its music, not to Turn off, where it was
-            mShown = findViewById(R.id.toggle).requestFocus();
+            mShown = findViewById(toggleKey()).requestFocus();
         }
         ((ProgressBar) findViewById(R.id.volume)).setProgress(music.volume == null ? 0
                 : Math.round(music.volume * 100));
@@ -409,7 +456,7 @@ public final class PhoneActivity extends Activity {
         clearAll.setVisibility(mNotices.getChildCount() == 0 ? View.GONE : View.VISIBLE);
         clearAll.setOnClickListener(v -> clear(notices));
         if (hadFocus && mNotices.getChildCount() == 0) {
-            findViewById(R.id.link).requestFocus();
+            findViewById(R.id.settings).requestFocus();
         }
         findViewById(R.id.empty).setVisibility(mNotices.getChildCount() == 0 ? View.VISIBLE
                 : View.GONE);

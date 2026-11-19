@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The large play key: filled in the accent, ringed in white where the wheel is on it -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="oval"><solid android:color="?android:attr/colorAccent" />
+            <stroke android:width="3dp" android:color="#FFFFFF" /></shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="oval"><solid android:color="?android:attr/colorAccent" />
+            <stroke android:width="3dp" android:color="#3A2A22" /></shape>
+    </item>
+    <item><shape android:shape="oval"><solid android:color="?android:attr/colorAccent" /></shape></item>
+</selector>

@@ -66,6 +66,29 @@
                     android:layout_height="wrap_content" android:textSize="13sp"
                     android:textColor="@color/text_dim" android:fontFeatureSettings="tnum" />
             </LinearLayout>
+            <!-- The music's keys large, where the settings say so: under the song, a thumb
+                 wide, the beside-the-song ones gone -->
+            <LinearLayout android:id="@+id/big_keys" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:gravity="center" android:visibility="gone">
+                <ImageView android:id="@+id/big_prev" style="@style/Key"
+                    android:layout_width="64dp" android:layout_height="64dp"
+                    android:padding="16dp" android:nextFocusDown="@+id/big_toggle"
+                    android:src="@drawable/ic_prev"
+                    android:contentDescription="@string/previous" />
+                <ImageView android:id="@+id/big_toggle" style="@style/Key"
+                    android:layout_width="76dp" android:layout_height="76dp"
+                    android:layout_marginStart="20dp" android:layout_marginEnd="20dp"
+                    android:padding="20dp" android:background="@drawable/big_play_bg"
+                    android:tint="#2A1206" android:nextFocusUp="@id/big_prev"
+                    android:nextFocusDown="@+id/big_next" android:src="@drawable/ic_play"
+                    android:contentDescription="@string/play" />
+                <ImageView android:id="@+id/big_next" style="@style/Key"
+                    android:layout_width="64dp" android:layout_height="64dp"
+                    android:padding="16dp" android:nextFocusUp="@id/big_toggle"
+                    android:nextFocusDown="@+id/volume_row" android:src="@drawable/ic_next"
+                    android:contentDescription="@string/next" />
+            </LinearLayout>
             <LinearLayout android:id="@+id/volume_row" android:layout_width="match_parent"
                 android:nextFocusUp="@id/next"
                 android:layout_height="48dp" android:layout_marginTop="4dp"

@@ -27,7 +27,28 @@ public final class PhoneSettings extends Activity {
                 R.string.shade_calls_off, PhoneService.SHADE_CALLS);
         toggle(R.drawable.ic_note, R.string.shade_old, R.string.shade_old_on,
                 R.string.shade_old_off, PhoneService.SHADE_OLD);
+        bigKeys();
         mRows.getChildAt(0).requestFocus();
+    }
+
+    /** The music's keys large under the song: the page's own, so no shade to redo. */
+    private void bigKeys() {
+        final View row = getLayoutInflater().inflate(R.layout.setting, mRows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_next);
+        ((TextView) row.findViewById(R.id.title)).setText(R.string.big_keys);
+        final Runnable show = () -> {
+            final boolean on = PhoneActivity.bigKeys(this);
+            row.findViewById(R.id.check).setSelected(on);
+            ((TextView) row.findViewById(R.id.text)).setText(on ? R.string.big_keys_on
+                    : R.string.big_keys_off);
+        };
+        show.run();
+        row.setOnClickListener(v -> {
+            getSharedPreferences("phone", 0).edit().putBoolean(PhoneActivity.BIG_KEYS,
+                    !PhoneActivity.bigKeys(this)).apply();
+            show.run();
+        });
+        mRows.addView(row);
     }
 
     private void toggle(int icon, int title, int onText, int offText, String what) {
