@@ -7,10 +7,23 @@ import java.util.concurrent.atomic.AtomicLongArray;
 public final class SynthEngine {
     public static final int PADS = 6;
     public static final int GRAIN = 0, CHIRP = 1, CRUSH = 2, BELL = 3, SUB = 4, HAT = 5;
-    public static final int FILTER = 0, PITCH = 1, STUTTER = 2;
+    public static final int FILTER = 0, PITCH = 1, STUTTER = 2, ECHO = 3;
+    /** The scales the pads play in, each of seven notes: major, minor, dorian, mixolydian,
+     *  lydian, phrygian, harmonic minor. In the order of the app's names for them. */
+    private static final int[][] SCALES = {
+        {0, 2, 4, 5, 7, 9, 11},
+        {0, 2, 3, 5, 7, 8, 10},
+        {0, 2, 3, 5, 7, 9, 10},
+        {0, 2, 4, 5, 7, 9, 10},
+        {0, 2, 4, 6, 7, 9, 11},
+        {0, 1, 3, 5, 7, 8, 10},
+        {0, 2, 3, 5, 7, 8, 11},
+    };
+    public static final int SCALE_COUNT = SCALES.length;
+    /** The echo comes back this long after the sound */
+    private static final double ECHO_SECONDS = .240;
 
     private static final double TAU = 2.0 * Math.PI;
-    private static final int[] SCALE = {0, 2, 4, 5, 7, 9, 11};
     private static final int[] GRAIN_NOTES = {7, 8, 9, 11, 13};
     private static final double[] LENGTH = {.180, .160, .220, .900, .500, .045};
     private static final double[] GAIN = {.43, .48, .43, .38, .40, 1.0};
@@ -30,8 +43,15 @@ public final class SynthEngine {
     private volatile float filterTarget = 1f;
     private volatile float pitchTarget = .5f;
     private volatile float stutterTarget = .35f;
+    private volatile float echoTarget = 0f;
+    private volatile int scaleTarget = 0;
     private volatile boolean audioSilent = true;
-    private double filter = 1.0, pitch = .5, stutter = .35;
+    private double filter = 1.0, pitch = .5, stutter = .35, echo = 0;
+    /** The echo's line, allocated once; what is in it is heard again ECHO_SECONDS later */
+    private final double[] echoLine;
+    private int echoAt;
+    private double echoPeak;
+    private final double echoDecay;
     private double period;
     private double hatShift = 1.0;
     private final double[] frequencies = new double[43];
@@ -47,6 +67,9 @@ public final class SynthEngine {
         dt = 1.0 / rate;
         smoothing = 1.0 - Math.exp(-1.0 / (.020 * rate));
         meterDecay = Math.exp(-1.0 / (.045 * rate));
+        echoLine = new double[Math.max(1, (int) Math.round(ECHO_SECONDS * rate))];
+        // Slower than the gap between repeats, so a fading echo is not taken for silence
+        echoDecay = Math.exp(-1.0 / (.5 * rate));
         random = seed ^ 0x9e3779b97f4a7c15L;
         if (random == 0) random = 1;
         for (int i = 0; i < PADS; i++) pads[i] = new Pad();
@@ -77,8 +100,18 @@ public final class SynthEngine {
             case FILTER: filterTarget = value; break;
             case PITCH: pitchTarget = value; break;
             case STUTTER: stutterTarget = value; break;
+            case ECHO: echoTarget = value; break;
             default: throw new IllegalArgumentException("unknown knob");
         }
+    }
+
+    /** The scale the pads and the pitch knob move in, 0 to SCALE_COUNT - 1. */
+    public void setScale(int scale) {
+        scaleTarget = Math.max(0, Math.min(SCALE_COUNT - 1, scale));
+    }
+
+    public int scale() {
+        return scaleTarget;
     }
 
     public float knob(int which) {
@@ -86,6 +119,7 @@ public final class SynthEngine {
             case FILTER: return filterTarget;
             case PITCH: return pitchTarget;
             case STUTTER: return stutterTarget;
+            case ECHO: return echoTarget;
             default: throw new IllegalArgumentException("unknown knob");
         }
     }
@@ -119,6 +153,7 @@ public final class SynthEngine {
             filter += smoothing * (filterTarget - filter);
             pitch += smoothing * (pitchTarget - pitch);
             stutter += smoothing * (stutterTarget - stutter);
+            echo += smoothing * (echoTarget - echo);
             if (coefficientClock-- <= 0) {
                 updateCoefficients();
                 coefficientClock = 31;
@@ -144,10 +179,19 @@ public final class SynthEngine {
             }
             double output = tone.tick(mix);
             for (Biquad stage : guard) output = stage.tick(output);
+            // The echo: what went in ECHO_SECONDS ago, fed back into itself to fade away.
+            // Turned off, nothing goes into the line and it empties within one round.
+            double delayed = echoLine[echoAt];
+            double fed = echo > .001 ? output + delayed * .55 * echo : 0;
+            // Flush a long tail before it reaches denormal arithmetic, as the filters do
+            echoLine[echoAt] = Math.abs(fed) < 1e-20 ? 0 : fed;
+            if (++echoAt >= echoLine.length) echoAt = 0;
+            output += delayed * .6 * echo;
+            echoPeak = Math.max(echoPeak * echoDecay, Math.abs(delayed * echo));
             // A memoryless soft knee recovers immediately after a dense chord.
             output = .98 * Math.tanh(output / .98);
             out[frame] = (short) Math.round(32767.0 * output);
-            quiet = !active && Math.abs(output) < 1e-8;
+            quiet = !active && Math.abs(output) < 1e-8 && echoPeak < 1e-5;
             clock++;
         }
         boolean held = false;
@@ -157,6 +201,11 @@ public final class SynthEngine {
         for (Pad pad : pads) {
             if (quiet && !held) pad.peak = 0;
             pad.level = (float) Math.min(1, pad.peak);
+        }
+        if (quiet && !held && !audioSilent) {
+            // What is left of an echo is below hearing: start the next sound on a clean line
+            java.util.Arrays.fill(echoLine, 0);
+            echoPeak = 0;
         }
         audioSilent = quiet && !held;
     }
@@ -205,8 +254,9 @@ public final class SynthEngine {
     }
 
     private double noteFrequency(int degree) {
+        int[] scale = SCALES[Math.max(0, Math.min(SCALE_COUNT - 1, scaleTarget))];
         int octave = Math.floorDiv(degree, 7);
-        int semitone = 12 * octave + SCALE[Math.floorMod(degree, 7)];
+        int semitone = 12 * octave + scale[Math.floorMod(degree, 7)];
         return 440 * Math.pow(2, semitone / 12.0);
     }
 

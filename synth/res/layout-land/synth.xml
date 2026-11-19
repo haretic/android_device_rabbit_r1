@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Turned: the wheel is along the top edge (or the bottom, SynthActivity moves the knob's lane
+     there), so the lane runs across under the name, the pads three across below it -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/synth_root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:fitsSystemWindows="true">
+    <!-- The name, and beside it what the wheel works on now and where it is -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+        <TextView style="@style/Title" android:layout_width="wrap_content"
+            android:paddingTop="8dp" android:paddingBottom="8dp"
+            android:text="@string/app_name" />
+        <TextView android:id="@+id/setting" style="@style/Body"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp" android:minHeight="48dp"
+            android:paddingStart="8dp" android:paddingEnd="8dp"
+            android:gravity="end|center_vertical" android:maxLines="1" android:ellipsize="end"
+            android:background="?android:attr/selectableItemBackground"
+            android:focusable="false"
+            android:textColor="?android:attr/colorAccent" />
+        <TextView android:id="@+id/knobs" style="@style/Body"
+            android:layout_width="wrap_content" android:layout_height="48dp"
+            android:minWidth="64dp" android:layout_marginEnd="12dp"
+            android:paddingStart="8dp" android:paddingEnd="8dp" android:gravity="center"
+            android:background="?android:attr/selectableItemBackground"
+            android:focusable="false" android:textColor="?android:attr/colorAccent"
+            android:text="@string/knobs" android:visibility="gone" />
+    </LinearLayout>
+    <cat.kenny.r1.synth.KnobView android:id="@+id/knob"
+        android:layout_width="match_parent" android:layout_height="52dp"
+        android:layout_marginStart="18dp" android:layout_marginEnd="18dp"
+        android:layout_marginBottom="8dp" />
+    <cat.kenny.r1.synth.PadsView android:id="@+id/pads"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp" android:layout_marginBottom="10dp" />
+    <include layout="@layout/hint" />
+</LinearLayout>

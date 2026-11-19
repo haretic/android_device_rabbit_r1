@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Synth</string>
     <!-- The six pads, in the order of SynthEngine's -->
     <string-array name="pads">
@@ -11,13 +11,57 @@
         <item>Sub</item>
         <item>Hat</item>
     </string-array>
-    <!-- What the wheel's knob works on, in the order of SynthEngine's -->
+    <!-- What the wheel works on, in the order of SynthActivity's: the first four are
+         SynthEngine's knobs -->
     <string-array name="knobs">
         <item>Filter</item>
         <item>Pitch</item>
         <item>Stutter</item>
+        <item>Echo</item>
+        <item>Scale</item>
+        <item>Preset</item>
+        <item>Play</item>
     </string-array>
-    <string name="hint_filter">The wheel is the knob. Press for pitch, then stutter.</string>
-    <string name="hint_pitch">The wheel is the pitch. Press for stutter, then filter.</string>
-    <string name="hint_stutter">Hold a pad and turn: the wheel is the stutter. Press for filter.</string>
+    <!-- The scales, in the order of SynthEngine's -->
+    <string-array name="scales">
+        <item>Major</item>
+        <item>Minor</item>
+        <item>Dorian</item>
+        <item>Mixolydian</item>
+        <item>Lydian</item>
+        <item>Phrygian</item>
+        <item>Harmonic minor</item>
+    </string-array>
+    <!-- The ready-made sounds, in the order of SynthActivity's -->
+    <string-array name="presets">
+        <item>Plain</item>
+        <item>Warm</item>
+        <item>Dark</item>
+        <item>Bright</item>
+        <item>Glitch</item>
+        <item>Dub</item>
+    </string-array>
+
+    <!-- Beside the name: what the wheel works on now, and where it is -->
+    <string name="setting_filter">Filter <xliff:g id="percent">%1$d</xliff:g>%%</string>
+    <string name="setting_pitch">Pitch <xliff:g id="notes">%1$s</xliff:g></string>
+    <string name="setting_stutter">Stutter <xliff:g id="rate">%1$d</xliff:g> a second</string>
+    <string name="setting_echo">Echo <xliff:g id="percent">%1$d</xliff:g>%%</string>
+    <string name="setting_echo_off">Echo off</string>
+    <string name="setting_scale"><xliff:g id="scale">%1$s</xliff:g> scale</string>
+    <string name="setting_preset">Preset <xliff:g id="preset">%1$s</xliff:g></string>
+    <string name="setting_custom">Your own setup</string>
+    <string name="setting_play">Play <xliff:g id="pad">%1$s</xliff:g></string>
+
+    <!-- What the wheel and the button do, along the bottom, one for each of "knobs" -->
+    <string name="hint_filter">The wheel opens and closes the filter. Press for pitch.</string>
+    <string name="hint_pitch">The wheel moves the pads a note at a time. Press for stutter.</string>
+    <string name="hint_stutter">A held pad repeats, the wheel sets how fast. Press for echo.</string>
+    <string name="hint_echo">The wheel sets the echo, all the way down is off. Press for scale.</string>
+    <string name="hint_scale">The wheel picks the scale the pads play in. Press for presets.</string>
+    <string name="hint_preset">The wheel picks a ready-made sound. Press to play by wheel.</string>
+    <string name="knobs">Knobs</string>
+    <string name="hint_play">Wheel picks a pad. Press to play, hold to repeat. Turn past either end or tap Knobs to leave.</string>
+    <string name="hint_play_held">Repeating. Wheel sets how fast. Let go, then turn past either end for knobs.</string>
+    <string name="hint_play_top_held">Repeating. Turn up for knobs. Let go to stop.</string>
 </resources>

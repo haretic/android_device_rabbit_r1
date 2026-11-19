@@ -18,7 +18,7 @@ import cat.kenny.r1.synth.engine.SynthEngine;
 import java.util.Random;
 
 /**
- * The six pads, two across. A pad under a finger turns to the accent and, held, breaks into
+ * The six pads, two across, three across where the view is wide, as turned. A pad under a finger turns to the accent and, held, breaks into
  * slices that shift with every stutter. Each pad carries a small drawing of its sound.
  */
 public final class PadsView extends View {
@@ -27,8 +27,8 @@ public final class PadsView extends View {
         void onPad(int pad, boolean down);
     }
 
-    private static final int COLUMNS = 2;
-    private static final int ROWS = SynthEngine.PADS / COLUMNS;
+    /** Each sound's drawing is about this tall, in dp (mark()). */
+    private static final float MARK_HEIGHT = 44;
     private static final int SLICES = 5;
     private static final int INK = 0xff2a1206;
 
@@ -42,6 +42,10 @@ public final class PadsView extends View {
     private final int[] mPointer = new int[SynthEngine.PADS];
     private final float[] mLevel = new float[SynthEngine.PADS];
     private final int[] mSlice = new int[SynthEngine.PADS];
+    /** Held down by the side button, where the wheel plays the pads */
+    private final boolean[] mKeyDown = new boolean[SynthEngine.PADS];
+    /** The pad the wheel is on, -1 where the wheel is a knob */
+    private int mSelected = -1;
     /** Where each drawing's scattered parts are: the same every time the app is opened */
     private final float[] mScatter = new float[64];
     private String[] mNames = new String[SynthEngine.PADS];
@@ -64,7 +68,24 @@ public final class PadsView extends View {
 
     void set(String[] names, Listener listener) {
         mNames = names;
+        setContentDescription(android.text.TextUtils.join(", ", names));
         mListener = listener;
+    }
+
+    /** Outlines the pad the wheel is on; -1 for none. */
+    void select(int pad) {
+        if (mSelected != pad) {
+            mSelected = pad;
+            invalidate();
+        }
+    }
+
+    /** A pad held down by the side button rather than a finger. */
+    void keyDown(int pad, boolean down) {
+        if (mKeyDown[pad] != down) {
+            mKeyDown[pad] = down;
+            invalidate();
+        }
     }
 
     /** From the engine, every frame while anything sounds. */
@@ -76,12 +97,19 @@ public final class PadsView extends View {
         }
     }
 
+    /** Two across upright; three in a view twice as wide as tall, as with the screen turned. */
+    private int columns() {
+        return getWidth() >= 2 * getHeight() ? 3 : 2;
+    }
+
     private void bounds(int pad, RectF out) {
+        final int columns = columns();
+        final int rows = (SynthEngine.PADS + columns - 1) / columns;
         final float gap = 8 * mDensity;
-        final float w = (getWidth() - gap * (COLUMNS - 1)) / COLUMNS;
-        final float h = (getHeight() - gap * (ROWS - 1)) / ROWS;
-        final float x = (pad % COLUMNS) * (w + gap);
-        final float y = (pad / COLUMNS) * (h + gap);
+        final float w = (getWidth() - gap * (columns - 1)) / columns;
+        final float h = (getHeight() - gap * (rows - 1)) / rows;
+        final float x = (pad % columns) * (w + gap);
+        final float y = (pad / columns) * (h + gap);
         out.set(x, y, x + w, y + h);
     }
 
@@ -126,7 +154,7 @@ public final class PadsView extends View {
         final float radius = 22 * mDensity;
         for (int pad = 0; pad < SynthEngine.PADS; pad++) {
             bounds(pad, mRect);
-            final boolean held = mPointer[pad] >= 0;
+            final boolean held = mPointer[pad] >= 0 || mKeyDown[pad];
             if (held) {
                 // In slices that shift sideways, anew with every stutter
                 final float sliceH = mRect.height() / SLICES;
@@ -148,8 +176,28 @@ public final class PadsView extends View {
                 mPaint.setColor(blend(mCard, mAccent, Math.min(0.5f, mLevel[pad] * 0.6f)));
                 canvas.drawRoundRect(mRect, radius, radius, mPaint);
             }
+            if (pad == mSelected) {
+                // The pad the wheel is on, outlined as the focus is everywhere
+                final float inset = 1.5f * mDensity;
+                mPaint.setColor(held ? 0xffffffff : mAccent);
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(3 * mDensity);
+                canvas.drawRoundRect(mRect.left + inset, mRect.top + inset,
+                        mRect.right - inset, mRect.bottom - inset, radius, radius, mPaint);
+                mPaint.setStyle(Paint.Style.FILL);
+            }
             final int ink = held ? INK : 0xff8d8d8d;
-            mark(canvas, pad, mRect.left + 18 * mDensity, mRect.top + 18 * mDensity, ink);
+            mPaint.setTypeface(Typeface.create("haretic-text-bold", Typeface.NORMAL));
+            mPaint.setTextSize(18 * mDensity);
+            // The drawing above the name, never under it: shrunk to the room a short pad has
+            final float markTop = mRect.top + Math.min(18 * mDensity, mRect.height() * 0.12f);
+            final float nameTop = mRect.bottom - 18 * mDensity + mPaint.ascent() - 4 * mDensity;
+            final float scale = Math.max(0.3f,
+                    Math.min(1, (nameTop - markTop) / (MARK_HEIGHT * mDensity)));
+            canvas.save();
+            canvas.scale(scale, scale, mRect.left + 18 * mDensity, markTop);
+            mark(canvas, pad, mRect.left + 18 * mDensity, markTop, ink);
+            canvas.restore();
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setTypeface(Typeface.create("haretic-text-bold", Typeface.NORMAL));
             mPaint.setTextSize(18 * mDensity);
