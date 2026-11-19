@@ -24,17 +24,22 @@ final class Photos {
     private final File mFrom;
     private final File mTo;
     private final File mStick;
+    /** Port.stick of the stick, for a cut-short copy's note */
+    private final String mStickId;
     private final Consumer<String> mSay;
     private final List<File> mNew = new ArrayList<>();
     private long mBytes;
     private volatile boolean mStopped;
     private volatile boolean mBusy;
     private boolean mCounted;
+    /** Run, on the copying thread, once every new photo is on the stick. */
+    private volatile Runnable mCopied;
 
     Photos(Context context, VolumeInfo stick, Consumer<String> say) {
-        mContext = context;
+        mContext = context.getApplicationContext();
         mFrom = new File("/data/media/" + UserHandle.myUserId() + "/DCIM");
         mStick = stick.getInternalPath();
+        mStickId = Port.stick(stick);
         mTo = new File(mStick, "DCIM/r1");
         mSay = say;
     }
@@ -45,6 +50,10 @@ final class Photos {
 
     void stop() {
         mStopped = true;
+    }
+
+    void setOnCopied(Runnable copied) {
+        mCopied = copied;
     }
 
     /** Finds what is new, and says how much that is. */
@@ -91,12 +100,14 @@ final class Photos {
         if (mBusy || !mCounted || mNew.isEmpty() || mBytes > mStick.getUsableSpace()) {
             return;
         }
+        Port.copyStarted(mContext);
         mBusy = true;
         new Thread(() -> {
             final int all = mNew.size();
             int done = 0;
             final byte[] buffer = new byte[1 << 16];
             final int root = mFrom.getPath().length() + 1;
+            boolean whole = false;
             try {
                 for (File file : mNew) {
                     if (mStopped) {
@@ -128,13 +139,22 @@ final class Photos {
                 if (!mStopped) {
                     mSay.accept(mContext.getResources().getQuantityString(R.plurals.copy_done,
                             done, done));
+                    whole = true;
                 }
             } catch (IOException | RuntimeException e) {
                 mSay.accept(mContext.getString(R.string.copy_failed, done, all));
             }
+            if (mStopped && !whole) {
+                // The sheet may already be gone. Keep the outcome for its next opening.
+                Port.copyStopped(mContext, mStickId, done, all);
+            }
             mNew.clear();
             mBytes = 0;
             mBusy = false;
+            final Runnable copied = mCopied;
+            if (whole && copied != null) {
+                copied.run();
+            }
         }, "photos-copy").start();
     }
 }

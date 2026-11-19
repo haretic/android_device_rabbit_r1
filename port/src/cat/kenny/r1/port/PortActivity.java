@@ -34,6 +34,8 @@ public final class PortActivity extends Activity {
     private String mVolume;
     private Photos mPhotos;
     private View[] mRoles;
+    /** The sheet told of a cut-short copy: closing it is the user having seen that */
+    private boolean mToldResult;
 
     private final BroadcastReceiver mChanged = new BroadcastReceiver() {
         @Override
@@ -85,6 +87,10 @@ public final class PortActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        // Before the copy is stopped below, which may leave a new note of its own
+        if (mToldResult && isFinishing()) {
+            Port.copyStarted(this);
+        }
         unregisterReceiver(mChanged);
         mHandler.removeCallbacksAndMessages(null);
         if (mPhotos != null) {
@@ -100,9 +106,15 @@ public final class PortActivity extends Activity {
         }
         mRows.removeAllViews();
         mVolume = intent.getStringExtra(EXTRA_VOLUME);
+        // How a copy to this stick was cut short: on its own sheet, not a computer's
+        final VolumeInfo volume = volume();
+        final String result = volume == null ? "" : Port.copyResult(this, Port.stick(volume));
+        ((TextView) findViewById(R.id.copy_result)).setText(result);
+        findViewById(R.id.copy_result).setVisibility(result.isEmpty() ? View.GONE : View.VISIBLE);
+        mToldResult |= !result.isEmpty();
         if (mVolume == null) {
             computer();
-        } else if (volume() == null) {
+        } else if (volume == null) {
             finish();
             return;
         } else {
@@ -157,6 +169,7 @@ public final class PortActivity extends Activity {
             row(R.drawable.ic_speaker, R.string.sound_card, 0, open);
             row(R.drawable.ic_album, R.string.disk, R.string.disk_sum, open);
         }
+        settingsRow();
         showRole();
     }
 
@@ -218,26 +231,43 @@ public final class PortActivity extends Activity {
         mPhotos = new Photos(this, volume, text -> mHandler.post(() -> summary(copy, text)));
         mPhotos.count();
         final View[] eject = new View[1];
-        eject[0] = row(R.drawable.ic_eject, R.string.eject, 0, () -> {
-            if (mPhotos.busy()) {
-                return;
+        eject[0] = row(R.drawable.ic_eject, R.string.eject, 0, () -> eject(eject[0], volume));
+        // Read the setting when copying ends, including changes made from this sheet.
+        final Photos photos = mPhotos;
+        photos.setOnCopied(() -> mHandler.postDelayed(() -> {
+            if (mPhotos == photos && !isFinishing()
+                    && Port.on(this, Port.EJECT_COPIED, false)) {
+                eject(eject[0], volume);
             }
-            summary(eject[0], getString(R.string.ejecting));
-            new Thread(() -> {
-                boolean done = true;
-                try {
-                    getSystemService(StorageManager.class).unmount(volume.getId());
-                } catch (RuntimeException e) {
-                    done = false;
+        }, 1000));
+        settingsRow();
+    }
+
+    private void eject(View row, VolumeInfo volume) {
+        if (mPhotos.busy()) {
+            return;
+        }
+        summary(row, getString(R.string.ejecting));
+        new Thread(() -> {
+            boolean done = true;
+            try {
+                getSystemService(StorageManager.class).unmount(volume.getId());
+            } catch (RuntimeException e) {
+                done = false;
+            }
+            final boolean ok = done;
+            mHandler.post(() -> {
+                summary(row, getString(ok ? R.string.ejected : R.string.eject_failed));
+                if (ok) {
+                    mHandler.postDelayed(this::finish, 1500);
                 }
-                final boolean ok = done;
-                mHandler.post(() -> {
-                    summary(eject[0], getString(ok ? R.string.ejected : R.string.eject_failed));
-                    if (ok) {
-                        mHandler.postDelayed(this::finish, 1500);
-                    }
-                });
-            }, "eject").start();
-        });
+            });
+        }, "eject").start();
+    }
+
+    /** The last row of either sheet: what the port does by itself, set once. */
+    private void settingsRow() {
+        row(R.drawable.ic_tune, R.string.settings, R.string.settings_sum,
+                () -> startActivity(new Intent(this, PortSettings.class)));
     }
 }

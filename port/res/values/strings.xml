@@ -45,8 +45,25 @@
         <item quantity="other">%1$d photos copied</item>
     </plurals>
     <string name="copy_failed">Stopped at %1$d of %2$d: the stick took no more</string>
+    <plurals name="copy_stopped">
+        <item quantity="one">Copy stopped - %1$d of %2$d photo copied</item>
+        <item quantity="other">Copy stopped - %1$d of %2$d photos copied</item>
+    </plurals>
     <string name="eject">Eject</string>
     <string name="ejecting">Ejecting</string>
     <string name="ejected">Safe to unplug</string>
     <string name="eject_failed">Still in use, not ejected</string>
+    <string name="settings">Settings</string>
+    <string name="settings_sum">What happens when you plug in</string>
+    <string name="settings_head">Port settings</string>
+    <string name="settings_guide">Wheel to pick - press or tap to change</string>
+    <string name="setting_on">On</string>
+    <string name="popup_computer">Sheet for a computer</string>
+    <string name="popup_computer_off">Off - tap the port note instead</string>
+    <string name="popup_stick">Sheet for a USB stick</string>
+    <string name="popup_stick_off">Off - the stick is in Files</string>
+    <string name="unlock_role">Role when unlocked</string>
+    <string name="unlock_role_sum">%1$s</string>
+    <string name="eject_copied">Eject after copying</string>
+    <string name="eject_copied_off">Off - eject it yourself</string>
 </resources>

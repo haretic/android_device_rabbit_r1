@@ -27,6 +27,8 @@ public final class PortService extends Service {
         stopSelf();
     };
     private final Runnable mRefresh = this::refresh;
+    /** Unlocked since the last refresh, for the role the user wants once unlocked. */
+    private boolean mUnlocked;
 
     private final BroadcastReceiver mChanged = new BroadcastReceiver() {
         @Override
@@ -40,6 +42,9 @@ public final class PortService extends Service {
             } else if (Intent.ACTION_SCREEN_OFF.equals(action)
                     && Port.role(context) != Port.POWER) {
                 Port.set(context, Port.POWER);
+            } else if (Intent.ACTION_USER_PRESENT.equals(action)) {
+                // Unlocked again: the role the user chose for then, if any
+                mUnlocked = true;
             }
             // The role and the lock settle a moment after they are told of
             mHandler.removeCallbacks(mRefresh);
@@ -76,6 +81,16 @@ public final class PortService extends Service {
 
     private void refresh() {
         final boolean locked = Port.locked(this);
+        // A computer new to the sheet, unlocked: what the sheet comes up for
+        final boolean fresh = !locked && !Port.shownComputer(this);
+        if (!locked && (fresh || mUnlocked)) {
+            mUnlocked = false;
+            // The role chosen in the settings, never over one the user picked on the sheet
+            final int unlock = Port.unlockRole(this);
+            if (unlock != Port.POWER && Port.role(this) == Port.POWER && Port.computer(this)) {
+                Port.set(this, unlock);
+            }
+        }
         final int role = Port.role(this);
         final Notification.Builder note;
         if (locked) {
@@ -92,10 +107,13 @@ public final class PortService extends Service {
         }
         startForeground(Port.NOTE, note.setOngoing(true).build(),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
-        if (!locked && !Port.shownComputer(this)) {
+        if (fresh) {
             Port.setShown(this, "computer");
-            startActivity(new Intent(this, PortActivity.class)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            // Left off in the settings: the note above still opens the sheet
+            if (Port.on(this, Port.POPUP_COMPUTER, true)) {
+                startActivity(new Intent(this, PortActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            }
         }
     }
 }

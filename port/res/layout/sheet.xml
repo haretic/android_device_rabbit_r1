@@ -29,8 +29,13 @@
                     android:fontFeatureSettings="tnum" />
             </LinearLayout>
         </LinearLayout>
-        <ScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:scrollbars="none">
+        <TextView android:id="@+id/copy_result" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+            android:textSize="14sp" android:textColor="@color/text_sum"
+            android:visibility="gone" />
+        <!-- Weighted, so that on a short screen it scrolls and the hint under it stays -->
+        <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="1" android:scrollbars="none">
             <LinearLayout android:id="@+id/rows" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:orientation="vertical" />
         </ScrollView>

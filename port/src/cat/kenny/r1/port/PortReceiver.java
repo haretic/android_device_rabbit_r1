@@ -31,6 +31,10 @@ public final class PortReceiver extends BroadcastReceiver {
             final VolumeInfo stick = stick(context, intent);
             if (stick != null && !Port.locked(context) && !Port.shown(context, stick.getId())) {
                 Port.setShown(context, stick.getId());
+                if (!Port.on(context, Port.POPUP_STICK, true)) {
+                    // Left off in the settings: the stick is in Files all the same
+                    return;
+                }
                 context.startActivity(new Intent(context, PortActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         .putExtra(PortActivity.EXTRA_VOLUME, stick.getId()));

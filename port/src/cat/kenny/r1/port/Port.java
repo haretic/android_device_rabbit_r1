@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbManager;
 import android.net.TetheringManager;
 import android.os.BatteryManager;
+import android.os.storage.VolumeInfo;
 import android.provider.Settings;
 
 /** What the port is to a computer, and the two notes the r1 leaves about it. */
@@ -135,6 +136,70 @@ final class Port {
     static void setShown(Context context, String what) {
         context.getSharedPreferences(PREFS, 0).edit().putString("shown", what)
                 .remove("gone").apply();
+    }
+
+    // ---- the user's settings, from the settings sheet
+
+    /** Whether the sheet comes up by itself for a computer, and for a stick. */
+    static final String POPUP_COMPUTER = "popup_computer", POPUP_STICK = "popup_stick";
+    /** Whether a stick is ejected by itself once the new photos are copied onto it. */
+    static final String EJECT_COPIED = "eject_copied";
+    /** What the port becomes by itself once the r1 is unlocked with a computer there. */
+    private static final String UNLOCK_ROLE = "unlock_role";
+
+    static boolean on(Context context, String key, boolean otherwise) {
+        return context.getSharedPreferences(PREFS, 0).getBoolean(key, otherwise);
+    }
+
+    static void setOn(Context context, String key, boolean on) {
+        context.getSharedPreferences(PREFS, 0).edit().putBoolean(key, on).apply();
+    }
+
+    /** The roles the r1 can take by itself, in the order the setting goes through them. */
+    static int[] unlockRoles() {
+        return UsbManager.isUvcSupportEnabled() ? new int[] {POWER, FILES, INTERNET, WEBCAM}
+                : new int[] {POWER, FILES, INTERNET};
+    }
+
+    /** Power only unless the user chose otherwise, and only a role this r1 can take. */
+    static int unlockRole(Context context) {
+        final int role = context.getSharedPreferences(PREFS, 0).getInt(UNLOCK_ROLE, POWER);
+        for (int one : unlockRoles()) {
+            if (one == role) {
+                return role;
+            }
+        }
+        return POWER;
+    }
+
+    static void setUnlockRole(Context context, int role) {
+        context.getSharedPreferences(PREFS, 0).edit().putInt(UNLOCK_ROLE, role).apply();
+    }
+
+    /** Which stick this is, plugged again later: its file system's id, else the volume's. */
+    static String stick(VolumeInfo volume) {
+        return volume.getFsUuid() != null ? volume.getFsUuid() : volume.getId();
+    }
+
+    /** A copy cut short, kept for the next sheet of the same stick. */
+    static void copyStopped(Context context, String stick, int done, int all) {
+        context.getSharedPreferences(PREFS, 0).edit().putString("copy_stick", stick)
+                .putInt("copy_done", done).putInt("copy_total", all).apply();
+    }
+
+    /** Forgets the cut-short copy: a new one started, or a sheet has told of it. */
+    static void copyStarted(Context context) {
+        context.getSharedPreferences(PREFS, 0).edit().remove("copy_stick").remove("copy_done")
+                .remove("copy_total").apply();
+    }
+
+    /** How the last copy to this stick stopped, empty unless it was cut short. */
+    static String copyResult(Context context, String stick) {
+        final android.content.SharedPreferences prefs = context.getSharedPreferences(PREFS, 0);
+        final int all = prefs.getInt("copy_total", 0);
+        return all == 0 || !stick.equals(prefs.getString("copy_stick", null)) ? ""
+                : context.getResources().getQuantityString(R.plurals.copy_stopped, all,
+                        prefs.getInt("copy_done", 0), all);
     }
 
     /** How long the computer may be away and still be the one the sheet came up for. */
