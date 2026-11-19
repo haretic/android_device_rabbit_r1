@@ -417,7 +417,7 @@ abstract class Page extends Activity {
         // Physical keyboard editing belongs to EditText; the side-button POWER
         // and touchscreen keyboard/wheel sources retain the page contract.
         final InputDevice device = event.getDevice();
-        if (getCurrentFocus() instanceof EditText && device != null
+        if (getCurrentFocus() instanceof EditText && device != null && !device.isVirtual()
                 && device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC
                 && code != KeyEvent.KEYCODE_POWER) {
             return super.dispatchKeyEvent(event);
