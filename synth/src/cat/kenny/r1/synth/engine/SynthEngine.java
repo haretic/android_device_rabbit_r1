@@ -80,6 +80,8 @@ public final class SynthEngine {
     private final int[] loopAt = new int[LOOP_EVENTS];
     private final int[] loopWhat = new int[LOOP_EVENTS];
     private final int[] loopMarks = new int[LOOP_MARKS];
+    /** How many of the loop's layers hold each pad now: overlapping holds end with the last */
+    private final int[] loopHolds = new int[PADS];
     private final int loopLongest;
     private int loop = LOOP_EMPTY;
     private int loopCount, loopNext, loopPos, loopLength;
@@ -452,12 +454,11 @@ public final class SynthEngine {
         final int p = loopWhat[event] & 7;
         final Pad pad = pads[p];
         if ((loopWhat[event] & LOOP_DOWN) != 0) {
-            pad.loopDown = true;
+            loopHolds[p]++;
             hit(p, false, true);
             pad.until = period;
             pad.down = true;
-        } else {
-            pad.loopDown = false;
+        } else if (loopHolds[p] > 0 && --loopHolds[p] == 0) {
             if (pad.down && !pad.userDown) releaseSlices(p);
             pad.down = pad.userDown;
         }
@@ -467,8 +468,8 @@ public final class SynthEngine {
     private void releaseLoopPads() {
         for (int p = 0; p < PADS; p++) {
             final Pad pad = pads[p];
-            if (pad.loopDown) {
-                pad.loopDown = false;
+            if (loopHolds[p] > 0) {
+                loopHolds[p] = 0;
                 if (pad.down && !pad.userDown) releaseSlices(p);
                 pad.down = pad.userDown;
             }
@@ -508,7 +509,7 @@ public final class SynthEngine {
                             pad.open = false;
                         }
                     }
-                    hit(p, false, down || pad.loopDown);
+                    hit(p, false, down || loopHolds[p] > 0);
                 }
                 pad.until = period;
                 pad.consumed = hits;
@@ -517,7 +518,7 @@ public final class SynthEngine {
                 pad.open = false;
             }
             pad.userDown = down;
-            pad.down = down || pad.loopDown;
+            pad.down = down || loopHolds[p] > 0;
             if (was && !pad.down) releaseSlices(p);
         }
     }
@@ -582,8 +583,8 @@ public final class SynthEngine {
         volatile int slices;
         volatile long consumed;
         boolean down;
-        /** Held by a finger or the side button, and by the loop playing back */
-        boolean userDown, loopDown;
+        /** Held by a finger or the side button; the loop's holds are counted in loopHolds */
+        boolean userDown;
         /** Pressed into the loop being recorded and not let go there yet */
         boolean open;
         double until;

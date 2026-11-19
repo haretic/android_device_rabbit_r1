@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A Level mode beside the wheel: the one picked, by wheel or tap, is outlined in the accent -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape><solid android:color="#2A1A12" /><corners android:radius="16dp" />
+            <stroke android:width="2dp" android:color="?android:attr/colorAccent" /></shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape><solid android:color="#262626" /><corners android:radius="16dp" /></shape>
+    </item>
+    <item><shape><solid android:color="@android:color/transparent" /><corners android:radius="16dp" /></shape></item>
+</selector>

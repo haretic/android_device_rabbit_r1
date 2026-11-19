@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -172,7 +173,9 @@ public class PracticeActivity extends Activity {
         field.setId(R.id.practice_text);
         field.setSingleLine(true);
         field.setInputType(InputType.TYPE_CLASS_TEXT);
-        field.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        // No fullscreen extract view in landscape: it would cover the page and keep the wheel
+        field.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                | EditorInfo.IME_FLAG_NO_FULLSCREEN);
         field.setHint(R.string.practice_text_hint);
         field.setTextColor(mText);
         field.setHintTextColor(mTextDim);
@@ -191,8 +194,15 @@ public class PracticeActivity extends Activity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mStatus.setText(getString(R.string.practice_text_typed, s.length()));
+                mStatus.setText(getResources().getQuantityString(
+                        R.plurals.practice_text_typed, s.length(), s.length()));
             }
+        });
+        // The card says the keyboard goes away when the wheel moves on, so make sure it does
+        field.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) return;
+            final InputMethodManager imm = getSystemService(InputMethodManager.class);
+            if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         });
         type.addView(field, below(8));
 

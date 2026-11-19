@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!-- What the wheel switches between, beside the wheel -->
+<!-- What the wheel switches between, beside the wheel. Not focusable: the wheel picks the
+     mode itself, and the ring drawn is the picked one, never a stray focus highlight -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content" android:layout_height="wrap_content"
     android:layout_marginStart="10dp" android:layout_marginEnd="16dp"
@@ -10,13 +11,16 @@
         android:importantForAccessibility="no" />
     <TextView android:id="@+id/mode_flat" style="@style/Dim" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:minHeight="48dp" android:minWidth="56dp"
-        android:gravity="center" android:background="?android:attr/selectableItemBackground" android:text="@string/level_flat" />
+        android:gravity="center" android:background="@drawable/mode_bg"
+        android:focusable="false" android:paddingStart="8dp" android:paddingEnd="8dp" android:text="@string/level_flat" />
     <TextView android:id="@+id/mode_edge" style="@style/Dim" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:minHeight="48dp" android:minWidth="56dp"
-        android:gravity="center" android:background="?android:attr/selectableItemBackground" android:text="@string/level_edge" />
+        android:gravity="center" android:background="@drawable/mode_bg"
+        android:focusable="false" android:paddingStart="8dp" android:paddingEnd="8dp" android:text="@string/level_edge" />
     <TextView android:id="@+id/mode_plumb" style="@style/Dim" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:minHeight="48dp" android:minWidth="56dp"
-        android:gravity="center" android:background="?android:attr/selectableItemBackground" android:text="@string/level_plumb" />
+        android:gravity="center" android:background="@drawable/mode_bg"
+        android:focusable="false" android:paddingStart="8dp" android:paddingEnd="8dp" android:text="@string/level_plumb" />
     <TextView style="@style/Dim" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:text="▾" android:textColor="@color/text_faint"
         android:importantForAccessibility="no" />

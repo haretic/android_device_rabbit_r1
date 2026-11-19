@@ -371,7 +371,10 @@
     <string name="practice_text">A text field</string>
     <string name="practice_text_how">Press to bring up the keyboard and type by touch. Turn to move on; the keyboard goes away.</string>
     <string name="practice_text_hint">Type here</string>
-    <string name="practice_text_typed">Typed %1$d letters</string>
+    <plurals name="practice_text_typed">
+        <item quantity="one">Typed %1$d letter</item>
+        <item quantity="other">Typed %1$d letters</item>
+    </plurals>
     <string name="practice_more">Taskbar and back</string>
     <string name="practice_more_how">Press twice quickly for the taskbar, twice again to close it. Hold the side button to go back: here it leaves Try it.</string>
     <string name="practice_done">Done</string>

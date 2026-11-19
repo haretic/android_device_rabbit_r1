@@ -45,7 +45,7 @@
     <string name="apps_list_title">List of apps</string>
     <string-array name="apps_list_entries">
         <item>Included</item>
-        <item>Left out</item>
+        <item>Left out, logs can still name apps</item>
     </string-array>
     <string-array name="apps_list_values" translatable="false">
         <item>include</item>
@@ -61,7 +61,7 @@
     <string name="last_start_none">None. They are only kept when the r1 restarts, not when it was switched off or the battery ran empty.</string>
     <string name="last_start_unknown">Not looked at yet, the r1 is still starting.</string>
 
-    <string name="privacy">The report lists your apps unless you leave them out above. Wi-Fi network names, accounts, phone numbers, IMEI and serial numbers are taken out, but the logs can still name Bluetooth devices nearby. Have a look before you post it in public.</string>
+    <string name="privacy">Leaving out the list of apps removes only that list, the logs can still name apps that ran. Wi-Fi network names, accounts, phone numbers, IMEI and serial numbers are taken out, but the logs can still name Bluetooth devices nearby. Have a look before you post it in public.</string>
 
     <!-- Developer options > Self test -->
     <string name="self_test_title">Self test</string>

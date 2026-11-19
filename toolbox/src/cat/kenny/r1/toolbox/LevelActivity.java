@@ -102,6 +102,8 @@ public final class LevelActivity extends ToolActivity {
         final int mode = mSensor.math.mode();
         for (int i = 0; i < MODE_VIEWS.length; i++) {
             final TextView view = findViewById(MODE_VIEWS[i]);
+            // The ring (mode_bg) is on the picked mode, so it follows the wheel and a tap alike
+            view.setSelected(i == mode);
             view.setTextColor(getColor(i == mode ? R.color.text : R.color.text_faint));
             view.setTypeface(android.graphics.Typeface.create(
                     i == mode ? "haretic-text-bold" : "haretic-text",

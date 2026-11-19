@@ -20,6 +20,7 @@ import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
@@ -430,18 +431,33 @@ public class TourActivity extends Activity {
                 }
                 return true;
             case KeyEvent.KEYCODE_POWER:
-                // The side button as such, where the policy hands it to the window
+                // The side button as such, where the policy hands it to the window. As in
+                // WheelSelect it may come without FLAG_LONG_PRESS and without repeats, so a hold
+                // is also told by how long the button was down. The injected DPAD_CENTER hold
+                // above is always flagged; its press keeps the physical down time, so it is not
+                // timed
+                final boolean held = event.isLongPress()
+                        || event.getEventTime() - event.getDownTime()
+                                >= ViewConfiguration.getLongPressTimeout();
                 if (down && event.getRepeatCount() == 0) {
                     mLongPress = false;
-                }
-                if (down && event.isLongPress()) {
-                    mLongPress = true;
-                    onHold();
-                } else if (!down) {
-                    if (!mLongPress && !event.isCanceled()) {
-                        onPress();
+                } else if (down) {
+                    if (held && !mLongPress) {
+                        mLongPress = true;
+                        onHold();
                     }
+                } else {
+                    // Once per gesture: a hold seen on a repeat already counted, a hold seen
+                    // only here counts now, and neither is also a press
+                    final boolean holdDone = mLongPress;
                     mLongPress = false;
+                    if (!holdDone && !event.isCanceled()) {
+                        if (held) {
+                            onHold();
+                        } else {
+                            onPress();
+                        }
+                    }
                 }
                 return true;
             case KeyEvent.KEYCODE_BACK:
