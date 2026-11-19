@@ -49,7 +49,7 @@
     <string name="drum_volume">Volume %1$d</string>
     <string name="hint_settings">Press to open the settings. Hold the side button to talk.</string>
     <string name="settings_title">Walkie-Talkie settings</string>
-    <string name="settings_hint">Press to switch the one the wheel is on. Hold to go back.</string>
+    <string name="settings_hint">Turn the wheel to pick a setting and press, or tap one, to switch it. Hold to go back.</string>
     <string name="on">On</string>
     <string name="off">Off</string>
     <string name="set_talk_sounds">Talk sounds</string>
@@ -60,4 +60,16 @@
     <string name="set_aloud_sub">Off, they wait here for a press, with a note in the shade</string>
     <string name="set_stay_on">Stay on after leaving</string>
     <string name="set_stay_on_sub">Off, leaving this page turns the walkie-talkie off</string>
+    <!-- The recent messages: on the channels' drum after the channels, a button beside the name,
+         and their own page -->
+    <string name="messages">Messages</string>
+    <string name="hint_messages">Press to see the last messages heard. Hold the side button to talk.</string>
+    <string name="messages_title">Recent messages</string>
+    <string name="messages_hint">Turn the wheel and press, or tap one, to hear it again. Hold to go back.</string>
+    <string name="messages_none">No messages yet. The last five heard stay here until the walkie-talkie is turned off.</string>
+    <string name="messages_none_hint">Nothing to hear yet. Hold the side button to go back.</string>
+    <string name="message_sub"><xliff:g id="channel">%1$s</xliff:g> - <xliff:g id="clock">%2$s</xliff:g> - <xliff:g id="seconds">%3$d</xliff:g> s</string>
+    <string name="message_play">Play</string>
+    <string name="message_playing">Playing</string>
+    <string name="message_busy">Wait</string>
 </resources>

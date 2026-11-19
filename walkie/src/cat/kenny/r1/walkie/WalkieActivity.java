@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * The walkie-talkie's page. Opening it turns the walkie-talkie on. The wheel turns through the
  * channels, or the volume while someone speaks; the side button held is talking, pressed is
- * the last message again.
+ * the last message again. Past the channels the drum has the recent messages, then the settings.
  */
 public final class WalkieActivity extends Activity {
 
@@ -34,13 +34,16 @@ public final class WalkieActivity extends Activity {
     private TalkView mTalk;
     private boolean mHeld;
     private boolean mHolding;
-    /** The drum is on its last line, the settings, past the channels */
-    private boolean mOnSettings;
-    /** The settings are opening: leaving for them is not leaving the walkie-talkie */
+    /** The side button's down came here: a press is told from its up only then */
+    private boolean mDown;
+    /** Where the drum is past the channels: on a channel, the recent messages or the settings */
+    private static final int ON_CHANNEL = 0, ON_MESSAGES = 1, ON_SETTINGS = 2;
+    private int mPast = ON_CHANNEL;
+    /** Its own pages are opening: leaving for them is not leaving the walkie-talkie */
     private boolean mToSettings;
     /** Left by the user's own choice, home or another app: not the screen going off */
     private boolean mLeaving;
-    /** The channels and, last on the drum, the settings */
+    /** The channels and, last on the drum, the recent messages and the settings */
     private String[] mDrumItems;
     /** Where layout-land puts the drum in its column, under the name, -1 for upright */
     private int mDrumHome = -1;
@@ -100,8 +103,9 @@ public final class WalkieActivity extends Activity {
                 TouchWheel.LIVE);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         final String[] channels = getResources().getStringArray(R.array.channels);
-        mDrumItems = java.util.Arrays.copyOf(channels, channels.length + 1);
-        mDrumItems[channels.length] = getString(R.string.settings);
+        mDrumItems = java.util.Arrays.copyOf(channels, channels.length + 2);
+        mDrumItems[channels.length] = getString(R.string.messages);
+        mDrumItems[channels.length + 1] = getString(R.string.settings);
         // The drum itself by finger: it turns under the finger, a tap tunes in what was tapped
         mDrum.setListener(new DrumView.Listener() {
             @Override
@@ -132,6 +136,7 @@ public final class WalkieActivity extends Activity {
             }
         });
         findViewById(R.id.settings_button).setOnClickListener(v -> openSettings());
+        findViewById(R.id.messages_button).setOnClickListener(v -> openMessages());
         findViewById(R.id.again).setOnClickListener(v -> {
             final WalkieService walkie = WalkieService.running();
             if (walkie != null) {
@@ -171,12 +176,22 @@ public final class WalkieActivity extends Activity {
         startActivity(new Intent(this, WalkieSettingsActivity.class));
     }
 
+    private void openMessages() {
+        mToSettings = true;
+        startActivity(new Intent(this, MessagesActivity.class));
+    }
+
+    /** The drum's line for where it is: the channel tuned in, or one past the channels. */
+    private int drumAt(int channel) {
+        return mPast == ON_CHANNEL ? channel - 1 : WalkieService.CHANNELS - 1 + mPast;
+    }
+
     /** A wheel click, or the drum moved a line by finger: +1 is down the channels. */
     private void turn(int way) {
         final WalkieService walkie = WalkieService.running();
         if (walkie == null) {
             // Settings are useful before the microphone has been allowed too.
-            mOnSettings = way > 0;
+            mPast = Math.max(ON_CHANNEL, Math.min(ON_SETTINGS, mPast + way));
             show();
             return;
         }
@@ -191,10 +206,12 @@ public final class WalkieActivity extends Activity {
             show();
             return;
         }
-        if (mOnSettings) {
-            if (way < 0) {
-                // Back from the settings' line to the channel the walkie-talkie is still on
-                mOnSettings = false;
+        if (mPast != ON_CHANNEL) {
+            // Between the messages' and the settings' lines, and back up to the channel the
+            // walkie-talkie is still on
+            final int past = Math.max(ON_CHANNEL, Math.min(ON_SETTINGS, mPast + way));
+            if (past != mPast) {
+                mPast = past;
                 tick();
                 show();
             }
@@ -205,15 +222,19 @@ public final class WalkieActivity extends Activity {
             walkie.setChannel(channel);
             tick();
         } else if (channel == WalkieService.CHANNELS + 1) {
-            mOnSettings = true;
+            mPast = ON_MESSAGES;
             tick();
             show();
         }
     }
 
-    /** A line of the drum tapped: a channel tunes in, the last line opens the settings. */
+    /** A line of the drum tapped: a channel tunes in, the last lines open their pages. */
     private void pick(int item) {
-        if (item >= WalkieService.CHANNELS) {
+        if (item == WalkieService.CHANNELS) {
+            openMessages();
+            return;
+        }
+        if (item > WalkieService.CHANNELS) {
             openSettings();
             return;
         }
@@ -221,7 +242,7 @@ public final class WalkieActivity extends Activity {
         if (walkie == null || walkie.talking()) {
             return;
         }
-        mOnSettings = false;
+        mPast = ON_CHANNEL;
         if (walkie.channel() != item + 1) {
             walkie.setChannel(item + 1);
         }
@@ -261,6 +282,9 @@ public final class WalkieActivity extends Activity {
         WalkieService.listen(null);
         mMain.removeCallbacks(mHold);
         letGo();
+        // A gesture cut off by leaving must not carry over to the first one back here
+        mHeld = false;
+        mDown = false;
         super.onPause();
     }
 
@@ -311,10 +335,12 @@ public final class WalkieActivity extends Activity {
         final ViewGroup people = findViewById(R.id.people);
         if (walkie == null) {
             ((TextView) findViewById(R.id.channel)).setText(channels[0]);
-            mDrum.channels(mDrumItems, mOnSettings ? WalkieService.CHANNELS : 0);
+            mDrum.channels(mDrumItems, drumAt(1));
             people.removeAllViews();
             nobody.setText("");
-            hint(mOnSettings ? R.string.hint_settings
+            findViewById(R.id.speaker).setVisibility(View.GONE);
+            hint(mPast == ON_SETTINGS ? R.string.hint_settings
+                    : mPast == ON_MESSAGES ? R.string.hint_messages
                     : mayTalk() ? R.string.hint : R.string.hint_mic);
             return;
         }
@@ -362,6 +388,13 @@ public final class WalkieActivity extends Activity {
                 : names.isEmpty() ? getString(R.string.nobody) : "");
         nobody.setVisibility(nobody.getText().length() == 0 ? View.GONE : View.VISIBLE);
         final AudioManager audio = getSystemService(AudioManager.class);
+        // Who is talking, large, while they talk: the row in the list is small and may be
+        // scrolled away
+        final TextView speaker = findViewById(R.id.speaker);
+        if (speaking != null && !speaking.contentEquals(speaker.getText())) {
+            speaker.setText(speaking);
+        }
+        speaker.setVisibility(speaking != null ? View.VISIBLE : View.GONE);
         if (speaking != null) {
             mWave.setVisibility(View.VISIBLE);
             walkie.levels(mWave.levels());
@@ -370,8 +403,7 @@ public final class WalkieActivity extends Activity {
                     audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         } else {
             mWave.setVisibility(View.GONE);
-            mDrum.channels(mDrumItems, mOnSettings ? WalkieService.CHANNELS
-                    : walkie.channel() - 1);
+            mDrum.channels(mDrumItems, drumAt(walkie.channel()));
         }
         final String last = walkie.lastFrom();
         final String waiting = walkie.waiting();
@@ -384,7 +416,8 @@ public final class WalkieActivity extends Activity {
             again.setAlpha(walkie.playingAgain() ? 0.5f : 1);
         }
         hint(!mayTalk() ? R.string.hint_mic : speaking != null ? R.string.hint_speaking
-                : mOnSettings ? R.string.hint_settings
+                : mPast == ON_SETTINGS ? R.string.hint_settings
+                : mPast == ON_MESSAGES ? R.string.hint_messages
                 : last != null ? R.string.hint_replay : R.string.hint);
     }
 
@@ -420,24 +453,34 @@ public final class WalkieActivity extends Activity {
                     // Talking starts while the button is still down, whether or not the button
                     // repeats: by the clock
                     mHeld = false;
+                    mDown = true;
                     mMain.removeCallbacks(mHold);
                     mMain.postDelayed(mHold, HOLD_MS);
                 }
-            } else if (mHeld) {
+                return true;
+            }
+            if (mHeld) {
                 letGo();
-            } else if (mMain.hasCallbacks(mHold) && !event.isCanceled()) {
+            } else if (!event.isCanceled() && (mMain.hasCallbacks(mHold)
+                    // Its down never came (the window can take it to leave touch mode): a
+                    // short one is still a press, a long one a talk that did not start
+                    || !mDown && event.getEventTime() - event.getDownTime() < HOLD_MS)) {
                 mMain.removeCallbacks(mHold);
-                if (mOnSettings) {
+                if (mPast == ON_SETTINGS) {
                     openSettings();
+                } else if (mPast == ON_MESSAGES) {
+                    openMessages();
                 } else if (!mayTalk()) {
                     requestPermissions(new String[] {Manifest.permission.RECORD_AUDIO}, 1);
                 } else if (walkie != null) {
                     walkie.again();
                 }
             }
-            if (!down) {
-                mMain.removeCallbacks(mHold);
-            }
+            // The gesture is over, whatever it was: nothing of it may count for the next one,
+            // whose down may never come here
+            mMain.removeCallbacks(mHold);
+            mHeld = false;
+            mDown = false;
             return true;
         }
         return super.dispatchKeyEvent(event);

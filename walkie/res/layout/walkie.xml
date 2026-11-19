@@ -10,6 +10,11 @@
             android:gravity="center_vertical">
             <TextView style="@style/Title" android:layout_width="0dp"
                 android:layout_weight="1" android:text="@string/app_name" />
+            <ImageButton android:id="@+id/messages_button" android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_messages" android:scaleType="center"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:focusable="false" android:contentDescription="@string/messages" />
             <ImageButton android:id="@+id/settings_button" android:layout_width="48dp"
                 android:layout_height="48dp" android:layout_marginEnd="12dp"
                 android:src="@drawable/ic_settings" android:scaleType="center"
@@ -33,6 +38,12 @@
                 <TextView android:id="@+id/nobody" style="@style/Body"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:layout_marginTop="4dp" android:textColor="@color/text_dim" />
+                <!-- Who is talking, large, for as long as they talk -->
+                <TextView android:id="@+id/speaker" style="@style/Number"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" android:textSize="28sp"
+                    android:textColor="?android:attr/colorAccent" android:ellipsize="end"
+                    android:accessibilityLiveRegion="polite" android:visibility="gone" />
                 <cat.kenny.r1.walkie.WaveView android:id="@+id/wave"
                     android:layout_width="match_parent" android:layout_height="76dp"
                     android:layout_marginTop="18dp" android:visibility="gone" />

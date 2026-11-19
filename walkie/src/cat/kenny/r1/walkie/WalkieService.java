@@ -59,7 +59,38 @@ public final class WalkieService extends Service implements Radio.Listener {
     private static Runnable sListener;
 
     private final Handler mMain = new Handler(Looper.getMainLooper());
-    private final Recorder mLast = new Recorder(60);
+    /** How many received messages stay to be heard again, newest first */
+    static final int RECENT = 5;
+    /** A message as it was heard: its voice, kept up to a minute, and the channel it came on */
+    private static final class Heard {
+        final Recorder audio = new Recorder(60);
+        volatile int channel;
+    }
+
+    /** One received message, for the list of recent ones: what the page shows of it. */
+    static final class Message {
+        /** Hands back to again(Object): the message itself, not where it is in the list */
+        final Object key;
+        final String from;
+        final long when;
+        final int channel;
+        final int millis;
+        final boolean playing;
+
+        Message(Object key, String from, long when, int channel, int millis, boolean playing) {
+            this.key = key;
+            this.from = from;
+            this.when = when;
+            this.channel = channel;
+            this.millis = millis;
+            this.playing = playing;
+        }
+    }
+
+    /** The last few messages heard, newest first; each one's voice is reused once it is old */
+    private final java.util.ArrayDeque<Heard> mRecent = new java.util.ArrayDeque<>();
+    /** The one playing again, null for none */
+    private volatile Heard mAgain;
     private final Map<String, Long> mSpoke = new HashMap<>();
     /** How loud the last frames were, 0..1, newest last: the wave on the page. */
     private final float[] mLevels = new float[52];
@@ -260,12 +291,60 @@ public final class WalkieService extends Service implements Radio.Listener {
         }
     }
 
+    /** The newest message with any voice in it, null for none. */
+    private Heard last() {
+        synchronized (mRecent) {
+            for (Heard heard : mRecent) {
+                if (heard.audio.has()) {
+                    return heard;
+                }
+            }
+            return null;
+        }
+    }
+
     String lastFrom() {
-        return mLast.has() ? mLast.from() : null;
+        final Heard last = last();
+        return last == null ? null : last.audio.from();
     }
 
     boolean playingAgain() {
         return mPlayingAgain;
+    }
+
+    /** The messages still kept, newest first, for the list of recent ones. */
+    java.util.List<Message> recent() {
+        final java.util.List<Message> out = new java.util.ArrayList<>();
+        synchronized (mRecent) {
+            for (Heard heard : mRecent) {
+                if (heard.audio.has()) {
+                    out.add(new Message(heard, heard.audio.from(), heard.audio.when(),
+                            heard.channel, heard.audio.millis(), heard == mAgain));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** A fresh voice for a message to come while fewer than enough are kept, else null. */
+    private Heard spare() {
+        synchronized (mRecent) {
+            return mRecent.size() >= RECENT ? null : new Heard();
+        }
+    }
+
+    /**
+     * A message's voice to record into, taken as its first voice arrives so a message that
+     * never brings any keeps the older ones: the spare while there is room, else the oldest.
+     */
+    private Heard heard(int channel, Heard spare) {
+        synchronized (mRecent) {
+            final Heard heard = mRecent.size() >= RECENT ? mRecent.removeLast()
+                    : spare != null ? spare : new Heard();
+            heard.channel = channel;
+            mRecent.addFirst(heard);
+            return heard;
+        }
     }
 
     /** Who left the message kept quiet while the page was closed, null for none. */
@@ -373,17 +452,17 @@ public final class WalkieService extends Service implements Radio.Listener {
                 || setting(ALOUD_CLOSED, ALOUD_CLOSED_DEFAULT);
         final boolean chime = aloud && setting(CHIME, CHIME_DEFAULT);
         mSpeaking = from;
+        final int channel = mRadio.channel();
         // Aloud also from a pocket: the r1 stays awake for as long as the message runs
         mWake.acquire(90_000);
         changed();
         new Thread(() -> {
             final short[] pcm = new short[FRAME];
             final AudioTrack track = track();
-            mLast.start(from, System.currentTimeMillis());
-            // The replay now belongs to this message, including its waiting marker.
-            if (mWaiting != null) {
-                waiting(null);
-            }
+            final long when = System.currentTimeMillis();
+            // Made now, not at the first voice, so that frame is not held up by the allocation
+            final Heard spare = spare();
+            Heard heard = null;
             track.play();
             if (chime) {
                 // Two notes up before the voice, for a message heard from a pocket
@@ -407,12 +486,22 @@ public final class WalkieService extends Service implements Radio.Listener {
                     }
                 }
                 if (incoming.take(pcm)) {
+                    if (heard == null) {
+                        // Its first voice: only now does it take a slot, mSpeaking having
+                        // already stopped any replay of the one it reuses
+                        heard = heard(channel, spare);
+                        heard.audio.start(from, when);
+                        // The replay now belongs to this message, including its waiting marker.
+                        if (mWaiting != null) {
+                            waiting(null);
+                        }
+                    }
                     quiet = 0;
                     due += FRAME_MS * 1_000_000;
                     if (aloud) {
                         track.write(pcm, 0, FRAME);
                     }
-                    mLast.add(pcm);
+                    heard.audio.add(pcm);
                     level(pcm);
                     changed();
                 } else {
@@ -425,8 +514,10 @@ public final class WalkieService extends Service implements Radio.Listener {
                     }
                 }
             }
-            mLast.end();
-            if (!aloud && mLast.has() && sRunning == this) {
+            if (heard != null) {
+                heard.audio.end();
+            }
+            if (!aloud && heard != null && heard.audio.has() && sRunning == this) {
                 waiting(from);
             }
             track.stop();
@@ -448,10 +539,24 @@ public final class WalkieService extends Service implements Radio.Listener {
 
     /** The last message once more. */
     void again() {
-        if (!mLast.has() || mPlayingAgain || mSpeaking != null || mTalking) {
+        final Heard last = last();
+        if (last != null) {
+            again(last);
+        }
+    }
+
+    /** One of the recent messages once more, by the key its Message has. */
+    void again(Object key) {
+        final Heard heard;
+        synchronized (mRecent) {
+            heard = key instanceof Heard h && mRecent.contains(h) ? h : null;
+        }
+        if (heard == null || !heard.audio.has() || mPlayingAgain || mSpeaking != null
+                || mTalking) {
             return;
         }
         mPlayingAgain = true;
+        mAgain = heard;
         if (mWaiting != null) {
             waiting(null);
         }
@@ -461,11 +566,12 @@ public final class WalkieService extends Service implements Radio.Listener {
             final AudioTrack track = track();
             track.play();
             for (int i = 0; sRunning == this && mSpeaking == null && !mTalking
-                    && mLast.read(i, pcm) == 1; i++) {
+                    && heard.audio.read(i, pcm) == 1; i++) {
                 track.write(pcm, 0, FRAME);
             }
             track.stop();
             track.release();
+            mAgain = null;
             mPlayingAgain = false;
             changed();
         }, "walkie-again").start();

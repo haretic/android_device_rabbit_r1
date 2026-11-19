@@ -5,7 +5,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:fitsSystemWindows="true">
-    <TextView style="@style/Title" android:text="@string/settings_title" />
+    <!-- Where the focus starts: not on a setting, so a first press switches nothing -->
+    <TextView style="@style/Title" android:text="@string/settings_title"
+        android:focusable="true" android:focusedByDefault="true"
+        android:defaultFocusHighlightEnabled="false" />
     <ScrollView android:id="@+id/scroll" android:layout_width="match_parent"
         android:layout_height="0dp" android:layout_weight="1">
         <LinearLayout android:id="@+id/rows" android:layout_width="match_parent"

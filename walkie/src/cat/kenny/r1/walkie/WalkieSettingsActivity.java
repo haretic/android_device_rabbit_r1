@@ -32,7 +32,9 @@ public final class WalkieSettingsActivity extends Activity {
         setContentView(R.layout.settings);
         mPrefs = WalkieService.prefs(this);
         final ViewGroup rows = findViewById(R.id.rows);
-        final View first = row(rows, R.string.set_talk_sounds, R.string.set_talk_sounds_sub,
+        // The focus starts on the title (settings.xml), not on a switch: a press that opened the
+        // page, or one more by habit, must not change a setting
+        row(rows, R.string.set_talk_sounds, R.string.set_talk_sounds_sub,
                 WalkieService.TALK_SOUNDS, WalkieService.TALK_SOUNDS_DEFAULT);
         row(rows, R.string.set_chime, R.string.set_chime_sub,
                 WalkieService.CHIME, WalkieService.CHIME_DEFAULT);
@@ -41,9 +43,6 @@ public final class WalkieSettingsActivity extends Activity {
         row(rows, R.string.set_stay_on, R.string.set_stay_on_sub,
                 WalkieService.STAY_ON, WalkieService.STAY_ON_DEFAULT);
         ((TextView) findViewById(R.id.hint)).setText(R.string.settings_hint);
-        if (state == null) {
-            first.requestFocus();
-        }
     }
 
     private View row(ViewGroup rows, int title, int sub, String key, boolean otherwise) {
