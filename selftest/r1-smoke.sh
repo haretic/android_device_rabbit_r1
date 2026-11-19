@@ -222,7 +222,7 @@ crash_final() {
 }
 runner_cleanup() {
 	local result=$1
-	app_abort; toolbox_silent_end; powerhold_settings_end; sweep_end
+	stress_cancel_end; pageprefs_end; synth_loop_end; app_abort; toolbox_silent_end; powerhold_settings_end; sweep_end
 	sh "settings put global stay_on_while_plugged_in ${stay:-0}"
 	ui_cleanup
 	retry=; cur=crashes
@@ -1740,6 +1740,7 @@ app_begin() {
 }
 # app_* tests use local saved modes; retain an EXIT-safe copy for timeout/cancellation.
 app_abort() {
+	stress_cancel_end; pageprefs_end; synth_loop_end
 	[ "${app_active:-0}" = 1 ] || return 0
 	key 3
 	toolbox_silent_end
@@ -1749,6 +1750,7 @@ app_abort() {
 	app_active=0
 }
 app_end() {
+	stress_cancel_end; pageprefs_end; synth_loop_end
 	key 3
 	toolbox_silent_end
 	if [ "${app_land:-0}" = 1 ]; then rotation_back "$app_rotation" "$app_auto"; fi
@@ -1893,7 +1895,8 @@ app_pad_targets() {
 	bounds=$(xnodes "$1" | awk -F '\t' '$5 ~ /id\/pads$/ { print $6; exit }')
 	if echo "$bounds" | awk -v d="$dpi" 'NF == 4 {
 		gap = 8 * d / 160; minimum = 48 * d / 160
-		found = ($3 - $1 - gap) / 2 >= minimum && ($4 - $2 - 2 * gap) / 3 >= minimum
+		w=$3-$1; h=$4-$2; cols=2*w>=3*h?3:2; rows=int((6+cols-1)/cols)
+		found = (w-(cols-1)*gap)/cols >= minimum && (h-(rows-1)*gap)/rows >= minimum
 	} END { exit !found }'; then ok "$cur: every landscape pad is at least 48dp"
 	else bad "$cur: landscape pads are missing or too small ($bounds)"; fi
 }
@@ -1912,15 +1915,18 @@ app_sight() {
 synth_mode() {
 	case "$(app_id_text "$1" setting)" in
 		Filter*) echo Filter ;; Pitch*) echo Pitch ;; Stutter*) echo Stutter ;; Echo*) echo Echo ;;
-		*' scale') echo Scale ;; Preset*|'Your own setup') echo Preset ;; Play*) echo Play ;;
+		*' scale') echo Scale ;; Preset*|'Your own setup') echo Preset ;;
+		Play*|'Record a loop'|'Cancel recording'|'Close the loop'|'Add to the loop'|'Done adding'|'Clear the loop') echo Play ;;
 	esac
 }
 
 t_synthmodes() {
-	local app_modes app_tuning before label i bounds mode expected seen=
+	local app_modes app_tuning before before_mode label i bounds mode expected seen=
+	toolbox_silent_begin || return
 	app_begin cat.kenny.r1.synth/.SynthActivity || { app_end; return; }
 	app_title synthmodes Synth || { app_end; return; }
 	ui synthmodes; before=$(app_id_text synthmodes hint)
+	before_mode=$(synth_mode synthmodes)
 	[ -n "$before" ] || { bad 'synthmodes: missing mode hint'; app_end; return; }
 	# The setting label changes with every mode; the hint disambiguates a custom Preset.
 	for i in 1 2 3 4 5 6 7; do
@@ -1929,11 +1935,13 @@ t_synthmodes() {
 		mode=$(synth_mode synthmodes); seen="$seen $mode"
 		expected=$(app_next 'Filter|Pitch|Stutter|Echo|Scale|Preset|Play' "$mode")
 		case "$label" in
-			Filter*|Pitch*|Stutter*|Echo*|*' scale'|Preset*|'Your own setup'|Play*) ok "synthmodes: visible setting $label" ;;
+			Filter*|Pitch*|Stutter*|Echo*|*' scale'|Preset*|'Your own setup'|Play*|'Record a loop'|'Cancel recording'|'Close the loop'|'Add to the loop'|'Done adding'|'Clear the loop') ok "synthmodes: visible setting $label" ;;
 			*) bad "synthmodes: unexpected setting ${label:-nothing}" ;;
 		esac
 		case "$label" in
-			Play*)
+			Play*|'Record a loop'|'Cancel recording'|'Close the loop'|'Add to the loop'|'Done adding'|'Clear the loop')
+				# A retained Play selection can now be on the loop; anchor at pad zero.
+				synth_pad_tap synthmodes 0; ui synthmodes
 				wheel down 1 >/dev/null; sleep 0.5; ui synthmodes-play
 				[ "$(app_id_text synthmodes-play setting)" = 'Play Chirp' ] \
 					&& ok "synthmodes: wheel picks Chirp" || bad "synthmodes: wheel did not pick Chirp"
@@ -1956,8 +1964,13 @@ t_synthmodes() {
 					ui synthmodes-play; app_tap_id synthmodes-play setting; sleep 0.4
 				done
 				expected=Filter
-				# Up beyond the first pad returns to Preset; down past the sixth returns to Filter.
-				wheel down 5 >/dev/null; sleep 0.5; wheel down 1 >/dev/null; sleep 0.5 ;;
+				# Down now passes the loop action (and Clear for a retained take) before Filter.
+				wheel down 5 >/dev/null; sleep 0.5
+				for expected in 1 2 3; do
+					ui synthmodes-play; [ "$(synth_mode synthmodes-play)" = Play ] || break
+					wheel down 1 >/dev/null; sleep 0.4
+				done
+				expected=Filter ;;
 			*) side_press; sleep 0.6 ;;
 		esac
 		ui synthmodes
@@ -1991,10 +2004,10 @@ t_synthmodes() {
 	# Restore the initial mode without changing any knob, scale or preset value.
 	for i in 1 2 3 4 5 6 7; do
 		ui synthmodes
-		[ "$(app_id_text synthmodes hint)" = "$before" ] && break
+		[ "$(synth_mode synthmodes)" = "$before_mode" ] && break
 		app_tap_id synthmodes setting; sleep 0.4
 	done
-	[ "$(app_id_text synthmodes hint)" = "$before" ] && ok "synthmodes: restored initial mode" \
+	[ "$(synth_mode synthmodes)" = "$before_mode" ] && ok "synthmodes: restored initial mode" \
 		|| bad "synthmodes: could not restore initial mode"
 	shot synthmodes; app_end
 }
@@ -2089,7 +2102,9 @@ walkie_people_check() {
 
 t_walkieset() {
 	local app_modes app_tuning was_on channel point
+	toolbox_silent_begin || return
 	was_on=$(dev "dumpsys activity services cat.kenny.r1.walkie | grep -c ServiceRecord")
+	[ "$was_on" != 0 ] || walkieset_stop_on_cleanup=1
 	app_begin cat.kenny.r1.walkie/.WalkieActivity || { app_end; return; }
 	app_title walkieset Walkie-Talkie
 	walkie_people_check
@@ -2133,6 +2148,10 @@ toolbox_silent_end() {
 	[ "${toolbox_silent_active:-0}" = 1 ] || return 0
 	# MetronomeActivity.onPause stops and joins its speaker before volume is restored.
 	key 3; sleep 0.5
+	if [ "${walkieset_stop_on_cleanup:-0}" = 1 ]; then
+		# A radio started only by walkieset must stop before its saved media volume returns.
+		sh 'am force-stop cat.kenny.r1.walkie'; walkieset_stop_on_cleanup=0
+	fi
 	if [ "$toolbox_saved_volume" != 0 ]; then
 		sh "cmd media_session volume --stream 3 --set $toolbox_saved_volume" >/dev/null
 	fi
@@ -2219,10 +2238,12 @@ t_toolboxset() {
 				[ "$(app_id_text toolboxset-bar line)" = "$(app_next "$bar_choices" "$after")" ] \
 					&& ok 'toolboxset: touch changes the running bar' || bad 'toolboxset: touch did not change the running bar'
 			else bad 'toolboxset: running hold left Metronome or did not change the bar'; fi
+			# Latch regression: after hold then bar tap, ONE press must stop (no focus wheel/retry).
 			# Stop only on this tool; never send a press to a page reached by a broken hold.
 			if focus_win | grep -Eq 'cat\.kenny\.r1\.toolbox/(cat\.kenny\.r1\.toolbox)?\.MetronomeActivity[ }]'; then side_press; sleep 0.5; fi
 		fi
 		if ! focus_win | grep -Eq 'cat\.kenny\.r1\.toolbox/(cat\.kenny\.r1\.toolbox)?\.MetronomeActivity[ }]'; then app_end; return; fi
+		sleep 0.4; ui toolboxset-bar
 		app_title toolboxset-bar 'Stopped.'
 		# Restore by actual UI state, including a failed first transition.
 		for i in 1 2 3 4 5; do
@@ -2247,6 +2268,459 @@ t_toolboxset() {
 		# Leave the count and its lap/rate history intact; the shared turnKey action is
 		# exercised by the tempo test above.
 	fi
+	app_end
+}
+
+# Latest app regressions: preference journal and loop cleanup run before leaving the app,
+# including the runner's EXIT path. Only named appearance rows enter this journal.
+pageprefs_begin() { pageprefs_component=$1; pageprefs_saved=; pageprefs_active=1; }
+pageprefs_remember() {
+	local value tab
+	tab=$(printf '\t')
+	app_focus "$1" "$2" || return 1
+	value=$(app_value "$1" "$2" "$3")
+	[ -n "$value" ] || { bad "$cur: cannot save $2"; return 1; }
+	pageprefs_saved="${pageprefs_saved}${pageprefs_saved:+
+}$2${tab}$3${tab}$value"
+}
+pageprefs_set() {
+	local snap=$1 label=$2 choices=$3 wanted=$4 i now count
+	count=$(echo "$choices" | awk -F '|' '{print NF}')
+	for i in $(seq 1 "$count"); do
+		app_focus "$snap" "$label" || return 1
+		now=$(app_value "$snap" "$label" "$choices")
+		[ "$now" = "$wanted" ] && return 0
+		[ -n "$now" ] || return 1
+		app_tap "$snap" "$label" || return 1
+		sleep 0.4
+	done
+	ui "$snap"
+	[ "$(app_value "$snap" "$label" "$choices")" = "$wanted" ]
+}
+pageprefs_end() {
+	[ "${pageprefs_active:-0}" = 1 ] || return 0
+	local label choices value result=0 tab
+	tab=$(printf '\t')
+	# Each component is an offline settings page, never an action-bearing app home.
+	sh "am start -W -n $pageprefs_component >/dev/null"; sleep 0.5
+	while IFS="$tab" read -r label choices value; do
+		[ -n "$label" ] || continue
+		if pageprefs_set pageprefs-restore "$label" "$choices" "$value"; then
+			ok "$cur: restored original $label ($value)"
+		else bad "$cur: could not restore original $label ($value)"; result=1; fi
+	done <<EOF_PREFS
+$pageprefs_saved
+EOF_PREFS
+	[ "$result" = 0 ] && { pageprefs_active=0; pageprefs_saved=; }
+	return "$result"
+}
+app_portrait() {
+	if [ "${app_land:-0}" = 0 ]; then
+		app_rotation=$(dev 'settings get system user_rotation')
+		app_auto=$(dev 'settings get system accelerometer_rotation'); app_land=1
+	fi
+	turn 0; sleep 0.5
+}
+pageprefs_fresh() {
+	# Clear only the activity task, not a process/service or preferences. This resets scroll.
+	sh "am start -W --activity-new-task --activity-clear-task -n $1 >/dev/null"; sleep 0.7
+	ui "$2"
+}
+page_header_folded() {
+	local top root
+	root=$(sweep_screen "$1")
+	top=$(xnodes "$1" | awk -F '\t' '
+		list && $1==depth+1 { split($6,b," "); if(b[3]>b[1] && b[4]>b[2]) {print b[2];exit} }
+		$4~/RecyclerView$/ || $5~/id\/(recycler_view|list)$/ {list=1;depth=$1}')
+	if echo "$root" | awk -v top="$top" 'NF==4 && top~/^[0-9]+$/ && top<140 && top>=0 && $4-$2>$3-$1 {f=1} END{exit !f}'; then
+		ok "$cur: folded portrait header, first row at $top px"
+	else bad "$cur: header not folded or no first row ($top; $root)"; fi
+}
+pageprefs_effect() {
+	local label=$1 value=$2 i file
+	[ "$pageprefs_component" = cat.kenny.r1.batterydetails/.BatteryDetailsActivity ] || return 0
+	case "$label:$value" in 'Temperature in:Fahrenheit'|'Current in:Milliamps'|'24 hour graph:Shown'|'24 hour graph:Hidden') ;; *) return 0 ;; esac
+	pageprefs_fresh "$pageprefs_component" battery-page-effect
+	for i in 1 2 3 4 5 6; do
+		ui battery-page-effect
+		case "$label:$value" in
+			'Temperature in:Fahrenheit')
+				xnodes battery-page-effect | cut -f7 | grep -Eq '[0-9][.,0-9]*[[:space:]]*°F' && { ok "$cur: Fahrenheit appears in a reading"; return; } ;;
+			'Current in:Milliamps')
+				xnodes battery-page-effect | cut -f7 | grep -Eq '[0-9][.,0-9]*[[:space:]]*mA' && { ok "$cur: milliamps appear in a reading"; return; } ;;
+			'24 hour graph:'*)
+				# Header is on screen, so a missing/recycled header cannot pass Hidden.
+				if [ -n "$(app_id_text battery-page-effect percent)" ]; then
+					file="$SHOTS/smoke-battery-page-effect-activity.txt"
+					dev "dumpsys activity $pageprefs_component" > "$file"
+					if awk -v shown="$value" '/GraphView\{/ && /:id\/graph/ {
+						found=1; visible=substr($2,1,1)=="V"
+					} END {exit !(found && (shown=="Shown"?visible:!visible))}' "$file"; then
+						ok "$cur: graph $value matches view visibility"; return
+					fi
+				fi ;;
+		esac
+		sleep 0.5
+	done
+	bad "$cur: $label=$value did not change the reading/graph"
+}
+pageprefs_cycle() {
+	local snap=$1 label=$2 choices=$3 first after expected
+	pageprefs_remember "$snap" "$label" "$choices" || return 1
+	first=${choices%%\|*}
+	pageprefs_set "$snap" "$label" "$choices" "$first" || { bad "$cur: cannot establish first $label choice"; return 1; }
+	# Re-find by wheel even after a normalization tap. Exactly one press changes the row.
+	app_focus "$snap" "$label" || return 1
+	side_press; sleep 0.5; ui "$snap"
+	after=$(app_value "$snap" "$label" "$choices"); expected=$(app_next "$choices" "$first")
+	[ "$after" = "$expected" ] && ok "$cur: one press changes $label ($first -> $after)" || bad "$cur: wrong summary after $label press ($after)"
+	pageprefs_effect "$label" "$after"
+	app_focus "$snap" "$label" || return 1
+	app_tap "$snap" "$label" || return 1
+	sleep 0.5; ui "$snap"
+	expected=$(app_next "$choices" "$after"); after=$(app_value "$snap" "$label" "$choices")
+	[ -n "$expected" ] && [ "$after" = "$expected" ] && ok "$cur: tap changes $label ($after)" || bad "$cur: wrong summary after $label tap ($after)"
+	pageprefs_effect "$label" "$after"
+	pageprefs_set "$snap" "$label" "$choices" "$first" && ok "$cur: $label returns to first choice ($first)" || bad "$cur: could not return $label to first choice"
+}
+t_overlaylook() {
+	local app_modes app_tuning
+	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
+	app_begin cat.kenny.r1.perfoverlay/.OverlayActivity || { app_end; return; }
+	app_portrait; pageprefs_fresh cat.kenny.r1.perfoverlay/.OverlayActivity overlaylook
+	page_header_folded overlaylook
+	pageprefs_begin cat.kenny.r1.perfoverlay/.OverlayActivity
+	pageprefs_cycle overlaylook 'Text size' 'Small|Medium|Large'
+	pageprefs_cycle overlaylook Background 'Dark|Light|None'
+	pageprefs_cycle overlaylook Updates 'Every second|Every 2 seconds|Every 5 seconds'
+	app_end
+}
+t_batterypage() {
+	local app_modes app_tuning ui_fast=1
+	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
+	app_begin cat.kenny.r1.batterydetails/.BatteryDetailsActivity || { app_end; return; }
+	app_portrait; pageprefs_fresh cat.kenny.r1.batterydetails/.BatteryDetailsActivity batterypage
+	page_header_folded batterypage
+	pageprefs_begin cat.kenny.r1.batterydetails/.BatteryDetailsActivity
+	pageprefs_cycle batterypage 'Readings update' 'Every 2 seconds|Every second|Every 5 seconds'
+	pageprefs_cycle batterypage 'Temperature in' 'Celsius|Fahrenheit'
+	pageprefs_cycle batterypage 'Current in' 'Amps|Milliamps'
+	pageprefs_cycle batterypage '24 hour graph' 'Shown|Hidden'
+	app_end
+}
+t_reportcontents() {
+	local app_modes app_tuning
+	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
+	app_begin cat.kenny.r1.problemreport/.ProblemReportActivity || { app_end; return; }
+	app_portrait; pageprefs_fresh cat.kenny.r1.problemreport/.ProblemReportActivity reportcontents
+	page_header_folded reportcontents
+	pageprefs_begin cat.kenny.r1.problemreport/.ProblemReportActivity
+	pageprefs_cycle reportcontents 'List of apps' 'Included|Left out'
+	# Never activate Save report, GitHub, the note editor or the self-test runner.
+	app_end
+}
+t_smallheaders() {
+	local app_modes app_tuning component
+	for component in cat.kenny.r1.performance/.PerformanceActivity cat.kenny.r1.radiosleep/.RadioSleepActivity; do
+		app_begin "$component" || { app_end; continue; }
+		app_portrait; pageprefs_fresh "$component" smallheaders
+		page_header_folded smallheaders
+		# Navigation only: no CPU profile, extreme saver, radio timeout or switch is pressed.
+		app_end
+	done
+}
+stress_cancel_end() {
+	[ "${stress_dialog_active:-0}" = 1 ] || return 0
+	# Back dismisses the pending confirmation even if an assertion failed. Never Skip it.
+	key 4; stress_dialog_active=0
+}
+t_stresscancel() {
+	local app_modes app_tuning way i found=0
+	# Private activity, host/root only. Opening it reads state; enabling OC/tweaks is forbidden.
+	host_only || return
+	app_begin cat.kenny.r1.performance/.OverclockActivity || { app_end; return; }
+	app_portrait
+	for way in down up; do
+		for i in $(seq 1 24); do
+			ui stresscancel
+			# This exact unforced link opens the confirmation. The inverse link would
+			# change forced mode immediately, and is never activated by this test.
+			if sweep_focus_has stresscancel 'Pick speeds without the stress test' \
+				&& awk 'BEGIN{RS="<"} / focused="true"/ && / enabled="true"/ {f=1} END{exit !f}' "$SHOTS/smoke-stresscancel.xml"; then found=1; break; fi
+			wheel "$way" 1 >/dev/null; sleep 0.2
+		done
+		[ "$found" = 1 ] && break
+	done
+	if [ "$found" != 1 ]; then
+		echo 'SKIP stresscancel: unforced skip link not reachable/enabled; no CPU setting changed'
+		app_end; return
+	fi
+	stress_dialog_active=1; side_press; sleep 0.5; ui stresscancel-dialog
+	if xnodes stresscancel-dialog | cut -f7 | grep -Fxq 'Skip the stress test?'; then
+		if xfocus stresscancel-dialog | awk -F '\t' '$1!="out" && $6~/id\/button2$/ && $8=="Cancel" {f=1} END{exit !f}'; then
+			ok 'stresscancel: Skip the stress test opens with Cancel focused'
+		else bad 'stresscancel: confirmation did not focus Cancel'; fi
+		app_tap stresscancel-dialog Cancel; sleep 0.4; ui stresscancel-closed
+		if xnodes stresscancel-closed | cut -f7 | grep -Fxq 'Skip the stress test?'; then
+			bad 'stresscancel: Cancel did not dismiss confirmation'
+		else ok 'stresscancel: Cancel closes without accepting'; stress_dialog_active=0; fi
+	else bad 'stresscancel: expected confirmation did not open'; fi
+	app_end
+}
+t_walkielatch() {
+	local app_modes app_tuning before after
+	# Direct private settings entry needs the host/root runner. Opening WalkieActivity would
+	# start its microphone/network service; this regression never launches that activity.
+	host_only || return
+	[ "$(app_service_state cat.kenny.r1.walkie)" = off ] || { echo 'SKIP walkielatch: preserve an existing or unreadable radio service'; return; }
+	[ "${pageprefs_active:-0}" = 0 ] || { bad "$cur: unresolved preference cleanup"; return; }
+	toolbox_silent_begin || return
+	app_begin cat.kenny.r1.walkie/.WalkieSettingsActivity || { app_end; return; }
+	app_focus walkielatch 'Talk sounds' || { app_end; return; }
+	side_hold; sleep 0.5
+	if focus_win | grep -Fq '.WalkieSettingsActivity'; then bad 'walkielatch: hold did not leave settings'; app_end; return; fi
+	ok 'walkielatch: hold leaves settings'
+	sh 'am start -W -n cat.kenny.r1.walkie/.WalkieSettingsActivity >/dev/null'; sleep 0.6
+	pageprefs_begin cat.kenny.r1.walkie/.WalkieSettingsActivity
+	pageprefs_remember walkielatch 'Talk sounds' 'On|Off' || { app_end; return; }
+	before=$(app_value walkielatch 'Talk sounds' 'On|Off')
+	app_tap walkielatch 'Talk sounds'; sleep 0.4; ui walkielatch
+	after=$(app_value walkielatch 'Talk sounds' 'On|Off')
+	[ "$after" = "$(app_next 'On|Off' "$before")" ] && ok 'walkielatch: touch changes Talk sounds' || bad 'walkielatch: touch did not change Talk sounds'
+	# First row is the restored focus. No wheel/retry press is allowed between tap and press.
+	side_press; sleep 0.5; ui walkielatch
+	if sweep_focus_has walkielatch 'Talk sounds' && [ "$(app_value walkielatch 'Talk sounds' 'On|Off')" = "$before" ]; then
+		ok 'walkielatch: one post-touch press restores highlight and changes the focused row once'
+	else bad 'walkielatch: one post-touch press did not change the focused row'; fi
+	app_end
+}
+# Use the explicit Add page: it contains kinds, never saved-network switches. Tapping
+# its inert title enters touch mode; the next single select must open the first kind only.
+t_tunnelslatch() {
+	local app_modes app_tuning ui_fast=1
+	app_begin cat.kenny.r1.tunnels/.HomeActivity || { app_end; return; }
+	sh 'am start -W -n cat.kenny.r1.tunnels/.HomeActivity --ez add true >/dev/null'; sleep 0.5
+	if ! tunnels_home_page || [ "$(app_id_text tunnels-home title)" != 'Add a network' ]; then
+		bad 'tunnelslatch: no explicit Add page'; app_end; return
+	fi
+	app_focus tunnels-latch WireGuard || { app_end; return; }
+	if [ "$(app_id_text tunnels-latch hint)" != 'Press to set up WireGuard' ] \
+		|| xnodes tunnels-latch | awk -F '\t' '$5~/id\/switch_hit$/ {f=1} END{exit !f}'; then
+		bad 'tunnelslatch: unsafe Add contents'; app_end; return
+	fi
+	app_tap_id tunnels-latch title || { bad 'tunnelslatch: no inert title touch target'; app_end; return; }
+	sleep 0.3
+	if ! tunnels_home_page || [ "$(app_id_text tunnels-home title)" != 'Add a network' ] \
+		|| [ "$(app_id_text tunnels-home hint)" != 'Press to set up WireGuard' ]; then
+		bad 'tunnelslatch: title touch left the identified Add page'; app_end; return
+	fi
+	[ -z "$(sweep_focus_id tunnels-home)" ] || { bad 'tunnelslatch: title touch did not remove the highlight'; app_end; return; }
+	# No intervening wheel step or second press can mask the post-touch release path.
+	side_press; sleep 0.5
+	if tunnels_page tunnels-latch WireGuard 'Step 1 of 3' && focus_win | grep -Eq 'cat\.kenny\.r1\.tunnels/(cat\.kenny\.r1\.tunnels)?\.WgStartActivity[ }]'; then
+		ok 'tunnelslatch: one post-touch press opens unsaved WireGuard setup from Add'
+		side_hold; sleep 0.5
+	else bad 'tunnelslatch: one post-touch Add-page press did not activate the first kind'; fi
+	# Only activities are closed. No profile, switch, Save, consent, or service action is used.
+	tunnels_finish
+}
+
+synth_loop_desc() { xnodes "$1" | awk -F '\t' '$5~/id\/loop$/ {print $8;exit}'; }
+synth_loop_wait() {
+	local i
+	for i in 1 2 3 4 5 6; do
+		ui "$1"
+		[ "$(synth_loop_desc "$1")" = "$2" ] && return 0
+		sleep 0.25
+	done
+	bad "$cur: loop expected $2, got $(synth_loop_desc "$1")"; return 1
+}
+synth_loop_seek() {
+	local i label
+	# In Play, down passes six pads and the loop action, then Clear while clearable.
+	for i in 1 2 3 4 5 6 7 8 9; do
+		ui "$1"; label=$(app_id_text "$1" setting)
+		[ "$label" = "$2" ] && return 0
+		case "$label" in Play\ *|'Record a loop'|'Cancel recording'|'Close the loop'|'Add to the loop'|'Done adding'|'Clear the loop') ;;
+			*) bad "$cur: refusing loop wheel outside Play ($label)"; return 1 ;;
+		esac
+		wheel down 1 >/dev/null; sleep 0.4
+	done
+	bad "$cur: wheel did not reach $2"; return 1
+}
+synth_pad_tap() {
+	local at dpi bounds
+	dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//')
+	case "$dpi" in ''|*[!0-9]*) return 1 ;; esac
+	bounds=$(sweep_bounds "$1" pads)
+	at=$(echo "$bounds" | awk -v pad="$2" -v dpi="$dpi" 'NF==4 {
+		w=$3-$1;h=$4-$2;cols=2*w>=3*h?3:2;rows=int((6+cols-1)/cols);gap=8*dpi/160
+		cw=(w-gap*(cols-1))/cols;ch=(h-gap*(rows-1))/rows
+		if(pad>=0 && pad<6 && cw>0 && ch>0) print int($1+(pad%cols)*(cw+gap)+cw/2),int($2+int(pad/cols)*(ch+gap)+ch/2)
+	}')
+	[ -n "$at" ] || { bad "$cur: no safe pad centre"; return 1; }
+	sh "input tap $at"; sleep 0.4
+}
+synth_loop_tap() {
+	local snap=$1 part=$2 bounds dpi at
+	bounds=$(sweep_bounds "$snap" loop); dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//')
+	case "$dpi" in ''|*[!0-9]*) return 1 ;; esac
+	# Portrait LoopView is wide. Use its source's fixed Clear width (56dp), 6dp gap,
+	# and the 64dp minimum action width; choose inside that guaranteed action area.
+	at=$(echo "$bounds" | awk -v dpi="$dpi" -v part="$part" 'NF==4 {
+		d=dpi/160;w=$3-$1;h=$4-$2
+		if(w<2.5*h || w<140*d || h<=0) exit
+		x=part=="clear"?$3-28*d:$3-56*d-6*d-32*d
+		print int(x),int(($2+$4)/2)
+	}')
+	[ -n "$at" ] || { bad "$cur: cannot locate portrait loop $part"; return 1; }
+	sh "input tap $at"; sleep 0.4
+}
+synth_loop_end() {
+	[ "${synth_loop_active:-0}" = 1 ] || return 0
+	local i desc
+	# Cleanup may be running after a failure, pause or configuration change. Mute is still
+	# owned by toolbox_silent_end, which runs only after this hook and leaving the app.
+	sh 'am start -W --activity-reorder-to-front -n cat.kenny.r1.synth/.SynthActivity >/dev/null'; sleep 0.4
+	# Touch hit rectangles below are portrait; app_end restores the saved orientation.
+	turn 0; sleep 0.4; ui synthloop-clean
+	desc=$(synth_loop_desc synthloop-clean)
+	case "$desc" in
+		'Ready, Cancel') synth_loop_tap synthloop-clean action ;;
+		'Recording, Play'|'Looping, Add'|'Adding, Done'|'Stopped, Play') synth_loop_tap synthloop-clean clear ;;
+		'Loop, Record') : ;;
+		*) bad "$cur: no loop state during cleanup" ;;
+	esac
+	if ! synth_loop_wait synthloop-clean 'Loop, Record'; then
+		# Last resort: discard only this app's in-memory engine, preserving preferences.
+		sh 'am force-stop cat.kenny.r1.synth'; synth_loop_active=0; return 1
+	fi
+	for i in 1 2 3 4 5 6 7; do
+		ui synthloop-clean
+		[ "$(synth_mode synthloop-clean)" = "$synth_loop_mode" ] && break
+		app_tap_id synthloop-clean setting; sleep 0.3
+	done
+	[ "$(synth_mode synthloop-clean)" = "$synth_loop_mode" ] && ok "$cur: restored original synth mode" || bad "$cur: original synth mode not restored"
+	key 3; sleep 0.4; synth_loop_active=0
+}
+# LoopView draws duration on Canvas rather than exporting it as text. As with the existing
+# dial-key pixel check, the host checks rendered ink; no OCR/tool install is required.
+synth_loop_duration_ink() {
+	[ -z "${R1_ONDEVICE:-}" ] || return 77
+	python3 - "$@" <<'PYLOOP'
+import struct,sys
+from pathlib import Path
+raw=Path(sys.argv[1]).read_bytes()
+if len(raw)<12: raise SystemExit(77)
+w,h,fmt=struct.unpack_from('<III',raw);head=len(raw)-w*h*4
+if fmt not in (1,2,5) or head not in (12,16) or not (0<w<8192 and 0<h<8192): raise SystemExit(77)
+l,t,r,b=map(int,sys.argv[2].split());d=float(sys.argv[3])/160
+if not (0<=l<r<=w and 0<=t<b<=h and r-l>=2.5*(b-t)): raise SystemExit(77)
+# Remove action/Clear pills, frame, and bottom playback marks. Only the card name and
+# duration remain. Name is white; duration is text_dim (#B8B8B8). Reject components
+# containing white cores, so anti-aliased edges of "Looping" cannot fake a duration.
+r=int(r-(56+6+64+6)*d);t+=int(3*d);b-=int(10*d)
+pixels={}
+for y in range(t,b):
+ for x in range(l+int(10*d),r-int(4*d)):
+  off=head+4*(y*w+x);v=tuple(raw[off:off+3]);v=v[::-1] if fmt==5 else v
+  if max(v)-min(v)<=4 and min(v)>=110:pixels[(x,y)]=max(v)
+components=[]
+while pixels:
+ p,ink=pixels.popitem();stack=[p];n=1;peak=ink
+ while stack:
+  x,y=stack.pop()
+  for dx in (-1,0,1):
+   for dy in (-1,0,1):
+    q=(x+dx,y+dy)
+    if q in pixels:
+     peak=max(peak,pixels.pop(q));n+=1;stack.append(q)
+ if n>=max(4,int(4*d*d)) and 160<=peak<=195:components.append(n)
+print('duration glyph components:',components)
+raise SystemExit(0 if len(components)>=2 and sum(components)>=12*d*d else 1)
+PYLOOP
+}
+synth_loop_landscape() {
+	local rotation snap file pads loop hint screen dpi
+	for rotation in 1 3; do
+		turn "$rotation"; sleep 0.6; snap=synthloop-land-$rotation; ui "$snap"
+		file="$SHOTS/smoke-$snap-activity.txt"
+		dev 'dumpsys activity cat.kenny.r1.synth/.SynthActivity' > "$file"
+		pads=$(sweep_canvas_bounds "$file" pads); loop=$(sweep_canvas_bounds "$file" loop)
+		hint=$(sweep_canvas_bounds "$file" hint_row); screen=$(sweep_screen "$snap")
+		dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//')
+		case "$dpi" in ''|*[!0-9]*) bad "$cur: no landscape density"; return 1 ;; esac
+		if sweep_inside "$pads" "$screen" && sweep_inside "$loop" "$screen" && sweep_inside "$hint" "$screen" \
+			&& sweep_clear "$pads" "$loop" && sweep_clear "$pads" "$hint" && sweep_clear "$loop" "$hint" \
+			&& awk -v p="$pads" -v v="$loop" -v s="$screen" -v dpi="$dpi" 'BEGIN {
+				split(p,a," ");split(v,b," ");split(s,c," ");d=dpi/160;w=a[3]-a[1];h=a[4]-a[2]
+				exit !(c[3]-c[1]>c[4]-c[2] && 2*w>=3*h && b[4]-b[2]>b[3]-b[1] && b[1]>=a[3] && (w-16*d)/3>=48*d && (h-8*d)/2>=40*d)
+			}'; then ok "$cur: rotation $rotation loop is a side column; three pads across, clear of hint"
+		else bad "$cur: landscape loop/pads/hint overlap, clip or wrong columns"; fi
+	done
+}
+t_synthloop() {
+	local app_modes app_tuning ui_fast=1 i label rc bounds dpi
+	toolbox_silent_begin || return
+	app_begin cat.kenny.r1.synth/.SynthActivity || { app_end; return; }
+	app_portrait; ui synthloop
+	synth_loop_hint=$(app_id_text synthloop hint)
+	synth_loop_mode=$(synth_mode synthloop)
+	[ -n "$synth_loop_hint" ] && [ -n "$synth_loop_mode" ] || { bad 'synthloop: no initial mode'; app_end; return; }
+	synth_loop_active=1
+	for i in 1 2 3 4 5 6 7; do
+		ui synthloop
+		[ "$(synth_mode synthloop)" = Play ] && break
+		app_tap_id synthloop setting; sleep 0.3
+	done
+	if [ "$(synth_mode synthloop)" != Play ]; then bad 'synthloop: could not reach Play'; app_end; return; fi
+	# Clear a leftover in-memory take through its UI, keeping every knob/preset unchanged.
+	case "$(synth_loop_desc synthloop)" in
+		'Ready, Cancel') synth_loop_tap synthloop action ;;
+		'Loop, Record') : ;;
+		*) synth_loop_tap synthloop clear ;;
+	esac
+	synth_loop_wait synthloop 'Loop, Record' || { app_end; return; }
+	synth_loop_seek synthloop 'Record a loop' || { app_end; return; }
+	ok 'synthloop: wheel passes all six pads to the loop action'
+	side_press; sleep 0.4
+	synth_loop_wait synthloop 'Ready, Cancel' || { app_end; return; }
+	synth_pad_tap synthloop 0 || { app_end; return; }
+	synth_loop_wait synthloop 'Recording, Play' || { app_end; return; }
+	synth_pad_tap synthloop 1 || { app_end; return; }
+	synth_loop_seek synthloop 'Close the loop' || { app_end; return; }
+	side_press; sleep 0.4
+	synth_loop_wait synthloop 'Looping, Add' || { app_end; return; }
+	ok 'synthloop: two touch pads record and close to Looping'
+	rawshot synthloop-length; shot synthloop-length
+	bounds=$(sweep_bounds synthloop loop); dpi=$(dev 'wm density' | tail -1 | sed 's/.*: *//')
+	synth_loop_duration_ink "$SHOTS/smoke-synthloop-length.raw" "$bounds" "$dpi"; rc=$?
+	case "$rc" in 0) ok 'synthloop: loop length text is rendered on the card' ;; 77) echo 'SKIP synthloop length pixels: host raw RGBA/RGBX/BGRA analysis required' ;; *) bad 'synthloop: no rendered loop length' ;; esac
+	side_press; sleep 0.4
+	synth_loop_wait synthloop 'Adding, Done' || { app_end; return; }
+	synth_pad_tap synthloop 2
+	synth_loop_seek synthloop 'Done adding' || { app_end; return; }
+	side_press; sleep 0.4
+	synth_loop_wait synthloop 'Looping, Add' || { app_end; return; }
+	# Leaving pauses an existing take; returning must show Stopped, then Play resumes it.
+	key 3; sleep 0.5; sh 'am start -W --activity-reorder-to-front -n cat.kenny.r1.synth/.SynthActivity >/dev/null'; sleep 0.5
+	synth_loop_wait synthloop 'Stopped, Play' || { app_end; return; }
+	synth_loop_seek synthloop 'Play the loop' || { app_end; return; }
+	side_press; sleep 0.4
+	synth_loop_wait synthloop 'Looping, Add' || { app_end; return; }
+	synth_loop_seek synthloop 'Clear the loop' || { app_end; return; }
+	side_press; sleep 0.4
+	synth_loop_wait synthloop 'Loop, Record' || { app_end; return; }
+	ok 'synthloop: wheel and press Clear returns to Loop'
+	# The action is a Canvas hit target; tapping the whole view centre would hit the card.
+	synth_loop_tap synthloop action
+	synth_loop_wait synthloop 'Ready, Cancel' || { app_end; return; }
+	synth_pad_tap synthloop 0
+	synth_loop_wait synthloop 'Recording, Play' || { app_end; return; }
+	synth_loop_tap synthloop clear
+	synth_loop_wait synthloop 'Loop, Record' || { app_end; return; }
+	ok 'synthloop: touch action arms; touch Clear discards the take'
+	synth_loop_landscape
 	app_end
 }
 
@@ -3453,7 +3927,7 @@ sweep_land_lane() {
 		# each cell from its actual, unclipped bounds and the current source's 8dp gap/columns.
 		if ! sweep_clear "$content" "$hint" || ! awk -v a="$content" -v screen="$screen" -v hint="$hint" -v dpi="$dpi" 'BEGIN {
 			split(a,p," "); split(screen,s," "); split(hint,h," "); d=dpi/160; width=p[3]-p[1]; height=p[4]-p[2]
-			cols=width>=2*height?3:2; rows=int((6+cols-1)/cols); gap=8*d
+			cols=2*width>=3*height?3:2; rows=int((6+cols-1)/cols); gap=8*d
 			w=(width-gap*(cols-1))/cols; v=(height-gap*(rows-1))/rows
 			for(i=0;i<6;i++) { l=p[1]+(i%cols)*(w+gap); t=p[2]+int(i/cols)*(v+gap); r=l+w; b=t+v
 				if(w<126*d || v<40*d || l<s[1] || t<s[2] || r>s[3] || b>s[4] || !(r<=h[1] || h[3]<=l || b<=h[2] || h[4]<=t)) exit 1 }
@@ -3470,7 +3944,7 @@ t_synthland() {
 	local rotation snap
 	for rotation in 1 3; do
 		turn "$rotation"
-		sh 'am start -W -n cat.kenny.r1.synth/.SynthActivity >/dev/null 2>&1'; sleep 0.7
+		sh 'am start -W --activity-reorder-to-front -n cat.kenny.r1.synth/.SynthActivity >/dev/null 2>&1'; sleep 0.7
 		snap=synthland-$rotation; ui "$snap"
 		dev 'dumpsys activity cat.kenny.r1.synth/.SynthActivity' > "$SHOTS/smoke-$snap-activity.txt"
 		sweep_land_lane "$snap" synth "$rotation"
@@ -3583,7 +4057,7 @@ t_etartitle() {
 	sweep_end
 }
 
-tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset routerset portset phoneset webdeskset usbemuset tunnels routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune}
+tests=${*:-tour boot dialog pin shade settings home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
