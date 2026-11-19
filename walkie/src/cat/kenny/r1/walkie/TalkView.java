@@ -44,6 +44,7 @@ public final class TalkView extends View {
 
     void set(String title, String to, String who, String letGo, long since) {
         mTitle = title;
+        setContentDescription(title + "\n" + to + "\n" + who + "\n" + letGo);
         mTo = to;
         mWho = who;
         mLetGo = letGo;

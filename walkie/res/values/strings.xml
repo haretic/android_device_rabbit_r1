@@ -42,4 +42,22 @@
     <string name="channel">Walkie-Talkie</string>
     <string name="note">Walkie-Talkie is on, channel <xliff:g id="channel">%1$s</xliff:g></string>
     <string name="note_text">Messages play aloud. Tap to talk or to turn it off.</string>
+    <string name="note_waiting">A message from <xliff:g id="name">%1$s</xliff:g> is waiting. Open to hear it.</string>
+    <string name="hear_waiting">Hear <xliff:g id="name">%1$s</xliff:g>\'s message</string>
+    <!-- Last on the channels' drum, and the button beside the name -->
+    <string name="settings">Settings</string>
+    <string name="drum_volume">Volume %1$d</string>
+    <string name="hint_settings">Press to open the settings. Hold the side button to talk.</string>
+    <string name="settings_title">Walkie-Talkie settings</string>
+    <string name="settings_hint">Press to switch the one the wheel is on. Hold to go back.</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="set_talk_sounds">Talk sounds</string>
+    <string name="set_talk_sounds_sub">A short beep as talking starts and ends</string>
+    <string name="set_chime">Message chime</string>
+    <string name="set_chime_sub">Two notes before a message plays</string>
+    <string name="set_aloud">Play with the page closed</string>
+    <string name="set_aloud_sub">Off, they wait here for a press, with a note in the shade</string>
+    <string name="set_stay_on">Stay on after leaving</string>
+    <string name="set_stay_on_sub">Off, leaving this page turns the walkie-talkie off</string>
 </resources>

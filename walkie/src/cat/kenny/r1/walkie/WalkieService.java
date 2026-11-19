@@ -45,8 +45,17 @@ public final class WalkieService extends Service implements Radio.Listener {
     static final int RATE = 8000;
     static final int FRAME = 320;
     static final int CHANNELS = 8;
+    /** The settings, in the service's own preferences, and what each is until it is changed */
+    static final String TALK_SOUNDS = "talk_sounds", CHIME = "chime",
+            ALOUD_CLOSED = "aloud_closed", STAY_ON = "stay_on";
+    static final boolean TALK_SOUNDS_DEFAULT = false, CHIME_DEFAULT = false,
+            ALOUD_CLOSED_DEFAULT = true, STAY_ON_DEFAULT = true;
+    /** One frame of voice lasts this long */
+    private static final long FRAME_MS = 1000L * FRAME / RATE;
 
     private static volatile WalkieService sRunning;
+    /** Held while the notification is posted, so onDestroy's cancel comes after the last one */
+    private static final Object sNote = new Object();
     private static Runnable sListener;
 
     private final Handler mMain = new Handler(Looper.getMainLooper());
@@ -61,6 +70,8 @@ public final class WalkieService extends Service implements Radio.Listener {
     private volatile String mSpeaking;
     private volatile boolean mTalking;
     private volatile boolean mPlayingAgain;
+    /** Who left a message that was kept quiet, the page being closed; null when none waits */
+    private volatile String mWaiting;
     private long mTalkSince;
     private boolean mOnline;
 
@@ -80,6 +91,14 @@ public final class WalkieService extends Service implements Radio.Listener {
         context.stopService(new Intent(context, WalkieService.class));
     }
 
+    static SharedPreferences prefs(Context context) {
+        return context.getSharedPreferences("walkie", MODE_PRIVATE);
+    }
+
+    private boolean setting(String key, boolean otherwise) {
+        return mPrefs.getBoolean(key, otherwise);
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -88,7 +107,7 @@ public final class WalkieService extends Service implements Radio.Listener {
     @Override
     public void onCreate() {
         super.onCreate();
-        mPrefs = getSharedPreferences("walkie", MODE_PRIVATE);
+        mPrefs = prefs(this);
         long id = mPrefs.getLong("id", 0);
         if (id == 0) {
             id = new SecureRandom().nextLong();
@@ -157,7 +176,11 @@ public final class WalkieService extends Service implements Radio.Listener {
 
     @Override
     public void onDestroy() {
-        sRunning = null;
+        synchronized (sNote) {
+            sRunning = null;
+        }
+        // A message that ended as it went off may have posted it again after the system took it
+        getSystemService(NotificationManager.class).cancel(1);
         mMain.removeCallbacks(mTick);
         mTalking = false;
         mSpeaking = null;
@@ -173,7 +196,8 @@ public final class WalkieService extends Service implements Radio.Listener {
         return new Notification.Builder(this, "walkie")
                 .setSmallIcon(R.drawable.ic_launcher_fg)
                 .setContentTitle(getString(R.string.note, channelName()))
-                .setContentText(getString(R.string.note_text))
+                .setContentText(mWaiting != null ? getString(R.string.note_waiting, mWaiting)
+                        : getString(R.string.note_text))
                 .setOngoing(true)
                 .setContentIntent(PendingIntent.getActivity(this, 0,
                         new Intent(this, WalkieActivity.class), PendingIntent.FLAG_IMMUTABLE))
@@ -244,6 +268,60 @@ public final class WalkieService extends Service implements Radio.Listener {
         return mPlayingAgain;
     }
 
+    /** Who left the message kept quiet while the page was closed, null for none. */
+    String waiting() {
+        return mWaiting;
+    }
+
+    private void waiting(String from) {
+        // A voice thread outliving the service must not bring back an "on" with nothing behind it
+        synchronized (sNote) {
+            if (sRunning != this) {
+                return;
+            }
+            mWaiting = from;
+            getSystemService(NotificationManager.class).notify(1, note());
+        }
+    }
+
+    /** A short tone, rising or falling, fading in and out: about a tenth of a second. */
+    private static short[] tone(float from, float to, int millis, float level) {
+        final int frames = RATE * millis / 1000;
+        final short[] pcm = new short[frames];
+        double phase = 0;
+        for (int i = 0; i < frames; i++) {
+            final double t = (double) i / frames;
+            final double hz = from + (to - from) * t;
+            final double envelope = Math.sin(Math.PI * t);
+            pcm[i] = (short) Math.round(Math.sin(phase) * envelope * level * 32767);
+            phase += 2 * Math.PI * hz / RATE;
+        }
+        return pcm;
+    }
+
+    /** The beep as talking starts, rising, or ends, falling; where the settings want it. */
+    private void beep(boolean start) {
+        if (!setting(TALK_SOUNDS, TALK_SOUNDS_DEFAULT)) {
+            return;
+        }
+        new Thread(() -> {
+            final AudioTrack track;
+            try {
+                track = track();
+            } catch (IllegalArgumentException | UnsupportedOperationException e) {
+                return;
+            }
+            final short[] pcm = start ? tone(880, 1320, 90, 0.35f) : tone(1100, 700, 110, 0.35f);
+            track.play();
+            track.write(pcm, 0, pcm.length);
+            // Silence after it, so the tone has played out before the track stops
+            final short[] quiet = new short[RATE / 5];
+            track.write(quiet, 0, quiet.length);
+            track.stop();
+            track.release();
+        }, "walkie-beep").start();
+    }
+
     void levels(float[] out) {
         synchronized (mLevels) {
             System.arraycopy(mLevels, 0, out, 0, Math.min(out.length, mLevels.length));
@@ -290,6 +368,10 @@ public final class WalkieService extends Service implements Radio.Listener {
             return;
         }
         final String from = name == null || name.isEmpty() ? "r1" : name;
+        // With the page closed a message may wait for a press instead of playing aloud
+        final boolean aloud = sListener != null
+                || setting(ALOUD_CLOSED, ALOUD_CLOSED_DEFAULT);
+        final boolean chime = aloud && setting(CHIME, CHIME_DEFAULT);
         mSpeaking = from;
         // Aloud also from a pocket: the r1 stays awake for as long as the message runs
         mWake.acquire(90_000);
@@ -298,17 +380,44 @@ public final class WalkieService extends Service implements Radio.Listener {
             final short[] pcm = new short[FRAME];
             final AudioTrack track = track();
             mLast.start(from, System.currentTimeMillis());
+            // The replay now belongs to this message, including its waiting marker.
+            if (mWaiting != null) {
+                waiting(null);
+            }
             track.play();
+            if (chime) {
+                // Two notes up before the voice, for a message heard from a pocket
+                final short[] first = tone(988, 988, 90, 0.3f);
+                final short[] second = tone(1319, 1319, 120, 0.3f);
+                track.write(first, 0, first.length);
+                track.write(second, 0, second.length);
+            }
             long quiet = 0;
+            // Kept quiet, the voice is taken at its own pace, as the speaker would take it
+            long due = System.nanoTime();
             while (sRunning == this && !incoming.done() && quiet < 2000) {
+                if (!aloud) {
+                    final long wait = (due - System.nanoTime()) / 1_000_000;
+                    if (wait > 0) {
+                        try {
+                            Thread.sleep(wait);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
+                }
                 if (incoming.take(pcm)) {
                     quiet = 0;
-                    track.write(pcm, 0, FRAME);
+                    due += FRAME_MS * 1_000_000;
+                    if (aloud) {
+                        track.write(pcm, 0, FRAME);
+                    }
                     mLast.add(pcm);
                     level(pcm);
                     changed();
                 } else {
                     quiet += 10;
+                    due = System.nanoTime();
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
@@ -317,6 +426,9 @@ public final class WalkieService extends Service implements Radio.Listener {
                 }
             }
             mLast.end();
+            if (!aloud && mLast.has() && sRunning == this) {
+                waiting(from);
+            }
             track.stop();
             track.release();
             synchronized (mSpoke) {
@@ -340,6 +452,9 @@ public final class WalkieService extends Service implements Radio.Listener {
             return;
         }
         mPlayingAgain = true;
+        if (mWaiting != null) {
+            waiting(null);
+        }
         changed();
         new Thread(() -> {
             final short[] pcm = new short[FRAME];
@@ -379,6 +494,7 @@ public final class WalkieService extends Service implements Radio.Listener {
         mTalking = true;
         mTalkSince = System.currentTimeMillis();
         mRadio.talkStart();
+        beep(true);
         new Thread(() -> {
             final short[] pcm = new short[FRAME];
             record.startRecording();
@@ -399,6 +515,7 @@ public final class WalkieService extends Service implements Radio.Listener {
             mRadio.talkEnd();
             record.stop();
             record.release();
+            beep(false);
             changed();
         }, "walkie-talk").start();
         changed();

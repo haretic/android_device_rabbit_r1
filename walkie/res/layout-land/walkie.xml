@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Turned: the wheel is along the top edge (or the bottom, WalkieActivity moves the drum
+     there), so the channels run across as a drum under the name, the channel and who is on
+     it below, over the hint -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:id="@+id/listening" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical"
+        android:fitsSystemWindows="true">
+        <!-- The name, and the settings for a finger: the wheel reaches them past the channels -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+            <TextView style="@style/Title" android:layout_width="0dp"
+                android:layout_weight="1" android:paddingTop="8dp"
+                android:paddingBottom="8dp" android:text="@string/app_name" />
+            <ImageButton android:id="@+id/settings_button" android:layout_width="48dp"
+                android:layout_height="48dp" android:layout_marginEnd="12dp"
+                android:src="@drawable/ic_settings" android:scaleType="center"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:focusable="false" android:contentDescription="@string/settings" />
+        </LinearLayout>
+        <cat.kenny.r1.walkie.DrumView android:id="@+id/drum"
+            android:layout_width="match_parent" android:layout_height="64dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginStart="24dp" android:layout_marginEnd="24dp">
+            <TextView android:id="@+id/channel" style="@style/Number"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:textSize="22sp" />
+            <!-- Leaves the finger to the page until the list needs scrolling -->
+            <cat.kenny.r1.walkie.PeopleScroll android:layout_width="match_parent"
+                android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp">
+                <LinearLayout android:id="@+id/people" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical" />
+            </cat.kenny.r1.walkie.PeopleScroll>
+            <TextView android:id="@+id/nobody" style="@style/Body"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:textColor="@color/text_dim" />
+            <cat.kenny.r1.walkie.WaveView android:id="@+id/wave"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:visibility="gone" />
+            <LinearLayout android:id="@+id/again" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                android:minHeight="48dp" android:focusable="false"
+                android:background="?android:attr/selectableItemBackground"
+                android:gravity="center_vertical" android:visibility="gone">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:padding="9dp" android:background="@drawable/icon_bg"
+                    android:src="@drawable/ic_replay"
+                    android:tint="?android:attr/colorAccent"
+                    android:importantForAccessibility="no" />
+                <TextView android:id="@+id/again_text" style="@style/Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:fontFamily="haretic-text-medium" />
+            </LinearLayout>
+        </LinearLayout>
+        <include layout="@layout/hint" />
+    </LinearLayout>
+    <cat.kenny.r1.walkie.TalkView android:id="@+id/talking"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:visibility="gone" />
+</FrameLayout>

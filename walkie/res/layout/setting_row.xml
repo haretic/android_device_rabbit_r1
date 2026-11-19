@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- A setting that is on or off: what it is, a line on what it does, and where it is -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginBottom="2dp" android:minHeight="64dp"
+    android:paddingStart="18dp" android:paddingEnd="18dp"
+    android:paddingTop="8dp" android:paddingBottom="8dp"
+    android:gravity="center_vertical" android:background="@drawable/row_bg"
+    android:focusable="true" android:clickable="true"
+    android:defaultFocusHighlightEnabled="false">
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical">
+        <TextView android:id="@+id/title" style="@style/Body"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:fontFamily="haretic-text-medium" android:textSize="17sp" />
+        <TextView android:id="@+id/sub" style="@style/Dim"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:maxLines="2" android:ellipsize="end" />
+    </LinearLayout>
+    <TextView android:id="@+id/state" style="@style/Body"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginStart="12dp" android:fontFamily="haretic-text-medium" />
+</LinearLayout>

@@ -27,6 +27,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity android:name=".WalkieSettingsActivity" android:exported="false"
+            android:label="@string/settings_title" />
         <service android:name=".WalkieService" android:exported="false"
             android:foregroundServiceType="microphone" />
     </application>
