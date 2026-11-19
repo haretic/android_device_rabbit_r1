@@ -66,6 +66,10 @@ public final class WheelSelect implements InvocationHandler {
         }
     }
 
+    /** A page that has its own use for the side button's hold: its flagged select keys reach it. */
+    public interface OwnHold {
+    }
+
     public static void attach(Window window) {
         final Window.Callback callback = window.getCallback();
         if (callback == null || Proxy.isProxyClass(callback.getClass())) {
@@ -89,7 +93,7 @@ public final class WheelSelect implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] args)
             throws Throwable {
-        if ("dispatchKeyEvent".equals(method.getName())) {
+        if ("dispatchKeyEvent".equals(method.getName()) && !(mCallback instanceof OwnHold)) {
             final KeyEvent event = (KeyEvent) args[0];
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
                 final boolean up = event.getAction() == KeyEvent.ACTION_UP;

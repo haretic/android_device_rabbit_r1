@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Native rendition of the approved 01-06 mockups, using UsbMode's workflows. */
-public final class UsbActivity extends FragmentActivity {
+public final class UsbActivity extends FragmentActivity implements WheelSelect.OwnHold {
     private static final int TREE = 1, IMPORT = 2;
     private static final int INK = 0xffe2e2e2, MUTED = 0xffababab;
     private static final int CARD = 0xff171717, GUIDE = 0xff131313, BANNER = 0xff1f1f1f;
