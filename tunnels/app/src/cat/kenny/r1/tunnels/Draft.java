@@ -20,6 +20,7 @@ final class Draft {
     static String[] typedKey;
     /** Mullvad's set-up: the session, the account's end, and this r1 as a device */
     static Mullvad mullvad;
+    static MullvadSetup mullvadSetup;
     static long paidUntil;
     static int deviceNumber;
 
@@ -31,6 +32,7 @@ final class Draft {
         scanned = null;
         typedKey = null;
         mullvad = null;
+        mullvadSetup = null;
         paidUntil = 0;
         deviceNumber = 0;
     }

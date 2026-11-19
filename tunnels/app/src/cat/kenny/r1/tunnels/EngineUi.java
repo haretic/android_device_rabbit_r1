@@ -73,6 +73,10 @@ final class EngineUi {
             case HELPER_EXITED: text = R.string.err_helper_exit; break;
             case HELPER_STRANGER: text = R.string.err_helper_stranger; break;
             case HELPER_REFUSED: text = R.string.err_helper_refused; break;
+            case ACCOUNT_INVALID: text = R.string.mullvad_bad_account; break;
+            case ACCOUNT_EXPIRED: text = R.string.mullvad_expired; break;
+            case DEVICE_LIMIT: text = R.string.mullvad_device_limit; break;
+            case RATE_LIMITED: text = R.string.mullvad_wait; break;
             case IO: text = R.string.err_io; break;
             case STORAGE: text = R.string.err_storage; break;
             case CORE: text = R.string.err_core; break;

@@ -318,4 +318,6 @@
     <string name="err_helper_exit">The connection stopped. Turn it off and on again.</string>
     <string name="err_helper_stranger">The connection could not be checked. Try again.</string>
     <string name="err_helper_refused">The connection settings were not accepted. Check them and try again.</string>
+    <string name="mullvad_expired">This Mullvad account has no time left. Add time before trying again.</string>
+    <string name="mullvad_device_limit">This Mullvad account already has five devices.</string>
 </resources>

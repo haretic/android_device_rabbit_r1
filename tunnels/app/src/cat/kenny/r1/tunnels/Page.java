@@ -441,12 +441,17 @@ abstract class Page extends Activity {
                 } else if (held && !mHeld) {
                     hold(touch);
                 }
-            } else if (!mHeld && !event.isCanceled()) {
-                if (held) {
-                    hold(touch);
-                } else {
-                    press();
+            } else {
+                if (!mHeld && !event.isCanceled()) {
+                    if (held) {
+                        hold(touch);
+                    } else {
+                        press();
+                    }
                 }
+                // The gesture is over: a next press whose down the window took to bring
+                // the highlight back must not count as part of this hold
+                mHeld = false;
             }
             return true;
         }

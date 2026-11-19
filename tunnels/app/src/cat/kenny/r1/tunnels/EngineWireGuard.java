@@ -28,14 +28,22 @@ public final class EngineWireGuard implements Engine {
         this.net=net; this.factory=factory; stopping=false;
         try {
             if (net.isMullvad()) {
+                // Saved profiles can outlive their paid time; reject before making a tun.
+                try {
+                    if (new Mullvad(net.account).paidUntil() <= System.currentTimeMillis()) {
+                        throw new Failure(Error.ACCOUNT_EXPIRED);
+                    }
+                } catch (IOException e) { throw new Failure(Mullvad.errorOf(e)); }
                 Relays relays;
                 try { relays=Relays.load(factory.context()); }
-                catch(IOException e) { throw new Failure(Error.RELAYS); }
+                catch(IOException e) { throw new Failure(e instanceof Mullvad.Failure
+                        ? ((Mullvad.Failure) e).error : e instanceof java.net.SocketTimeoutException
+                        ? Error.TIMEOUT : Error.RELAYS); }
                 Relays.Relay relay=relays.pick(net.location,net.lastRelay);
                 if (relay==null) throw new Failure(Error.RELAYS);
-                net.host=relay.ip; net.port=51820; net.peerKey=relay.publicKeyHex;
+                net.host=relay.ip; net.port=relay.port; net.peerKey=relay.publicKeyHex;
                 net.lastRelay=relay.hostname; place=relays.placeOf(relay);
-                Store.save(factory.context(),net);
+                if (!Store.save(factory.context(),net)) throw new Failure(Error.STORAGE);
             }
             InetAddress[] all=InetAddress.getAllByName(net.host);
             if (all.length==0) throw new Failure(Error.DNS);

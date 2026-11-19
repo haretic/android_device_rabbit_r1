@@ -41,6 +41,7 @@ public final class MullvadPlaceActivity extends Page {
     private boolean mSetup;
     private boolean mAll;
     private Net mNet;
+    private MullvadSetup mRegistration;
     private String mChosen = Net.AUTO;
     private String mChosenName = "";
     private Relays mRelays;
@@ -55,6 +56,7 @@ public final class MullvadPlaceActivity extends Page {
         super.onCreate(state);
         mSetup = getIntent().getBooleanExtra(EXTRA_SETUP, false);
         mAll = getIntent().getBooleanExtra(EXTRA_ALL, false);
+        mRegistration = mSetup ? Draft.mullvadSetup : null;
         if (mAll) {
             mChosen = getIntent().getStringExtra(EXTRA_CHOSEN);
         } else if (mSetup) {
@@ -62,7 +64,8 @@ public final class MullvadPlaceActivity extends Page {
         } else {
             mNet = Store.load(this, getIntent().getStringExtra(EXTRA_ID));
         }
-        if (!mAll && (mNet == null || !mNet.isMullvad())) {
+        if (!mAll && (mNet == null || !mNet.isMullvad()
+                || (mSetup && mRegistration == null))) {
             finish();
             return;
         }
@@ -243,19 +246,48 @@ public final class MullvadPlaceActivity extends Page {
         mSaving = true;
         mNet.location = mChosen != null ? mChosen : Net.AUTO;
         mNet.locationName = Net.AUTO.equals(mNet.location) ? "" : mChosenName;
-        if (!Store.save(this, mNet)) {
-            mSaving = false;
-            noteText(mStatus, getText(R.string.save_failed), true);
+        final Net saving = mNet;
+        final MullvadSetup setup = mRegistration;
+        new Thread(() -> {
+            Engine.Error error = Engine.Error.NONE;
+            try {
+                if (mSetup) {
+                    if (setup == null) throw new Mullvad.Failure(0, "", Engine.Error.STORAGE);
+                    setup.save();
+                } else if (!Store.save(getApplicationContext(), saving)) {
+                    throw new Mullvad.Failure(0, "", Engine.Error.STORAGE);
+                }
+            } catch (IOException e) { error = Mullvad.errorOf(e); }
+            final Engine.Error result = error;
+            runOnUiThread(() -> saved(saving, result));
+        }, "mullvad-save").start();
+    }
+
+    private void saved(Net saved, Engine.Error error) {
+        mSaving = false;
+        if (error != Engine.Error.NONE) {
+            if (mSetup) {
+                if (Draft.mullvadSetup == mRegistration) {
+                    Draft.net = null;
+                    Draft.mullvadSetup = null;
+                    Draft.typedKey = null;
+                }
+                setResult(RESULT_FIRST_USER);
+                finish();
+            } else if (!isDestroyed()) {
+                noteText(mStatus, EngineUi.error(this, error), true);
+            }
             return;
         }
         if (mSetup) {
-            Draft.clear();
-            turnOn(mNet.id);
+            if (Draft.mullvadSetup == mRegistration) Draft.clear();
+            if (!isFinishing() && !isDestroyed()) turnOn(saved.id);
             return;
         }
+        if (isFinishing() || isDestroyed()) return;
         final Status.Snapshot now = Status.get();
-        if (Status.isCurrent(now, mNet.id) && now.state != Status.FAILED) {
-            TunnelService.start(this, mNet.id);
+        if (Status.isCurrent(now, saved.id) && now.state != Status.FAILED) {
+            TunnelService.start(this, saved.id);
         }
         finish();
     }
@@ -269,20 +301,25 @@ public final class MullvadPlaceActivity extends Page {
 
     @Override
     protected void back() {
-        if (mSetup && !mSaving && mNet != null && Draft.mullvad != null) {
-            // Not saved: the device added for it goes again, best effort
-            final Mullvad mullvad = Draft.mullvad;
-            final String device = mNet.deviceId;
-            new Thread(() -> {
-                try {
-                    mullvad.removeDevice(device);
-                } catch (IOException e) {
-                    Log.w(Store.TAG, "Device not removed: " + e.getClass().getSimpleName());
-                }
-            }).start();
+        if (mSetup && !mSaving) discardSetup();
+        super.back();
+    }
+
+    private void discardSetup() {
+        final MullvadSetup setup = mRegistration;
+        if (setup == null) return;
+        mRegistration = null;
+        MullvadAccountActivity.discard(setup);
+        if (Draft.mullvadSetup == setup) {
             Draft.net = null;
+            Draft.mullvadSetup = null;
             Draft.typedKey = null;
         }
-        super.back();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (isFinishing() && mSetup && !mSaving) discardSetup();
+        super.onDestroy();
     }
 }

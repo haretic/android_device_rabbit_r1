@@ -5,7 +5,6 @@ import android.content.Context;
 import android.util.Log;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -18,10 +17,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Mullvad's servers, from its list, kept for a day. "Automatic" is a server picked at random
@@ -40,12 +39,16 @@ final class Relays {
         String ip;
         String publicKeyHex;
         int weight;
+        int port;
     }
 
     static final class Country {
         String code;
         String name;
-        final Set<String> cities = new LinkedHashSet<>();
+        final Set<String> cities = new TreeSet<>((a, b) -> {
+            int order = a.compareToIgnoreCase(b);
+            return order != 0 ? order : a.compareTo(b);
+        });
         int servers;
     }
 
@@ -56,7 +59,7 @@ final class Relays {
 
     /** The list, from the day's copy or else fetched; a copy older than a day if Mullvad
      * cannot be reached. Off the main thread. */
-    static Relays load(Context context) throws IOException {
+    static synchronized Relays load(Context context) throws IOException {
         final File file = new File(context.getFilesDir(), FILE);
         final long age = System.currentTimeMillis() - file.lastModified();
         if (file.isFile() && age >= 0 && age < KEEP_MS) {
@@ -70,11 +73,14 @@ final class Relays {
             final String text = Mullvad.relays();
             final Relays relays = parse(text, System.currentTimeMillis());
             final File temp = new File(context.getFilesDir(), FILE + ".tmp");
-            try (FileOutputStream out = new FileOutputStream(temp)) {
-                out.write(text.getBytes(StandardCharsets.UTF_8));
-            }
-            if (!temp.renameTo(file)) {
+            try {
+                try (FileOutputStream out = new FileOutputStream(temp)) {
+                    out.write(text.getBytes(StandardCharsets.UTF_8));
+                }
+                if (!temp.renameTo(file)) temp.delete();
+            } catch (IOException cacheFailure) {
                 temp.delete();
+                Log.w(Store.TAG, "The server list could not be cached");
             }
             return relays;
         } catch (IOException e) {
@@ -88,46 +94,58 @@ final class Relays {
     static Relays parse(String text, long fetched) throws IOException {
         final Relays out = new Relays();
         out.fetched = fetched;
-        try {
-            final JSONObject root = new JSONObject(text);
-            final JSONObject locations = root.optJSONObject("locations");
-            if (locations != null) {
-                final Iterator<String> codes = locations.keys();
-                while (codes.hasNext()) {
-                    final String code = codes.next();
-                    final JSONObject location = locations.optJSONObject(code);
-                    if (location != null) {
-                        out.locations.put(code, new String[] {
-                            location.optString("country", code),
-                            location.optString("city", code)});
-                    }
+        final JSONObject root = Mullvad.object(text);
+        final JSONObject locations = root.optJSONObject("locations");
+        if (locations != null) {
+            final Iterator<String> codes = locations.keys();
+            while (codes.hasNext()) {
+                final String code = codes.next();
+                final JSONObject location = locations.optJSONObject(code);
+                if (location != null) {
+                    out.locations.put(code, new String[] {
+                        location.optString("country", code),
+                        location.optString("city", code)});
                 }
             }
-            final JSONObject wireguard = root.optJSONObject("wireguard");
-            final JSONArray relays = wireguard != null ? wireguard.optJSONArray("relays") : null;
-            if (relays == null) {
-                throw new IOException("No servers in the list");
-            }
-            for (int i = 0; i < relays.length(); i++) {
-                final JSONObject r = relays.optJSONObject(i);
-                if (r == null || !r.optBoolean("active", false)) {
-                    continue;
-                }
-                final Relay relay = new Relay();
-                relay.hostname = r.optString("hostname", "");
-                relay.location = r.optString("location", "");
-                relay.ip = r.optString("ipv4_addr_in", "");
-                relay.publicKeyHex = WgConf.hexFromBase64(r.optString("public_key", ""));
-                relay.weight = Math.max(1, r.optInt("weight", 100));
-                if (!relay.hostname.isEmpty() && !relay.location.isEmpty()
-                        && WgConf.parseIp(relay.ip) != null && relay.ip.indexOf(':') < 0
-                        && relay.publicKeyHex != null) {
-                    out.relays.add(relay);
-                }
-            }
-        } catch (JSONException e) {
-            throw new IOException("The server list was not JSON");
         }
+        final JSONObject wireguard = root.optJSONObject("wireguard");
+        final JSONArray relays = wireguard != null ? wireguard.optJSONArray("relays") : null;
+        if (locations == null || relays == null) {
+            throw new IOException("No servers in the list");
+        }
+        final JSONArray ranges = wireguard.optJSONArray("port_ranges");
+        int port = 0;
+        if (ranges != null) {
+            for (int i = 0; i < ranges.length(); i++) {
+                final JSONArray range = ranges.optJSONArray(i);
+                if (range == null || range.length() != 2) continue;
+                final int low = range.optInt(0, 0), high = range.optInt(1, 0);
+                if (low < 1 || high > 65535 || high < low) continue;
+                if (port == 0) port = low;
+                if (low <= 51820 && high >= 51820) { port = 51820; break; }
+            }
+        }
+        if (port == 0) throw new IOException("No WireGuard ports");
+        for (int i = 0; i < relays.length(); i++) {
+            final JSONObject r = relays.optJSONObject(i);
+            if (r == null || !r.optBoolean("active", false)) {
+                continue;
+            }
+            final Relay relay = new Relay();
+            relay.hostname = r.optString("hostname", "");
+            relay.location = r.optString("location", "");
+            relay.ip = r.optString("ipv4_addr_in", "");
+            relay.publicKeyHex = WgConf.hexFromBase64(r.optString("public_key", ""));
+            relay.weight = r.optInt("weight", 0);
+            relay.port = port;
+            if (WgConf.isHostName(relay.hostname) && out.locations.containsKey(relay.location)
+                    && relay.weight > 0
+                    && WgConf.parseIp(relay.ip) != null && relay.ip.indexOf(':') < 0
+                    && relay.publicKeyHex != null) {
+                out.relays.add(relay);
+            }
+        }
+        if (out.relays.isEmpty()) throw new IOException("No usable WireGuard servers");
         return out;
     }
 
@@ -156,7 +174,10 @@ final class Relays {
             }
         }
         final List<Country> list = new ArrayList<>(byCode.values());
-        Collections.sort(list, (a, b) -> a.name.compareToIgnoreCase(b.name));
+        Collections.sort(list, (a, b) -> {
+            int order = a.name.compareToIgnoreCase(b.name);
+            return order != 0 ? order : a.code.compareTo(b.code);
+        });
         return list;
     }
 

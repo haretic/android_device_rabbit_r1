@@ -12,8 +12,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
 import java.io.IOException;
 
 /**
@@ -25,6 +23,7 @@ import java.io.IOException;
 public final class MullvadAccountActivity extends Page {
     private static final int REQ_SCAN = 1;
     private static final int REQ_DEVICES = 2;
+    private static final int REQ_PLACE = 3;
     private static final int DIGITS = 16;
     private static final int[] KEYS = {R.id.key0, R.id.key1, R.id.key2, R.id.key3, R.id.key4,
         R.id.key5, R.id.key6, R.id.key7, R.id.key8, R.id.key9};
@@ -143,6 +142,12 @@ public final class MullvadAccountActivity extends Page {
             }
             return;
         }
+        if (request == REQ_PLACE) {
+            mBusy = false;
+            show();
+            if (result == RESULT_FIRST_USER) failed(getText(R.string.save_failed));
+            return;
+        }
         if (request == REQ_DEVICES) {
             if (result == RESULT_OK) {
                 mBusy = false;
@@ -164,103 +169,41 @@ public final class MullvadAccountActivity extends Page {
         show();
         noteText(mStatus, getText(R.string.mullvad_asking), false);
         final String account = mDigits.toString();
+        final Mullvad mullvad = Draft.mullvad != null && Draft.mullvad.account.equals(account)
+                ? Draft.mullvad : new Mullvad(account);
+        Draft.mullvad = mullvad;
+        final String[] key = Draft.typedKey;
         new Thread(() -> {
-            final Mullvad mullvad = Draft.mullvad != null && Draft.mullvad.account.equals(account)
-                    ? Draft.mullvad : new Mullvad(account);
-            Draft.mullvad = mullvad;
-            String registeredId = null;
             try {
-                mullvad.login();
-                final long paid = mullvad.paidUntil();
-                String[] pair = Draft.typedKey;
-                if (pair == null) {
-                    try {
-                        pair = Tunneld.genkey();
-                        Draft.typedKey = pair;
-                    } catch (IOException e) {
-                        Log.w(Store.TAG, "No key made: " + e.getClass().getSimpleName());
-                        runOnUiThread(() -> failed(getText(R.string.mullvad_no_key)));
-                        return;
-                    }
-                }
-                // Count before registration: a failed list request must not orphan a device.
-                final int count = mullvad.devices().length() + 1;
-                JSONObject device;
-                try {
-                    device = mullvad.addDevice(WgConf.base64FromHex(pair[1]));
-                } catch (Mullvad.Failure f) {
-                    if (!"PUBKEY_IN_USE".equals(f.code)) {
-                        throw f;
-                    }
-                    // A key another device has: a new one, once
-                    pair = Tunneld.genkey();
-                    Draft.typedKey = pair;
-                    device = mullvad.addDevice(WgConf.base64FromHex(pair[1]));
-                }
-                registeredId = device.optString("id", "");
-                final Net net = fromDevice(account, device, pair);
+                final MullvadSetup setup = MullvadSetup.begin(getApplicationContext(), mullvad,
+                        key, Tunneld::genkey);
                 runOnUiThread(() -> {
                     if (isFinishing() || isDestroyed()) {
-                        discardDevice(mullvad, net.deviceId);
+                        discard(setup);
                     } else {
-                        registered(net, paid, count);
+                        Draft.mullvadSetup = setup;
+                        Draft.typedKey = new String[] {setup.net.privateKey, setup.net.publicKey};
+                        registered(setup.net, setup.paidUntil, setup.deviceNumber);
                     }
                 });
-                registeredId = null; // The queued UI callback now owns cleanup or handoff.
-            } catch (Mullvad.Failure f) {
-                runOnUiThread(() -> refused(f));
             } catch (IOException e) {
-                Log.w(Store.TAG, "Mullvad not reached: " + e.getClass().getSimpleName());
-                runOnUiThread(() -> failed(getText(R.string.mullvad_unreachable)));
-            } finally {
-                if (registeredId != null && !registeredId.isEmpty()) {
-                    discardDevice(mullvad, registeredId);
-                }
+                final Engine.Error error = Mullvad.errorOf(e);
+                runOnUiThread(() -> refused(error));
             }
-        }).start();
+        }, "mullvad-register").start();
     }
 
-    /** The network as Mullvad's device for this r1 has it; its server is picked each time. */
-    private static void discardDevice(Mullvad mullvad, String id) {
+    static void discard(MullvadSetup setup) {
         new Thread(() -> {
-            try {
-                mullvad.removeDevice(id);
-            } catch (IOException e) {
-                Log.w(Store.TAG, "Uncommitted device not removed: "
-                        + e.getClass().getSimpleName());
+            try { setup.cancel(); }
+            catch (IOException e) {
+                Log.w(Store.TAG, "Uncommitted device cleanup deferred");
             }
-        }).start();
-    }
-
-    private static Net fromDevice(String account, JSONObject device, String[] pair)
-            throws IOException {
-        final Net net = new Net();
-        net.kind = Net.MULLVAD;
-        net.name = "Mullvad";
-        net.account = account;
-        net.deviceId = device.optString("id", "");
-        net.privateKey = pair[0];
-        net.publicKey = pair[1];
-        final String v4 = WgConf.cidr(device.optString("ipv4_address", ""));
-        final String v6 = WgConf.cidr(device.optString("ipv6_address", ""));
-        if (v4 == null || net.deviceId.isEmpty()) {
-            throw new IOException("Mullvad gave no address");
-        }
-        net.addresses.add(v4);
-        if (v6 != null) {
-            net.addresses.add(v6);
-        }
-        net.dns.add("10.64.0.1");
-        net.allowedIps.add("0.0.0.0/0");
-        net.allowedIps.add("::/0");
-        net.everything = true;
-        net.mtu = 1280;
-        net.location = Net.AUTO;
-        return net;
+        }, "mullvad-cleanup").start();
     }
 
     private void registered(Net net, long paid, int count) {
-        if (isDestroyed()) {
+        if (isFinishing() || isDestroyed()) {
             return;
         }
         mBusy = false;
@@ -269,30 +212,31 @@ public final class MullvadAccountActivity extends Page {
         Draft.net = net;
         Draft.paidUntil = paid;
         Draft.deviceNumber = count;
-        startActivity(new Intent(this, MullvadPlaceActivity.class)
-                .putExtra(MullvadPlaceActivity.EXTRA_SETUP, true));
+        try {
+            startActivityForResult(new Intent(this, MullvadPlaceActivity.class)
+                    .putExtra(MullvadPlaceActivity.EXTRA_SETUP, true), REQ_PLACE);
+        } catch (RuntimeException e) {
+            final MullvadSetup setup = Draft.mullvadSetup;
+            if (setup != null) discard(setup);
+            Draft.net = null;
+            Draft.mullvadSetup = null;
+            Draft.typedKey = null;
+            failed(EngineUi.error(this, Engine.Error.API));
+        }
     }
 
-    private void refused(Mullvad.Failure f) {
-        if (isDestroyed()) {
-            return;
-        }
-        if ("MAX_DEVICES_REACHED".equals(f.code)) {
+    private void refused(Engine.Error error) {
+        if (isFinishing() || isDestroyed()) return;
+        if (error == Engine.Error.DEVICE_LIMIT) {
             noteText(mStatus, "", true);
             startActivityForResult(new Intent(this, MullvadDevicesActivity.class), REQ_DEVICES);
             return;
         }
-        if (f.isRateLimit()) {
-            failed(getText(R.string.mullvad_wait));
-        } else if ("INVALID_ACCOUNT".equals(f.code)) {
-            failed(getText(R.string.mullvad_bad_account));
-        } else {
-            failed(getString(R.string.mullvad_error, f.code));
-        }
+        failed(EngineUi.error(this, error));
     }
 
     private void failed(CharSequence text) {
-        if (isDestroyed()) {
+        if (isFinishing() || isDestroyed()) {
             return;
         }
         mBusy = false;
@@ -302,8 +246,9 @@ public final class MullvadAccountActivity extends Page {
 
     @Override
     protected void back() {
-        Draft.mullvad = null;
-        Draft.typedKey = null;
+        final MullvadSetup setup = Draft.mullvadSetup;
+        if (setup != null) discard(setup);
+        Draft.clear();
         super.back();
     }
 }

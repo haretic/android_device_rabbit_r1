@@ -49,10 +49,9 @@ public final class MullvadDevicesActivity extends Page {
             } catch (Mullvad.Failure f) {
                 runOnUiThread(() -> noteText(mStatus, f.isRateLimit()
                         ? getText(R.string.mullvad_wait)
-                        : getString(R.string.mullvad_error, f.code), true));
+                        : EngineUi.error(this, f.error), true));
             } catch (IOException e) {
-                runOnUiThread(() -> noteText(mStatus, getText(R.string.mullvad_unreachable),
-                        true));
+                runOnUiThread(() -> noteText(mStatus, EngineUi.error(this, Mullvad.errorOf(e)), true));
             }
         }).start();
     }
@@ -125,10 +124,7 @@ public final class MullvadDevicesActivity extends Page {
                 Log.w(Store.TAG, "Device not removed: " + e.getClass().getSimpleName());
                 runOnUiThread(() -> {
                     mBusy = false;
-                    noteText(mStatus, e instanceof Mullvad.Failure
-                            && ((Mullvad.Failure) e).isRateLimit()
-                            ? getText(R.string.mullvad_wait)
-                            : getText(R.string.mullvad_unreachable), true);
+                    noteText(mStatus, EngineUi.error(this, Mullvad.errorOf(e)), true);
                 });
             }
         }).start();
