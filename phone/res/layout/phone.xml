@@ -40,11 +40,14 @@
                         android:ellipsize="end" />
                 </LinearLayout>
                 <ImageView android:id="@+id/prev" style="@style/Key"
+                    android:nextFocusDown="@+id/toggle"
                     android:src="@drawable/ic_prev"
                     android:contentDescription="@string/previous" />
                 <ImageView android:id="@+id/toggle" style="@style/Key"
+                    android:nextFocusUp="@id/prev" android:nextFocusDown="@+id/next"
                     android:src="@drawable/ic_play" android:contentDescription="@string/play" />
                 <ImageView android:id="@+id/next" style="@style/Key"
+                    android:nextFocusUp="@id/toggle" android:nextFocusDown="@+id/volume_row"
                     android:src="@drawable/ic_next" android:contentDescription="@string/next" />
             </LinearLayout>
             <ProgressBar android:id="@+id/progress"
@@ -64,7 +67,8 @@
                     android:textColor="@color/text_dim" android:fontFeatureSettings="tnum" />
             </LinearLayout>
             <LinearLayout android:id="@+id/volume_row" android:layout_width="match_parent"
-                android:layout_height="44dp" android:layout_marginTop="4dp"
+                android:nextFocusUp="@id/next"
+                android:layout_height="48dp" android:layout_marginTop="4dp"
                 android:layout_marginStart="-8dp" android:gravity="center_vertical"
                 android:background="@drawable/key_bg" android:focusable="true"
                 android:clickable="true" android:defaultFocusHighlightEnabled="false"
@@ -86,10 +90,15 @@
         </LinearLayout>
 
         <TextView android:id="@+id/clear_all" style="@style/Button"
-            android:layout_height="40dp" android:layout_gravity="end"
+            android:layout_height="48dp" android:layout_gravity="end"
             android:layout_marginEnd="18dp" android:layout_marginTop="12dp"
             android:textSize="14sp" android:text="@string/clear_all"
             android:visibility="gone" />
+        <TextView android:id="@+id/notices_hint" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_marginStart="24dp"
+            android:layout_marginEnd="18dp" android:layout_marginTop="6dp"
+            android:textSize="14sp" android:textColor="@color/text_dim"
+            android:text="@string/notices_hint" android:visibility="gone" />
         <LinearLayout android:id="@+id/notices" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="vertical"
             android:layout_marginTop="10dp" android:layout_marginStart="18dp"
@@ -99,7 +108,16 @@
             android:layout_marginTop="6dp" android:textSize="15sp"
             android:textColor="@color/text_dim" android:text="@string/no_notifications" />
 
-        <TextView android:id="@+id/link" style="@style/Button"
-            android:layout_marginStart="24dp" android:layout_marginTop="18dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginStart="24dp" android:layout_marginEnd="18dp"
+            android:layout_marginTop="18dp" android:gravity="center_vertical">
+            <!-- Side by side: the wheel's step down from one is the other -->
+            <TextView android:id="@+id/link" style="@style/Button"
+                android:nextFocusDown="@+id/settings" />
+            <!-- What the r1 shows of the phone, set once -->
+            <TextView android:id="@+id/settings" style="@style/Button"
+                android:nextFocusUp="@id/link" android:layout_marginStart="10dp" android:background="@drawable/button_quiet_bg"
+                android:textColor="@color/text" android:text="@string/settings" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

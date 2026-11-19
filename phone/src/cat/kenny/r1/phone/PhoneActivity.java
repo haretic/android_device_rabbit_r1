@@ -37,6 +37,8 @@ public final class PhoneActivity extends Activity {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private ViewGroup mNotices;
     private String mListed = "";
+    /** The rows opened by a press or a tap: all of their text, and their own Clear. */
+    private final java.util.Set<Long> mOpen = new java.util.HashSet<>();
     /** The wheel is the phone's volume until the next press. */
     private boolean mHeld;
 
@@ -68,6 +70,8 @@ public final class PhoneActivity extends Activity {
         findViewById(R.id.toggle).setOnClickListener(v -> press(Ams.TOGGLE));
         findViewById(R.id.volume_row).setOnClickListener(v -> hold(!mHeld));
         findViewById(R.id.volume_row).setOnTouchListener(this::slide);
+        findViewById(R.id.settings).setOnClickListener(v -> startActivity(
+                new android.content.Intent(this, PhoneSettings.class)));
     }
 
     private boolean allowed() {
@@ -180,6 +184,20 @@ public final class PhoneActivity extends Activity {
             }
             return true;
         }
+        if (event.getAction() == KeyEvent.ACTION_DOWN && (code == KeyEvent.KEYCODE_DPAD_DOWN
+                || code == KeyEvent.KEYCODE_DPAD_UP)) {
+            // An opened row's Clear sits inside it, where a step down would pass it by
+            final View focus = getCurrentFocus();
+            if (focus != null && code == KeyEvent.KEYCODE_DPAD_DOWN
+                    && focus.getParent() == mNotices && focus.isActivated()
+                    && focus.findViewById(R.id.clear).requestFocus()) {
+                return true;
+            }
+            if (focus != null && code == KeyEvent.KEYCODE_DPAD_UP && focus.getId() == R.id.clear
+                    && ((View) focus.getParent()).requestFocus()) {
+                return true;
+            }
+        }
         return super.dispatchKeyEvent(event);
     }
 
@@ -230,6 +248,8 @@ public final class PhoneActivity extends Activity {
         if (!on) {
             findViewById(R.id.empty).setVisibility(View.GONE);
             findViewById(R.id.clear_all).setVisibility(View.GONE);
+            findViewById(R.id.notices_hint).setVisibility(View.GONE);
+            mOpen.clear();
             mListed = "";
             mNotices.removeAllViews();
             hold(false);
@@ -305,6 +325,26 @@ public final class PhoneActivity extends Activity {
         render();
     }
 
+    /** The list's row a view is in, or the view itself if it is in none. */
+    private View rowOf(View view) {
+        View at = view;
+        while (at != null && at.getParent() != mNotices) {
+            at = at.getParent() instanceof View ? (View) at.getParent() : null;
+        }
+        return at == null ? view : at;
+    }
+
+    /**
+     * A row opened shows all of what the phone sent and lets the wheel onto its Clear, the step
+     * after the row; closed it is two lines, and the wheel goes from row to row.
+     */
+    private static void open(View row, boolean open) {
+        ((TextView) row.findViewById(R.id.title)).setMaxLines(open ? Integer.MAX_VALUE : 1);
+        ((TextView) row.findViewById(R.id.text)).setMaxLines(open ? Integer.MAX_VALUE : 2);
+        row.findViewById(R.id.clear).setFocusable(open);
+        row.setActivated(open);
+    }
+
     private void notices(List<Inbox.Notice> unsorted) {
         final List<Inbox.Notice> notices = newestFirst(unsorted);
         final StringBuilder listed = new StringBuilder();
@@ -318,10 +358,11 @@ public final class PhoneActivity extends Activity {
             return;
         }
         mListed = listed.toString();
-        // The wheel stays on the row it was on, by its place in the list
-        final int focused = mNotices.indexOfChild(getCurrentFocus());
+        // The wheel stays on the row it was on, by its place in the list, also from its Clear
+        final int focused = mNotices.indexOfChild(rowOf(getCurrentFocus()));
         mNotices.removeAllViews();
         final LocalDate today = LocalDate.now();
+        final java.util.Set<Long> listedUids = new java.util.HashSet<>();
         for (Inbox.Notice notice : notices) {
             if ((notice.title().isEmpty() && notice.message().isEmpty())
                     || notice.category() == Ancs.INCOMING_CALL) {
@@ -346,8 +387,23 @@ public final class PhoneActivity extends Activity {
                                 ? "HH:mm" : "d MMM")));
             }
             row.findViewById(R.id.clear).setOnClickListener(v -> clear(List.of(notice)));
+            final long uid = notice.uid();
+            listedUids.add(uid);
+            open(row, mOpen.contains(uid));
+            row.setOnClickListener(v -> {
+                final boolean open = !mOpen.contains(uid);
+                if (open) {
+                    mOpen.add(uid);
+                } else {
+                    mOpen.remove(uid);
+                }
+                open(row, open);
+            });
             mNotices.addView(row);
         }
+        mOpen.retainAll(listedUids);
+        findViewById(R.id.notices_hint).setVisibility(mNotices.getChildCount() == 0
+                ? View.GONE : View.VISIBLE);
         final View clearAll = findViewById(R.id.clear_all);
         final boolean hadFocus = clearAll.isFocused();
         clearAll.setVisibility(mNotices.getChildCount() == 0 ? View.GONE : View.VISIBLE);

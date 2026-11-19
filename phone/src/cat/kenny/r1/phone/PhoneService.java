@@ -56,6 +56,23 @@ public final class PhoneService extends Service {
         return context.getSharedPreferences("phone", 0).getBoolean("on", false);
     }
 
+    /** What the r1 shows of the phone outside its page, each on unless turned off. */
+    static final String SHADE_OLD = "shade_old", SHADE_CALLS = "shade_calls",
+            SHADE_MUSIC = "shade_music";
+
+    static boolean shows(Context context, String what) {
+        return context.getSharedPreferences("phone", 0).getBoolean(what, true);
+    }
+
+    static void setShows(Context context, String what, boolean on) {
+        context.getSharedPreferences("phone", 0).edit().putBoolean(what, on).apply();
+        if (sService != null) {
+            // Shown again as now set: what is turned off goes from the shade at once
+            sService.mHandler.removeCallbacks(sService.mShow);
+            sService.mHandler.post(sService.mShow);
+        }
+    }
+
     static void want(Context context, boolean on) {
         context.getSharedPreferences("phone", 0).edit().putBoolean("on", on).apply();
         final Intent service = new Intent(context, PhoneService.class);
@@ -171,7 +188,13 @@ public final class PhoneService extends Service {
             mNotedState = link.state();
             mNotes.notify(NOTE_LINK, linkNote(mNotedState));
         }
-        mMedia.show(link);
+        if (shows(this, SHADE_MUSIC)) {
+            mMedia.show(link);
+        } else {
+            mMedia.hide();
+        }
+        final boolean old = shows(this, SHADE_OLD);
+        final boolean calls = shows(this, SHADE_CALLS);
         final Set<Long> gone = new HashSet<>(mShown.keySet());
         final Map<String, Integer> stacks = new HashMap<>();
         final Map<String, Inbox.Notice> newest = new HashMap<>();
@@ -182,8 +205,14 @@ public final class PhoneService extends Service {
                 continue;
             }
             if (notice.category() == Ancs.INCOMING_CALL) {
-                call = notice.uid();
-                showCall(notice);
+                if (calls) {
+                    call = notice.uid();
+                    showCall(notice);
+                }
+                continue;
+            }
+            if (notice.preExisting() && !old) {
+                // From before the r1 came by, and turned off in the settings: the page has it
                 continue;
             }
             gone.remove(notice.uid());

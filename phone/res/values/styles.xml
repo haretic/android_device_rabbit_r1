@@ -20,9 +20,9 @@
         <item name="android:maxLines">1</item>
     </style>
     <style name="Key">
-        <item name="android:layout_width">44dp</item>
-        <item name="android:layout_height">44dp</item>
-        <item name="android:padding">8dp</item>
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:padding">10dp</item>
         <item name="android:background">@drawable/key_bg</item>
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>

@@ -38,4 +38,17 @@
     <string name="calling_unknown">Your phone is ringing</string>
     <string name="calling_text">Answer on the phone.</string>
     <string name="decline">Decline</string>
+    <string name="settings">Settings</string>
+    <string name="settings_title">Phone settings</string>
+    <string name="settings_guide">Turn the wheel to pick one, press or tap to turn it on or off. The Phone page always shows everything.</string>
+    <string name="shade_music">Music player in the shade</string>
+    <string name="shade_music_on">On - the phone\'s music on the lock screen too</string>
+    <string name="shade_music_off">Off - only on this page</string>
+    <string name="shade_calls">Call card</string>
+    <string name="shade_calls_on">On - a call shows over everything</string>
+    <string name="shade_calls_off">Off - calls are not shown</string>
+    <string name="shade_old">Notifications from before</string>
+    <string name="shade_old_on">On - in the shade, without a sound</string>
+    <string name="shade_old_off">Off - only new ones in the shade</string>
+    <string name="notices_hint">Press or tap one to read all of it and clear it.</string>
 </resources>
