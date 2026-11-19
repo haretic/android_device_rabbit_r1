@@ -1544,7 +1544,7 @@ texts() { ui $1; xnodes $1 | cut -f7 | grep -v '^$'; }
 # the hold as its Back and "hold to reset" left the tool.
 t_toolhold() {
 	key 224
-	sh "am start -W -n cat.kenny.r1.toolbox/.StopwatchActivity"; sleep 1.5
+	sh "am start -W --activity-clear-task -n cat.kenny.r1.toolbox/.StopwatchActivity"; sleep 1.5
 	# From whatever it was left in: stopped with time on it
 	texts toolhold-0 | grep -qx 'running.*' && { side_press; sleep 1; }
 	texts toolhold-0 | grep -q '^0:00.0$' && { side_press; sleep 1.5; side_press; sleep 1.5; }
@@ -1563,7 +1563,7 @@ t_toolhold() {
 # The wheel's tools by finger: a slide turns, a tap presses, a resting finger holds
 t_tooltouch() {
 	key 224
-	sh "am start -W -n cat.kenny.r1.toolbox/.MetronomeActivity"; sleep 1.5
+	sh "am start -W --activity-clear-task -n cat.kenny.r1.toolbox/.MetronomeActivity"; sleep 1.5
 	local a b
 	a=$(texts tooltouch-0 | grep -m1 -E '^[0-9]+$')
 	sh "input swipe 200 300 200 420 300"; sleep 1
@@ -1574,7 +1574,7 @@ t_tooltouch() {
 	b=$(texts tooltouch-2 | grep -m1 -E '^[0-9]+$')
 	[ -n "$a" ] && [ "$a" = "$b" ] && ok "sliding back gives the same tempo" || echo "tempo now $b, was $a"
 	key 3
-	sh "am start -W -n cat.kenny.r1.toolbox/.StopwatchActivity"; sleep 1.5
+	sh "am start -W --activity-clear-task -n cat.kenny.r1.toolbox/.StopwatchActivity"; sleep 1.5
 	texts tooltouch-3 | grep -q '^0:00.0$' || { sh "input swipe 200 300 200 300 900"; sleep 1.5; }
 	sh "input tap 200 300"; sleep 1.5; sh "input tap 200 300"; sleep 1.5
 	if texts tooltouch-4 | grep -q 'hold to reset'; then ok "taps start and stop the stopwatch"
