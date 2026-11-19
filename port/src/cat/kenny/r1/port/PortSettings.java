@@ -26,6 +26,8 @@ public final class PortSettings extends Activity {
         ((TextView) findViewById(R.id.head)).setText(R.string.settings_head);
         ((TextView) findViewById(R.id.sum)).setText(R.string.settings_guide);
         findViewById(R.id.hint).setVisibility(View.GONE);
+        // Said in the line under the heading already
+        findViewById(R.id.guide).setVisibility(View.GONE);
         toggle(R.drawable.ic_usb, R.string.popup_computer, Port.POPUP_COMPUTER, true,
                 R.string.popup_computer_off);
         toggle(R.drawable.ic_album, R.string.popup_stick, Port.POPUP_STICK, true,

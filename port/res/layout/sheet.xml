@@ -26,7 +26,7 @@
                 <TextView android:id="@+id/sum" android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:textSize="15sp"
                     android:textColor="@color/text_sum" android:maxLines="1"
-                    android:fontFeatureSettings="tnum" />
+                    android:ellipsize="end" android:fontFeatureSettings="tnum" />
             </LinearLayout>
         </LinearLayout>
         <TextView android:id="@+id/copy_result" android:layout_width="match_parent"
@@ -49,5 +49,10 @@
                 android:layout_height="wrap_content" android:layout_marginStart="10dp"
                 android:textSize="14sp" android:textColor="@color/text_sum" />
         </LinearLayout>
+        <!-- What the wheel and the button do on the sheet -->
+        <TextView android:id="@+id/guide" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:paddingStart="8dp"
+            android:paddingTop="8dp" android:textSize="13sp"
+            android:textColor="@color/text_sum" android:text="@string/sheet_guide" />
     </LinearLayout>
 </FrameLayout>

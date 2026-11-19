@@ -53,6 +53,11 @@
     <string name="ejecting">Ejecting</string>
     <string name="ejected">Safe to unplug</string>
     <string name="eject_failed">Still in use, not ejected</string>
+    <string name="eject_wait">Copying - stop the copy first</string>
+    <string name="copy_stop">Stop copying</string>
+    <string name="copy_stopping">Stopping - counting what is left</string>
+    <string name="sheet_guide">Wheel to pick - press or tap to choose</string>
+    <string name="computer_sum">%1$s - %2$s</string>
     <string name="settings">Settings</string>
     <string name="settings_sum">What happens when you plug in</string>
     <string name="settings_head">Port settings</string>

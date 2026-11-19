@@ -145,7 +145,6 @@ public final class PortActivity extends Activity {
 
     private void computer() {
         ((TextView) findViewById(R.id.head)).setText(R.string.computer);
-        ((TextView) findViewById(R.id.sum)).setText(Port.power(this));
         findViewById(R.id.hint).setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.hint_text)).setText(Port.debugging(this)
                 ? R.string.debug_hint : R.string.lock_hint);
@@ -188,7 +187,14 @@ public final class PortActivity extends Activity {
         }
     }
 
+    /** What the port is to the computer now, and what it does for the battery. */
+    private void showNow(int role) {
+        ((TextView) findViewById(R.id.sum)).setText(getString(R.string.computer_sum,
+                getString(Port.roleName(role)), Port.power(this)));
+    }
+
     private void mark(int role) {
+        showNow(role);
         for (int i = 0; i < mRoles.length; i++) {
             if (mRoles[i] != null) {
                 final boolean on = i == role;
@@ -226,9 +232,22 @@ public final class PortActivity extends Activity {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             finish();
         });
+        final View[] copyRow = new View[1];
+        // While it copies the same row stops it: what is whole stays on the stick
         final View copy = row(R.drawable.ic_photo, R.string.copy_photos,
-                R.string.copy_counting, () -> mPhotos.copy());
-        mPhotos = new Photos(this, volume, text -> mHandler.post(() -> summary(copy, text)));
+                R.string.copy_counting, () -> {
+                    if (mPhotos.copying()) {
+                        mPhotos.cancel();
+                    } else {
+                        mPhotos.copy();
+                        copying(copyRow[0]);
+                    }
+                });
+        copyRow[0] = copy;
+        mPhotos = new Photos(this, volume, text -> mHandler.post(() -> {
+            summary(copy, text);
+            copying(copy);
+        }));
         mPhotos.count();
         final View[] eject = new View[1];
         eject[0] = row(R.drawable.ic_eject, R.string.eject, 0, () -> eject(eject[0], volume));
@@ -243,8 +262,18 @@ public final class PortActivity extends Activity {
         settingsRow();
     }
 
+    /** The copy row's title: what a press does to it now. */
+    private void copying(View row) {
+        ((TextView) row.findViewById(R.id.title)).setText(mPhotos != null && mPhotos.copying()
+                ? R.string.copy_stop : R.string.copy_photos);
+    }
+
     private void eject(View row, VolumeInfo volume) {
         if (mPhotos.busy()) {
+            // Said, not ignored: a press that did nothing looked like a dead row
+            if (mPhotos.copying()) {
+                summary(row, getString(R.string.eject_wait));
+            }
             return;
         }
         summary(row, getString(R.string.ejecting));

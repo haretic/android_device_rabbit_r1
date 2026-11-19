@@ -31,6 +31,10 @@ final class Photos {
     private long mBytes;
     private volatile boolean mStopped;
     private volatile boolean mBusy;
+    /** Copying now, not only counting */
+    private volatile boolean mCopying;
+    /** Stopped from the sheet: the copy ends, the sheet stays and can copy the rest later */
+    private volatile boolean mCancel;
     private boolean mCounted;
     /** Run, on the copying thread, once every new photo is on the stick. */
     private volatile Runnable mCopied;
@@ -50,6 +54,17 @@ final class Photos {
 
     void stop() {
         mStopped = true;
+    }
+
+    boolean copying() {
+        return mCopying;
+    }
+
+    /** Ends the copy under way, keeping what is whole on the stick; the rest is counted again. */
+    void cancel() {
+        if (mCopying) {
+            mCancel = true;
+        }
     }
 
     void setOnCopied(Runnable copied) {
@@ -102,15 +117,19 @@ final class Photos {
         }
         Port.copyStarted(mContext);
         mBusy = true;
+        mCopying = true;
+        mCancel = false;
         new Thread(() -> {
             final int all = mNew.size();
             int done = 0;
             final byte[] buffer = new byte[1 << 16];
             final int root = mFrom.getPath().length() + 1;
             boolean whole = false;
+            boolean recounted = false;
+            String said = null;
             try {
                 for (File file : mNew) {
-                    if (mStopped) {
+                    if (mStopped || mCancel) {
                         break;
                     }
                     mSay.accept(mContext.getString(R.string.copy_progress, done + 1, all));
@@ -119,14 +138,21 @@ final class Photos {
                     // Under another name until it is whole: a stick pulled out leaves no half
                     // photo that looks like one
                     final File part = new File(to.getPath() + ".part");
+                    // Read to its end: a stop from the sheet after that still keeps the photo
+                    boolean read = false;
                     try (FileInputStream in = new FileInputStream(file);
                             FileOutputStream out = new FileOutputStream(part)) {
-                        for (int n; (n = in.read(buffer)) > 0 && !mStopped; ) {
+                        while (!mStopped && !mCancel) {
+                            final int n = in.read(buffer);
+                            if (n < 0) {
+                                read = true;
+                                break;
+                            }
                             out.write(buffer, 0, n);
                         }
                         out.getFD().sync();
                     }
-                    if (mStopped) {
+                    if (mStopped || !read) {
                         part.delete();
                         break;
                     }
@@ -136,21 +162,41 @@ final class Photos {
                     to.setLastModified(file.lastModified());
                     done++;
                 }
-                if (!mStopped) {
-                    mSay.accept(mContext.getResources().getQuantityString(R.plurals.copy_done,
-                            done, done));
+                if (mCancel && !mStopped && done < all) {
+                    // Stopped from the sheet, which says so: no note kept for the next one.
+                    // Still copying until the rest is counted, so a press meanwhile is no copy
+                    mSay.accept(mContext.getString(R.string.copy_stopping));
+                    mNew.clear();
+                    mBytes = 0;
+                    find(mFrom, "");
+                    recounted = true;
+                    said = mContext.getResources().getQuantityString(R.plurals.copy_stopped,
+                            all, done, all);
+                } else if (!mStopped) {
+                    // Every photo on it, a stop pressed after the last one too: a finished copy
+                    said = mContext.getResources().getQuantityString(R.plurals.copy_done,
+                            done, done);
                     whole = true;
                 }
             } catch (IOException | RuntimeException e) {
-                mSay.accept(mContext.getString(R.string.copy_failed, done, all));
+                said = mContext.getString(R.string.copy_failed, done, all);
             }
             if (mStopped && !whole) {
                 // The sheet may already be gone. Keep the outcome for its next opening.
                 Port.copyStopped(mContext, mStickId, done, all);
             }
-            mNew.clear();
-            mBytes = 0;
+            if (!recounted) {
+                mNew.clear();
+                mBytes = 0;
+            }
+            mCancel = false;
+            // Both at once and before the outcome is said: the row's title then offers what a
+            // press really does
+            mCopying = false;
             mBusy = false;
+            if (said != null) {
+                mSay.accept(said);
+            }
             final Runnable copied = mCopied;
             if (whole && copied != null) {
                 copied.run();
