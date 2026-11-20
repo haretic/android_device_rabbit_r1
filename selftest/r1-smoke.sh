@@ -4691,23 +4691,96 @@ sweep_wait_focus() {
 	bad "$cur: first focus is not $2 ($(focused_text "$1"))"; return 1
 }
 sweep_popup_focus() { sweep_inside "$(focus_field "$1" 6)" "$(sweep_bounds "$1" popup_container)"; }
+# Drawer setup is a transition, not a fixed delay. A Home hotseat tile is never
+# an app-row substitute, even though it has the same accessibility TextView class.
+sweep_launcher_window() {
+	focus_win | grep -Eq ' com\.android\.launcher3/(com\.android\.launcher3\.)?[^ }]+[ }]'
+}
+sweep_drawer_signature() {
+	xnodes "$1" | awk -F '\t' '
+		function visible(rect,min, a) {split(rect,a," ");return a[3]-a[1]>=min && a[4]-a[2]>=min && a[1]>=0 && a[2]>=0 && a[3]<=480 && a[4]<=640}
+		NR==1 {portrait=$3=="com.android.launcher3" && $6=="0 0 480 640"}
+		$3=="com.android.launcher3" && $5~/id\/popup_container$/ && visible($6,1) {popup=1}
+		inList && $1<=depth {inList=0}
+		$3=="com.android.launcher3" && $5~/id\/apps_list_view$/ && visible($6,120) {inList=1;depth=$1;list=$6}
+		inList && $1>depth && $3=="com.android.launcher3" && $5~/id\/icon$/ && $4~/(TextView|BubbleTextView)$/ && visible($6,12) {if(!found){found=1;rect=list}}
+		END{if(portrait && found && !popup)print rect}'
+}
+sweep_home_signature() {
+	xnodes "$1" | awk -F '\t' '
+		function visible(rect,a){split(rect,a," ");return a[3]>a[1] && a[4]>a[2]}
+		NR==1 {portrait=$3=="com.android.launcher3" && $6=="0 0 480 640"}
+		$3=="com.android.launcher3" && $5~/id\/workspace$/ && visible($6) {workspace=$6}
+		$3=="com.android.launcher3" && $5~/id\/hotseat$/ && visible($6) {hotseat=$6}
+		$3=="com.android.launcher3" && $5~/id\/wheel_home_tabs$/ && visible($6) {tabs=$6}
+		$3=="com.android.launcher3" && $5~/id\/(apps_list_view|popup_container|overview_panel)$/ && visible($6) {other=1}
+		END{if(portrait && workspace!="" && !other)print workspace "|" hotseat "|" tabs}'
+}
+sweep_wait_drawer_state() {
+	local state=$1 snap=$2 i signature last= stable=0 end=$(( $(date +%s) + 8 ))
+	for i in $(seq 1 25); do
+		if sweep_launcher_window;then
+			ui "$snap"
+			if sweep_launcher_window;then
+				if [ "$state" = home ];then signature=$(sweep_home_signature "$snap")
+				else signature=$(sweep_drawer_signature "$snap");fi
+			else signature=;fi
+		else signature=;fi
+		if [ -n "$signature" ] && [ "$signature" = "$last" ];then stable=$((stable+1));else stable=0;fi
+		[ "$stable" -lt 1 ] || return 0
+		last=$signature
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .2
+	done
+	return 1
+}
+sweep_drawer_failure() {
+	bad "Drawer: $2 ($(focus_win))"
+	ui "$1-failed";shot "$1-failed"
+	dev 'dumpsys window' > "$SHOTS/smoke-$1-window.txt"
+	dev 'dumpsys activity activities' > "$SHOTS/smoke-$1-tasks.txt"
+	dev 'logcat -d -t 1500 -v threadtime' > "$SHOTS/smoke-$1-events.log"
+}
+sweep_open_drawer() {
+	local snap=$1 attempt
+	key 224;sh 'wm dismiss-keyguard'
+	for attempt in 1 2;do
+		if ! sweep_wait_drawer_state home "$snap-home-$attempt";then
+			sweep_drawer_failure "$snap" 'portrait Home did not settle before drawer swipe';return 1
+		fi
+		# Same gesture as t_allapps; y560 is above the hidden-pill swipe region.
+		sh 'input swipe 240 560 240 120 300'
+		if sweep_wait_drawer_state drawer "$snap-open-$attempt";then return 0;fi
+		# Retry a missed transition only on confirmed Home, never toggle/swipe an
+		# already open or half-populated drawer or send wheel input to another app.
+		if ! sweep_launcher_window || [ -z "$(sweep_home_signature "$snap-open-$attempt")" ];then
+			sweep_drawer_failure "$snap" 'drawer did not reach a populated stable state after swipe';return 1
+		fi
+		[ "$attempt" = 2 ] || echo 'Drawer setup: swipe left Home unchanged; one bounded Home-only retry'
+	done
+	sweep_drawer_failure "$snap" 'drawer did not open after two verified Home swipes';return 1
+}
 sweep_drawer_icon() {
 	local i
-	for i in $(seq 1 24); do
+	for i in $(seq 1 24);do
+		sweep_launcher_window || { sweep_drawer_failure "$1" 'Launcher lost before drawer focus';return 1; }
 		ui "$1"
-		if xfocus "$1" | awk -F '\t' '$1=="out" && $6 ~ /id\/apps_list_view$/ { drawer=1 }
-			$1=="self" && $6 ~ /id\/icon$/ && $5 ~ /(TextView|BubbleTextView)$/ { icon=1 } END { exit !(drawer && icon) }'; then return 0; fi
-		wheel down 1 >/dev/null; sleep 0.3
+		if ! sweep_launcher_window || [ -z "$(sweep_drawer_signature "$1")" ];then
+			sweep_drawer_failure "$1" 'drawer disappeared before app-icon focus; refusing wheel input on Home';return 1
+		fi
+		if xfocus "$1" | awk -F '\t' '$1=="out" && $4=="com.android.launcher3" && $6~/id\/apps_list_view$/ {drawer=1}
+			$1=="self" && $4=="com.android.launcher3" && $6~/id\/icon$/ && $5~/(TextView|BubbleTextView)$/ {icon=1} END{exit !(drawer && icon)}';then return 0;fi
+		wheel down 1 >/dev/null;sleep .3
 	done
-	bad 'Drawer: no app icon focus inside the drawer'; return 1
+	sweep_drawer_failure "$1" 'drawer open but no app icon acquired focus';return 1
 }
+
 t_drawermenu() {
+	local icon first at ui_fast=1
 	sweep_has com.android.launcher3 || return
 	sweep_begin com.android.launcher3 || return
-	local icon first at
-	# Same portrait drawer gesture as t_allapps; its first wheel step leaves touch mode.
-	sh 'input swipe 240 560 240 120 300'; sleep 1
-	wheel down 1 >/dev/null; sleep 0.4
+	# Wait for Home, then for a populated drawer, before any wheel-focus search.
+	sweep_open_drawer drawermenu || { sweep_end;return; }
 	sweep_drawer_icon drawermenu || { sweep_end; return; }
 	icon="$(focus_field drawermenu 6)|$(focused_text drawermenu)"
 	side_hold; sleep 0.6; ui drawermenu-popup
