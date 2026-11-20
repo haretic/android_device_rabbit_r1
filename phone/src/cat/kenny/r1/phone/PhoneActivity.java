@@ -298,6 +298,11 @@ public final class PhoneActivity extends Activity {
             hold(false);
             mShown = false;
             final int target = link == null ? R.id.link : R.id.settings;
+            // The window gives its focus to the view marked as the default when it gains
+            // focus or leaves touch mode, else to the first button, Turn off: a focus asked
+            // for before that does not last
+            findViewById(R.id.link).setFocusedByDefault(target == R.id.link);
+            findViewById(R.id.settings).setFocusedByDefault(target == R.id.settings);
             if (mSetupFocusTarget != target || getCurrentFocus() == null) {
                 // Hiding music can move focus to the first button (Turn off). Set the
                 // safe entry target once even if that automatic focus already exists.
