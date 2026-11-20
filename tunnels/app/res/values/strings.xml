@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <resources>
-    <string name="app_name">Private networks</string>
+    <string name="app_name">VPN</string>
     <string name="step_of">Step %1$d of %2$d</string>
     <string name="back">Back</string>
     <string name="next">Next</string>
@@ -166,7 +166,7 @@
     <string name="hint_place">Press or tap to pick</string>
 
     <!-- The tunnel -->
-    <string name="channel">Private network</string>
+    <string name="channel">VPN</string>
     <string name="notif_on">%1$s is on</string>
     <string name="notif_connecting">Connecting to %1$s</string>
     <string name="fail_resolve">Could not find the server %1$s</string>
