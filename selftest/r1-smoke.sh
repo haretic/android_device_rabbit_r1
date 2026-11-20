@@ -239,6 +239,7 @@ crash_final() {
 }
 runner_cleanup() {
 	local result=$1
+	bottomstrip_end
 	stress_cancel_end; pageprefs_end; synth_loop_end; r2_resources_end; app_abort; toolbox_silent_end; powerhold_settings_end; sweep_end
 	sh "settings put global stay_on_while_plugged_in ${stay:-0}"
 	ui_cleanup
@@ -5138,7 +5139,329 @@ t_settingssearch() {
 	settingssearch_end
 }
 
-tests=${*:-tour boot dialog pin shade settings settingssearch home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
+# Hidden-pill navigation: taps that open/finish an activity must not race recents.
+# Host-only, read-only navigation; every tap is on a freshly identified allowlisted row.
+bottomstrip_window_is() {
+	local component
+	component=$(printf '%s\n' "$1" | sed -n 's/.* u[0-9][0-9]* \([^ }]*\/[^ }]*\).*/\1/p')
+	case "$2:$component" in
+		settings-main:com.android.settings/.Settings|settings-main:com.android.settings/com.android.settings.Settings|settings-main:com.android.settings/.homepage.SettingsHomepageActivity|settings-main:com.android.settings/com.android.settings.homepage.SettingsHomepageActivity) return 0 ;;
+		settings-subpage:com.android.settings/*)
+			bottomstrip_window_is "$1" settings-main && return 1
+			case "$component" in *SearchActivity*|*SearchResult*) return 1 ;; esac
+			return 0 ;;
+		wheel:cat.kenny.r1.wheel.settings/.WheelActivity|wheel:cat.kenny.r1.wheel.settings/cat.kenny.r1.wheel.settings.WheelActivity|help:cat.kenny.r1.wheel.settings/.WheelActivity|help:cat.kenny.r1.wheel.settings/cat.kenny.r1.wheel.settings.WheelActivity) return 0 ;;
+		practice:cat.kenny.r1.wheel.settings/.PracticeActivity|practice:cat.kenny.r1.wheel.settings/cat.kenny.r1.wheel.settings.PracticeActivity) return 0 ;;
+		toolbox:cat.kenny.r1.toolbox/.ToolboxActivity|toolbox:cat.kenny.r1.toolbox/cat.kenny.r1.toolbox.ToolboxActivity) return 0 ;;
+		toolbox-settings:cat.kenny.r1.toolbox/.ToolboxSettingsActivity|toolbox-settings:cat.kenny.r1.toolbox/cat.kenny.r1.toolbox.ToolboxSettingsActivity) return 0 ;;
+		home:com.android.launcher3/*) return 0 ;;
+	esac
+	return 1
+}
+bottomstrip_wait() {
+	local expected=$1 snap=$2 i stable=0 end=$(( $(date +%s) + 8 )) window
+	for i in $(seq 1 33); do
+		window=$(focus_win)
+		if bottomstrip_window_is "$window" "$expected"; then
+			if [ "$expected" = help ]; then
+				ui "$snap"
+				if ! xnodes "$snap" | awk -F '\t' '$3=="cat.kenny.r1.wheel.settings" && $7=="Try it" {f=1} END{exit !f}' \
+					|| ! bottomstrip_window_is "$(focus_win)" help; then stable=0
+				else stable=$((stable+1)); fi
+			else stable=$((stable+1)); fi
+			[ "$stable" -lt 2 ] || return 0
+		else stable=0; fi
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .2
+	done
+	return 1
+}
+bottomstrip_fail() {
+	bad "bottomstrip $1: $2 ($(focus_win))"
+	ui "bottomstrip-$1-fail"; shot "bottomstrip-$1-fail"
+	dev 'dumpsys activity activities' > "$SHOTS/smoke-bottomstrip-$1-tasks.txt"
+}
+bottomstrip_launch() {
+	key 224; sh 'wm dismiss-keyguard'
+	sh "am start -W -S -f 0x10008000 -n $1 >/dev/null" || return 1
+	bottomstrip_wait "$2" "bottomstrip-$2"
+}
+# Nearest clickable, enabled ancestor of an exact title, never a list container.
+# Preserve signed coordinates; a clipped negative bound is not a visible target.
+bottomstrip_row() {
+	awk -v want="$2" -v pkg="$3" 'BEGIN{RS="<"}
+		function attr(k, m) {
+			if(!match($0," " k "=\"[^\"]*\""))return ""
+			m=substr($0,RSTART+length(k)+3,RLENGTH-length(k)-4)
+			gsub(/&amp;/,"\\&",m);gsub(/&apos;/,"\047",m);return m
+		}
+		/^node / {
+			n++;p[n]=d?path[d-1]:0;path[d]=n
+			b[n]=attr("bounds");c[n]=attr("clickable")=="true";enabled[n]=attr("enabled")=="true"
+			cl[n]=attr("class");package[n]=attr("package")
+			if(attr("text")==want && package[n]==pkg) {
+				r=n;while(r && !c[r])r=p[r]
+				if(r && enabled[r] && cl[r]!~/(RecyclerView|ScrollView|ListView|Switch|CheckBox|ToggleButton|SeekBar|Spinner|Button)$/ && package[r]==pkg) {
+					v=b[r];gsub(/[^0-9-]+/," ",v);sub(/^ /,"",v);sub(/ $/,"",v)
+					split(v,a," ");if(a[3]>a[1] && a[4]>a[2]) {print v;exit}
+				}
+			}
+			if($0!~/\/>[ \t\r\n]*$/)d++
+		}
+		/^\/node>/ {d--}' "$SHOTS/smoke-$1.xml"
+}
+bottomstrip_viewport() {
+	xnodes "$1" | awk -F '\t' -v pkg="$2" '$3==pkg && $4~/(RecyclerView|ScrollView|ListView)$/ {
+		split($6,a," ");area=(a[3]-a[1])*(a[4]-a[2]);if(area>best){best=area;rect=$6}
+	} END{if(best>0)print rect}'
+}
+# Modes: actual centre; full-row centre in the requested30px band; bottom-4;
+# or any visible intersection with the37px strip. No point outside the control.
+bottomstrip_point() {
+	awk -v rect="$1" -v w="$2" -v h="$3" -v mode="$4" -v full="${5:-0}" 'BEGIN {
+		if(split(rect,a," ")!=4 || a[3]<=a[1] || a[4]<=a[2] || w<=0 || h<=37)exit 1
+		x=int((a[1]+a[3])/2);y=int((a[2]+a[4])/2)
+		if(mode=="aligned") {if(full<=0 || full>220)exit 1;y=int(a[2]+full/2);if(y<h-34 || y>h-4)exit 1}
+		else if(mode=="edge")y=h-4
+		else if(mode=="overlap") {top=a[2]>h-37?a[2]:h-37;bot=a[4]<h?a[4]:h;if(bot<=top)exit 1;y=int((top+bot)/2)}
+		else if(mode!="centre")exit 1
+		if(x<0 || x>=w || y<0 || y>=h || x<a[1] || x>=a[3] || y<a[2] || y>=a[4])exit 1
+		print x,y
+	}'
+}
+bottomstrip_drag() {
+	awk -v rect="$1" -v delta="$2" -v w="$3" -v h="$4" 'BEGIN {
+		if(split(rect,a," ")!=4 || delta==0)exit 1
+		top=a[2]+16;if(top<64)top=64;bot=a[4]-16;if(bot>h-50)bot=h-50
+		room=bot-top-16;if(room<32)exit 1;cap=room<120?room:120
+		if(delta>0){if(delta<24)delta=24;if(delta>cap)delta=cap;y=top+8}
+		else {if(delta>-24)delta=-24;if(delta< -cap)delta=-cap;y=bot-8}
+		x=int((a[1]+a[3])/2);if(x<24 || x>=w-24)exit 1
+		print x,int(y),x,int(y+delta),250
+	}'
+}
+bottomstrip_screen() {
+	local i end=$(( $(date +%s) + 6 ))
+	for i in $(seq 1 25); do
+		ui "$1"
+		[ "$(sweep_screen "$1")" != "0 0 $2 $3" ] || return 0
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .2
+	done
+	return 1
+}
+# Learn an unclipped row height, then scroll by measured deltas. A clipped visible
+# sliver cannot pretend that its midpoint is the centre of the actual row.
+bottomstrip_align_settings() {
+	local snap=$1 w=$2 h=$3 label i rect view vtop vbottom full point last= stall=0 drag delta end
+	for label in Display Apps System; do
+		bottomstrip_launch com.android.settings/.Settings settings-main || return 1
+		bottomstrip_screen "$snap" "$w" "$h" || return 1
+		full=0;last=;stall=0;end=$(( $(date +%s) + 45 ))
+		for i in $(seq 1 24); do
+			bottomstrip_window_is "$(focus_win)" settings-main || return 1
+			ui "$snap"
+			bottomstrip_window_is "$(focus_win)" settings-main || return 1
+			rect=$(bottomstrip_row "$snap" "$label" com.android.settings)
+			view=$(bottomstrip_viewport "$snap" com.android.settings)
+			[ -n "$view" ] || break
+			set -- $view;vtop=$2;vbottom=$4
+			if [ -n "$rect" ]; then
+				set -- $rect
+				# Full visible rows only; the strip target may subsequently be clipped.
+				if [ "$2" -gt "$((vtop+3))" ] && [ "$4" -lt "$((vbottom-3))" ] \
+					&& [ "$4" -le "$((h-40))" ] && [ "$(( $4-$2 ))" -ge 40 ] && [ "$(( $4-$2 ))" -le 220 ]; then full=$(( $4-$2 )); fi
+				point=$(bottomstrip_point "$rect" "$w" "$h" aligned "$full")
+				if [ -n "$point" ]; then
+					if [ "$last" = "$label:$rect:$point" ]; then
+						bottomstrip_label=$label;bottomstrip_target=$point
+						return 0
+					fi
+					last="$label:$rect:$point";sleep .15;continue
+				fi
+				if [ "$last" = "$rect" ]; then stall=$((stall+1)); else stall=0; fi
+				[ "$stall" -lt 3 ] || break
+				last=$rect
+				if [ "$full" -gt 0 ]; then delta=$((h-20-$2-full/2)); else delta=-80; fi
+			else delta=-100; fi
+			drag=$(bottomstrip_drag "$view" "$delta" "$w" "$h") || break
+			bottomstrip_window_is "$(focus_win)" settings-main || return 1
+			sh "input swipe $drag"
+			[ "$(date +%s)" -lt "$end" ] || break
+			sleep .15
+		done
+	done
+	return 1
+}
+bottomstrip_settings_step() {
+	local step=$1 w=$2 h=$3 bottomstrip_label bottomstrip_target
+	if ! bottomstrip_align_settings "bottomstrip-$step" "$w" "$h"; then
+		bottomstrip_fail "$step" "TEST setup: no identified full-row centre in $((h-34))..$((h-4))";return 1
+	fi
+	bottomstrip_window_is "$(focus_win)" settings-main || { bottomstrip_fail "$step" 'main list lost before tap';return 1; }
+	printf 'bottomstrip %s: %s row centre at %s\n' "$step" "$bottomstrip_label" "$bottomstrip_target"
+	sh "input tap $bottomstrip_target"
+	if bottomstrip_wait settings-subpage "bottomstrip-$step-open"; then
+		ok "bottomstrip $step: strip-centre tap opens the Settings subpage"
+		key 4
+		bottomstrip_wait settings-main "bottomstrip-$step-back" || { bottomstrip_fail "$step" 'Back did not return to Settings main';return 1; }
+	else bottomstrip_fail "$step" 'strip tap did not open a Settings subpage (Launcher is not success)';return 1; fi
+}
+bottomstrip_focus() {
+	local snap=$1 label=$2 expected=$3 way i
+	for way in down up; do
+		for i in $(seq 1 24); do
+			bottomstrip_window_is "$(focus_win)" "$expected" || return 1
+			ui "$snap"
+			bottomstrip_window_is "$(focus_win)" "$expected" || return 1
+			r2_row_is "$snap" "$label" && return 0
+			wheel "$way" 1 >/dev/null;sleep .15
+		done
+	done
+	return 1
+}
+bottomstrip_open_practice() {
+	bottomstrip_launch cat.kenny.r1.wheel.settings/.WheelActivity wheel || return 1
+	bottomstrip_focus bottomstrip-help 'How the wheel works' wheel || return 1
+	side_press
+	bottomstrip_wait help bottomstrip-help || return 1
+	bottomstrip_focus bottomstrip-help 'Try it' help || return 1
+	side_press
+	bottomstrip_wait practice bottomstrip-practice || return 1
+	bottomstrip_screen bottomstrip-practice 480 640 || return 1
+	bottomstrip_focus bottomstrip-practice Done practice || return 1
+	dev 'dumpsys activity activities' > "$SHOTS/smoke-bottomstrip-practice-parent.txt"
+}
+bottomstrip_done_rect() {
+	local i rect last=
+	for i in 1 2 3 4 5; do
+		bottomstrip_window_is "$(focus_win)" practice || return 1
+		ui bottomstrip-done
+		bottomstrip_window_is "$(focus_win)" practice || return 1
+		rect=$(bottomstrip_row bottomstrip-done Done cat.kenny.r1.wheel.settings)
+		if [ -n "$rect" ] && [ "$rect" = "$last" ]; then printf '%s\n' "$rect";return 0;fi
+		last=$rect;sleep .15
+	done
+	return 1
+}
+bottomstrip_practice_step() {
+	local rect point edge
+	if ! bottomstrip_open_practice; then bottomstrip_fail practice-centre 'parent Help -> Try it setup failed';return 1;fi
+	rect=$(bottomstrip_done_rect)
+	point=$(bottomstrip_point "$rect" 480 640 centre)
+	[ -n "$point" ] || { bottomstrip_fail practice-centre 'no stable visible Done centre';return 1; }
+	edge=$(bottomstrip_point "$rect" 480 640 edge)
+	bottomstrip_window_is "$(focus_win)" practice || { bottomstrip_fail practice-centre 'Practice lost before tap';return 1; }
+	printf 'bottomstrip practice-centre: Done [%s], tap %s\n' "$rect" "$point"
+	sh "input tap $point"
+	if bottomstrip_wait help bottomstrip-help; then ok 'bottomstrip practice-centre: Done centre returns to How the wheel works'
+	else bottomstrip_fail practice-centre 'parent-launched Done centre did not return to Help';fi
+	if [ -z "$edge" ]; then echo "SKIP bottomstrip practice-bottom: bottom-4 point is outside Done [$rect]";return;fi
+	# A fresh parent launch makes the optional second tap an independent finish.
+	if ! bottomstrip_open_practice; then bottomstrip_fail practice-bottom 'parent Help -> Try it setup failed';return 1;fi
+	rect=$(bottomstrip_done_rect);point=$(bottomstrip_point "$rect" 480 640 edge)
+	if [ -z "$point" ]; then echo "SKIP bottomstrip practice-bottom: fresh Done no longer reaches bottom-4 [$rect]";return;fi
+	bottomstrip_window_is "$(focus_win)" practice || { bottomstrip_fail practice-bottom 'Practice lost before tap';return 1; }
+	sh "input tap $point"
+	if bottomstrip_wait help bottomstrip-help; then ok 'bottomstrip practice-bottom: Done tap at y636 returns to How the wheel works'
+	else bottomstrip_fail practice-bottom 'Done tap at y636 did not return to Help';fi
+}
+bottomstrip_toolbox_step() {
+	local i rect last= stable=0 view drag point end=$(( $(date +%s) + 45 ))
+	bottomstrip_launch cat.kenny.r1.toolbox/.ToolboxActivity toolbox || { bottomstrip_fail toolbox-settings 'Toolbox home did not open';return 1; }
+	bottomstrip_screen bottomstrip-toolbox 480 640 || { bottomstrip_fail toolbox-settings 'portrait640px screen not ready';return 1; }
+	for i in $(seq 1 24); do
+		bottomstrip_window_is "$(focus_win)" toolbox || { bottomstrip_fail toolbox-settings 'Toolbox lost while scrolling';return 1; }
+		ui bottomstrip-toolbox
+		bottomstrip_window_is "$(focus_win)" toolbox || { bottomstrip_fail toolbox-settings 'Toolbox lost during capture';return 1; }
+		rect=$(bottomstrip_row bottomstrip-toolbox Settings cat.kenny.r1.toolbox)
+		if [ -n "$rect" ] && [ "$rect" = "$last" ];then stable=$((stable+1));else stable=0;fi
+		[ "$stable" -lt 2 ] || break
+		last=$rect;view=$(bottomstrip_viewport bottomstrip-toolbox cat.kenny.r1.toolbox)
+		drag=$(bottomstrip_drag "$view" -120 480 640) || break
+		sh "input swipe $drag"
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .15
+	done
+	[ "$stable" -ge 2 ] && [ -n "$rect" ] || { bottomstrip_fail toolbox-settings 'TEST setup: last Settings row did not settle at scroll end';return 1; }
+	point=$(bottomstrip_point "$rect" 480 640 overlap)
+	if [ -z "$point" ];then echo "SKIP bottomstrip toolbox-settings: last Settings row has no visible part in strip [$rect]";return;fi
+	bottomstrip_window_is "$(focus_win)" toolbox || { bottomstrip_fail toolbox-settings 'Toolbox lost before tap';return 1; }
+	printf 'bottomstrip toolbox-settings: row [%s], strip tap %s\n' "$rect" "$point"
+	sh "input tap $point"
+	if bottomstrip_wait toolbox-settings bottomstrip-toolbox-settings;then ok 'bottomstrip toolbox-settings: last row strip tap opens Toolbox Settings'
+	else bottomstrip_fail toolbox-settings 'last row strip tap did not open Toolbox Settings';fi
+}
+bottomstrip_swipe_step() {
+	bottomstrip_launch com.android.settings/.Settings settings-main || { bottomstrip_fail home-swipe 'Settings did not open';return 1; }
+	bottomstrip_screen bottomstrip-swipe 480 640 || { bottomstrip_fail home-swipe 'portrait640px screen not ready';return 1; }
+	bottomstrip_window_is "$(focus_win)" settings-main || { bottomstrip_fail home-swipe 'Settings lost before swipe';return 1; }
+	sh 'input swipe 240 636 240 300 180'
+	if bottomstrip_wait home bottomstrip-home;then ok 'bottomstrip home-swipe: short180ms swipe reaches Launcher without a hold'
+	else bottomstrip_fail home-swipe 'short swipe did not reach Launcher';return 1;fi
+	# Reuse the existing task: force-stop/clear-task could hide a stuck transition.
+	if sh 'am start -W -n com.android.settings/.Settings >/dev/null' \
+		&& bottomstrip_wait settings-main bottomstrip-home-relaunch;then ok 'bottomstrip home-relaunch: Settings regains focus after Home swipe'
+	else bottomstrip_fail home-relaunch 'Settings did not regain focus after Home swipe';fi
+}
+# EXIT-safe state journal, separate from other app/sweep tests; no long fixed sleeps.
+bottomstrip_end() {
+	[ "${bottomstrip_active:-0}" = 1 ] || return 0
+	local i restored=0 ui_fast=1 rotation=${bottomstrip_rotation:-0} auto=${bottomstrip_auto:-1}
+	[ "$rotation" != null ] || rotation=0
+	[ "$auto" != null ] || auto=1
+	# Restore while a rotating activity is present; Launcher can keep NOSENSOR rotation.
+	bottomstrip_launch com.android.settings/.Settings settings-main || bottomstrip_fail cleanup 'Settings unavailable while restoring orientation'
+	sh "cmd window user-rotation lock $rotation"
+	case "$rotation" in
+		0|2) bottomstrip_screen bottomstrip-cleanup-rotation 480 640 ;;
+		1|3) bottomstrip_screen bottomstrip-cleanup-rotation 640 480 ;;
+	esac || bottomstrip_fail cleanup 'original orientation did not settle'
+	lset wheel_app_modes "$bottomstrip_modes";lset wheel_app_tuning "$bottomstrip_tuning"
+	if [ "$auto" = 1 ];then sh 'cmd window user-rotation free';else sh "cmd window user-rotation lock $rotation";fi
+	for i in 1 2 3 4 5 6 7 8;do
+		sweep_restore system user_rotation "$bottomstrip_rotation"
+		sweep_restore system accelerometer_rotation "$bottomstrip_auto"
+		if [ "$(dev 'settings get system user_rotation')" = "$bottomstrip_rotation" ] \
+			&& [ "$(dev 'settings get system accelerometer_rotation')" = "$bottomstrip_auto" ];then restored=1;break;fi
+		sleep .2
+	done
+	[ "$restored" = 1 ] && [ "$(lget wheel_app_modes)" = "$bottomstrip_modes" ] \
+		&& [ "$(lget wheel_app_tuning)" = "$bottomstrip_tuning" ] || bottomstrip_fail cleanup 'rotation or app modes/tuning not restored'
+	key 3
+	bottomstrip_wait home bottomstrip-cleanup || bottomstrip_fail cleanup 'Launcher not in front after cleanup'
+	bottomstrip_active=0
+}
+t_bottomstrip() {
+	host_only || return
+	local ui_fast=1
+	bottomstrip_modes=$(lget wheel_app_modes);bottomstrip_tuning=$(lget wheel_app_tuning)
+	bottomstrip_auto=$(dev 'settings get system accelerometer_rotation')
+	bottomstrip_rotation=$(dev 'settings get system user_rotation')
+	case "$bottomstrip_auto:$bottomstrip_rotation" in
+		0:0|0:1|0:2|0:3|0:null|1:0|1:1|1:2|1:3|1:null|null:0|null:1|null:2|null:3|null:null) ;;
+		*) bottomstrip_fail cleanup 'TEST setup: cannot snapshot original rotation';return 1 ;;
+	esac
+	bottomstrip_active=1
+	lset wheel_app_modes 'com.android.settings=app,cat.kenny.r1.wheel.settings=app,cat.kenny.r1.toolbox=app'
+	lset wheel_app_tuning ''
+	if turn 0;then
+		bottomstrip_settings_step settings-portrait 480 640
+		bottomstrip_practice_step
+		bottomstrip_toolbox_step
+		bottomstrip_swipe_step
+	else
+		bottomstrip_fail settings-portrait 'could not lock portrait'
+		echo 'SKIP bottomstrip practice-centre/practice-bottom: portrait setup failed'
+		echo 'SKIP bottomstrip toolbox-settings: portrait setup failed'
+		echo 'SKIP bottomstrip home-swipe/home-relaunch: portrait setup failed'
+	fi
+	if turn 1;then bottomstrip_settings_step settings-landscape 640 480
+	else bottomstrip_fail settings-landscape 'could not lock landscape rotation1';fi
+	bottomstrip_end
+}
+
+tests=${*:-tour boot dialog pin shade settings settingssearch bottomstrip home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
