@@ -155,19 +155,36 @@ failed=; retry=; cur=
 dev() { sh "$*" | tr -d '\r'; }
 
 # Preserve the crash buffer across log clears. A per-run baseline excludes older entries;
-# the ledger deduplicates repeated snapshots but never filters a process by its name.
+# the ledger deduplicates snapshots and excludes only adbd's documented restart abort.
 crash_entries() {
 	awk 'BEGIN { OFS="\t" }
 		{ gsub(/\r/, ""); gsub(/\t/, " "); line=$0; name="" }
 		/AndroidRuntime:[ ]*Process: / {
 			name=line; sub(/^.*AndroidRuntime:[ ]*Process: */, "", name); sub(/, PID:.*/, "", name)
+			lines[++n]=line; names[n]=name
 		}
 		/Fatal signal/ {
+			pid=""
 			if (match(line, /pid[ ]+[0-9]+[ ]+\([^)]*\)/)) {
-				name=substr(line,RSTART,RLENGTH); sub(/^.*\(/,"",name); sub(/\)$/, "", name)
+				part=substr(line,RSTART,RLENGTH)
+				pid=part; sub(/^pid[ ]+/,"",pid); sub(/[ ].*$/,"",pid)
+				name=part; sub(/^.*\(/,"",name); sub(/\)$/, "", name)
 			} else name="<unknown native process>"
+			lines[++n]=line; names[n]=name
+			if (pid!="") native[pid]=n
+			abort[n]=(line ~ /Fatal signal[ ]+6[ ]+\(SIGABRT\)/)
 		}
-		name!="" { print line,name }'
+		# Match the tombstone to its fatal-signal event, not every crash named adbd.
+		/DEBUG[ ]*: pid:[ ]*[0-9]+,/ {
+			pid=line; sub(/^.*DEBUG[ ]*: pid:[ ]*/,"",pid); sub(/,.*/,"",pid)
+			record[$3]=native[pid]
+		}
+		/DEBUG[ ]*: Abort message: / {
+			message=line; sub(/^.*Abort message: /,"",message)
+			e=record[$3]; quote=sprintf("%c",39)
+			if (e && names[e]=="adbd" && abort[e] && message==quote "terminating" quote) benign[e]=1
+		}
+		END { for(i=1;i<=n;i++) if(!benign[i]) print lines[i],names[i] }'
 }
 crash_read() {
 	if ! sh 'logcat -b crash -d -v threadtime' > "$crash_prefix-raw.txt"; then
@@ -235,7 +252,7 @@ t_boot() {
 	dev getprop ro.build.date
 	local crashes
 	# Apps and native processes: a shell tool that throws (a screen dump cut short) names no process
-	crashes=$(dev "logcat -b crash -d | grep -c -e AndroidRuntime:.Process: -e Fatal.signal")
+	crashes=$(dev "logcat -b crash -d -v threadtime" | crash_entries | awk 'END { print NR+0 }')
 	[ "${crashes:-0}" = 0 ] && ok "no crashes" || { bad "crashes: $crashes"; dev "logcat -b crash -d | grep -A6 -e AndroidRuntime:.Process: -e Fatal.signal | head -60"; }
 	local denials
 	denials=$(dev "logcat -d | grep -c avc:.*denied")
@@ -397,16 +414,33 @@ t_power_volume() {
 
 t_touch() {
 	# Touch zones on Settings: a step down taps the bottom of the screen
-	local saved
+	local saved i window ready=0
 	saved=$(lget wheel_app_modes)
 	lset wheel_app_modes com.android.settings=touch:500:300:500:800
 	key 224
-	sh "am start -W -n com.android.settings/.Settings"; sleep 2
+	# A warm Settings task can still have Settings Intelligence Search above its root.
+	# The mode is package-specific: never count a step sent to that other package.
+	sh "am start -W -S -f 0x10008000 -n com.android.settings/.Settings"
+	for i in $(seq 1 20); do
+		window=$(focus_win)
+		case "$window" in *" com.android.settings/"*) ready=1; break;; esac
+		sleep .25
+	done
+	if [ "$ready" != 1 ]; then
+		ui touch; shot touch; bad "touch: Settings did not become foreground ($window)"
+		lset wheel_app_modes "$saved"; key 3; return
+	fi
 	# The touches r1-wheel-touch sends for one step down, read while the step goes in
 	sh "getevent -c 12 /dev/input/event6 > /sdcard/touch.txt 2>&1 & sleep 0.5; $(step_cmd down); sleep 1; kill %1 2>/dev/null"
 	local n
 	n=$(dev "grep -c . /sdcard/touch.txt")
-	[ "${n:-0}" -gt 4 ] && ok "touch zone tapped ($n events)" || bad "touch zone tapped ($n events)"
+	if [ "${n:-0}" -gt 4 ]; then ok "touch zone tapped ($n events)"
+	else
+		bad "touch zone tapped ($n events)"
+		printf 'touch foreground: '; focus_win
+		printf 'touch app modes: '; lget wheel_app_modes
+		ui touch
+	fi
 	dev "cat /sdcard/touch.txt" | head -12
 	shot touch
 	lset wheel_app_modes "$saved"
@@ -599,7 +633,7 @@ t_stock() {
 		diff -q $SHOTS/homes-before.txt $SHOTS/homes-after.txt >/dev/null && ok "homes kept as they were" || bad "homes changed switching ($(diff $SHOTS/homes-before.txt $SHOTS/homes-after.txt | grep -c '^[<>]') lines)"
 	fi
 	[ "$(dev "cmd overlay list android" | grep -c "\[x\] com.rabbit.r1.overlay.wheel")" = 2 ] && ok "wheel UI back on" || bad "wheel overlays not back"
-	[ "$(dev "logcat -b crash -d | grep -c -e AndroidRuntime:.Process: -e Fatal.signal")" = 0 ] && ok "no crashes switching" || bad "crash switching"
+	[ "$(dev "logcat -b crash -d -v threadtime" | crash_entries | awk 'END { print NR+0 }')" = 0 ] && ok "no crashes switching" || bad "crash switching"
 	key 3
 }
 
@@ -1771,8 +1805,14 @@ app_focus() {
 	for way in down up; do
 		was=
 		for i in $(seq 1 24); do
+			if [ -n "${app_focus_activity:-}" ] && ! r2_activity "$app_focus_activity"; then
+				bad "$cur: expected $app_focus_activity before focus travel ($(focus_win))"; return 1
+			fi
 			app_window_ok "$1" || return 1
 			ui "$1"
+			if [ -n "${app_focus_activity:-}" ] && ! r2_activity "$app_focus_activity"; then
+				bad "$cur: expected $app_focus_activity before focus travel ($(focus_win))"; return 1
+			fi
 			if xfocus "$1" | awk -F '\t' -v want="$2" '
 				$1 == "self" && $5 ~ /(RecyclerView|NestedScrollView|ScrollView|ListView)$/ { container = 1 }
 				$1 != "out" && ($8 == want || $9 == want || index($9, want " - ") == 1) { found = 1 }
@@ -2457,7 +2497,7 @@ t_reportcontents() {
 	app_portrait; pageprefs_fresh cat.kenny.r1.problemreport/.ProblemReportActivity reportcontents || { app_end; return; }
 	page_header_folded reportcontents
 	pageprefs_begin cat.kenny.r1.problemreport/.ProblemReportActivity
-	pageprefs_cycle reportcontents 'List of apps' 'Included|Left out'
+	pageprefs_cycle reportcontents 'List of apps' 'Included|Left out, logs can still name apps'
 	# Never activate Save report, GitHub, the note editor or the self-test runner.
 	app_end
 }
@@ -2529,15 +2569,31 @@ t_walkielatch() {
 	app_tap walkielatch 'Talk sounds'; sleep 0.4; ui walkielatch
 	after=$(app_value walkielatch 'Talk sounds' 'On|Off')
 	[ "$after" = "$(app_next 'On|Off' "$before")" ] && ok 'walkielatch: touch changes Talk sounds' || bad 'walkielatch: touch did not change Talk sounds'
-	# First row is the restored focus. No wheel/retry press is allowed between tap and press.
+	# Own handler clicks the focused view on select-UP, including an UP without DOWN.
+	# That can act on the first press; the safe default title deliberately does nothing.
+	# No wheel/retry press before the first post-touch press. Settings now defaults
+	# to its harmless title; restoring that focus must not switch a preference.
 	side_press; sleep 0.5; ui walkielatch
-	if sweep_focus_has walkielatch 'Talk sounds' && [ "$(app_value walkielatch 'Talk sounds' 'On|Off')" = "$before" ]; then
+	if xfocus walkielatch | awk -F '\t' '$1=="self" && $5~/TextView$/ && $8=="Walkie-Talkie settings" {title=1} END{exit !title}'; then
+		if [ "$(app_value walkielatch 'Talk sounds' 'On|Off')" != "$after" ]; then
+			bad 'walkielatch: restoring the harmless title changed Talk sounds'; app_end; return
+		fi
+		ok 'walkielatch: first post-touch press restores the harmless title without changing Talk sounds'
+		# Once the highlight is on a setting, exactly one press must change it.
+		# Wheel travel only: no extra select can hide a dropped row press.
+		app_focus walkielatch 'Talk sounds' || { app_end; return; }
+		side_press; sleep 0.5; ui walkielatch
+		if sweep_focus_has walkielatch 'Talk sounds' && [ "$(app_value walkielatch 'Talk sounds' 'On|Off')" = "$before" ]; then
+			ok 'walkielatch: one press changes Talk sounds once its highlight is back'
+		else bad 'walkielatch: highlighted Talk sounds did not change on one press'; fi
+	elif sweep_focus_has walkielatch 'Talk sounds' && [ "$(app_value walkielatch 'Talk sounds' 'On|Off')" = "$before" ]; then
 		ok 'walkielatch: one post-touch press restores highlight and changes the focused row once'
 	else bad 'walkielatch: one post-touch press did not change the focused row'; fi
 	app_end
 }
 # Use the explicit Add page: it contains kinds, never saved-network switches. Tapping
-# its inert title enters touch mode; the next single select must open the first kind only.
+# its inert title enters touch mode. Page owns select-UP and activates its restored kind
+# on the first press; this is an explicit app-handler exception to the generic OS rule.
 t_tunnelslatch() {
 	local app_modes app_tuning ui_fast=1
 	app_begin cat.kenny.r1.tunnels/.HomeActivity || { app_end; return; }
@@ -2557,7 +2613,9 @@ t_tunnelslatch() {
 		bad 'tunnelslatch: title touch left the identified Add page'; app_end; return
 	fi
 	[ -z "$(sweep_focus_id tunnels-home)" ] || { bad 'tunnelslatch: title touch did not remove the highlight'; app_end; return; }
-	# No intervening wheel step or second press can mask the post-touch release path.
+	# Page handles an uncanceled select-UP itself, even when the framework used DOWN
+	# to restore focus. This first-press activation is an app-handler exception.
+	# No intervening wheel step or second press may hide a stale hold latch.
 	side_press; sleep 0.5
 	if tunnels_page tunnels-latch WireGuard 'Step 1 of 3' && focus_win | grep -Eq 'cat\.kenny\.r1\.tunnels/(cat\.kenny\.r1\.tunnels)?\.WgStartActivity[ }]'; then
 		ok 'tunnelslatch: one post-touch press opens unsaved WireGuard setup from Add'
@@ -2975,8 +3033,15 @@ r2_focus_id() {
 	for way in down up; do
 		was=
 		for i in $(seq 1 32); do
+			if [ -n "${app_focus_activity:-}" ] && ! r2_activity "$app_focus_activity"; then
+				bad "$cur: expected $app_focus_activity before focus travel ($(focus_win))"; return 1
+			fi
 			app_window_ok "$1" || return 1
-			ui "$1"; now=$(focus_field "$1" 5)
+			ui "$1"
+			if [ -n "${app_focus_activity:-}" ] && ! r2_activity "$app_focus_activity"; then
+				bad "$cur: expected $app_focus_activity before focus travel ($(focus_win))"; return 1
+			fi
+			now=$(focus_field "$1" 5)
 			case "$now" in *":id/$2") return 0;; esac
 			now="$now $(focus_field "$1" 6) $(focused_text "$1")"
 			[ "$now" = "$was" ] && break
@@ -3200,8 +3265,24 @@ t_routerrefresh() {
 	app_end
 }
 
+toolbox_has_lap() {
+	xnodes "$1" | awk -F '\t' -v want="Lap $2" '$7==want {found=1} END{exit !found}'
+}
+toolbox_wait_lap() {
+	local snap=$1 wanted=$2 i end ui_fast=1
+	end=$(( $(date +%s) + 10 ))
+	for i in $(seq 1 21); do
+		r2_activity TallyActivity || return 1
+		ui "$snap"
+		# The newest lap is first and visible in portrait, even if lower laps clip there.
+		toolbox_has_lap "$snap" "$wanted" && return 0
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .5
+	done
+	return 1
+}
 t_toolboxextra() {
-	local app_modes app_tuning i file laps screen hint
+	local app_modes app_tuning i file laps screen hint visible
 	host_only || return
 	r2_begin cat.kenny.r1.toolbox/.ToolboxSettingsActivity toolboxextra || return
 	pageprefs_begin cat.kenny.r1.toolbox/.ToolboxSettingsActivity
@@ -3215,15 +3296,33 @@ t_toolboxextra() {
 	side_hold; sleep .3
 	# An empty tally's hold leaves it; reopen without a hold before adding the four laps.
 	if ! r2_activity TallyActivity; then r2_fresh cat.kenny.r1.toolbox/.TallyActivity toolbox-tally || { app_end; return; }; fi
+	ui toolbox-tally-empty
+	if [ "$(app_id_text toolbox-tally-empty count)" != 0 ] \
+		|| xnodes toolbox-tally-empty | awk -F '\t' '$7~/^Lap [0-9]+$/ {found=1} END{exit !found}'; then
+		bad 'toolboxextra: hold did not establish an empty tally fixture'; app_end; return
+	fi
 	# The first turn after a settings tap may only leave touch mode. Prime it before counting laps.
 	wheel down 1 >/dev/null; sleep .2
-	for i in 1 2 3 4; do wheel down 1 >/dev/null; side_press; done
+	for i in 1 2 3 4; do
+		wheel down 1 >/dev/null; side_press
+		# Side presses are dispatched after multi-press detection. Do not group four
+		# unacknowledged presses or rotate before the lap exists; never retry a select.
+		if toolbox_wait_lap "toolbox-lap-$i" "$i"; then
+			ok "toolboxextra: one side press recorded lap $i"
+		else
+			shot toolbox-lap-missing
+			dev 'dumpsys activity cat.kenny.r1.toolbox/.TallyActivity' > "$SHOTS/smoke-toolbox-lap-missing-activity.txt"
+			bad "toolboxextra: one side press did not record lap $i; fixture incomplete, no clipping verdict"
+			app_end; return
+		fi
+	done
 	app_landscape toolbox-fourlaps; file="$SHOTS/smoke-toolbox-fourlaps-activity.txt"
 	dev 'dumpsys activity cat.kenny.r1.toolbox/.TallyActivity' > "$file"
 	laps=$(sweep_canvas_bounds "$file" laps); hint=$(sweep_canvas_bounds "$file" hint_row); screen=$(sweep_screen toolbox-fourlaps)
-	if [ "$(xnodes toolbox-fourlaps | awk -F '\t' '$7~/^Lap [1-4]$/ {n++} END{print n+0}')" = 4 ] \
+	visible=$(xnodes toolbox-fourlaps | awk -F '\t' '$7~/^Lap [1-4]$/ {n++} END{print n+0}')
+	if [ "$visible" = 4 ] \
 		&& sweep_inside "$laps" "$screen" && sweep_clear "$laps" "$hint"; then ok 'toolboxextra: all four lap lines fit in landscape above the hint'
-	else bad "toolboxextra: fourth lap clipped ($laps; $screen; $hint)"; fi
+	else bad "toolboxextra: four recorded laps not all visible after rotation (visible=$visible; $laps; $screen; $hint)"; fi
 	app_end
 	if ! r2_permission cat.kenny.r1.toolbox; then echo 'SKIP toolboxextra Sound Level hold: microphone not already granted; no permission request made'; return; fi
 	toolbox_silent_begin || return
@@ -3378,9 +3477,125 @@ r2_wheel_page() {
 		*) app_title "$1" "$2" ;;
 	esac
 }
+practice_slider_state() {
+	awk '$1~/SeekBar\{/ && /:id\/practice_slider/ && length($2)==9 {print substr($3,4,1);exit}' "$@"
+}
+practice_read_slider() {
+	dev 'dumpsys activity cat.kenny.r1.wheel.settings/.PracticeActivity' > "$SHOTS/smoke-practice-release-activity.txt"
+	practice_slider_state "$SHOTS/smoke-practice-release-activity.txt"
+}
+practice_capture_slider() {
+	practice_native=$(dev 'dumpsys activity cat.kenny.r1.wheel.settings/.PracticeActivity')
+	practice_state=$(printf '%s\n' "$practice_native" | practice_slider_state)
+}
+practice_save_slider() {
+	printf '%s\n' "$practice_native" > "$SHOTS/smoke-practice-release-activity.txt"
+}
+practice_release_slider() {
+	local practice_native practice_state end i
+	r2_activity PracticeActivity || return 1
+	practice_capture_slider
+	# Snapshot writes on the host may outlast the4s timeout. Only a positively
+	# released, still-focused slider may establish a fresh grab/release fixture.
+	if [ "$practice_state" = . ]; then
+		printf '%s\n' "$practice_native" | activity_focus_lines | grep -q ':id/practice_slider' || return 2
+		r2_activity PracticeActivity || return 1
+		echo 'Practice release fixture: expired grab; verify one fresh grab, then one release'
+		side_press
+		end=$(( $(date +%s) + 2 ))
+		for i in $(seq 1 21); do
+			practice_capture_slider
+			[ "$practice_state" != P ] || break
+			[ "$(date +%s)" -lt "$end" ] || break
+			sleep .05
+		done
+	fi
+	[ "$practice_state" = P ] || { practice_save_slider; return 2; }
+	end=$(( $(date +%s) + 3 ))
+	wheel down 1 >/dev/null
+	practice_capture_slider
+	[ "$practice_state" = P ] && [ "$(date +%s)" -lt "$end" ] || { practice_save_slider; return 2; }
+	# No disk writes or accessibility captures until the one explicit release settles.
+	side_press
+	for i in $(seq 1 31); do
+		practice_capture_slider
+		[ "$(date +%s)" -lt "$end" ] || { practice_save_slider; return 1; }
+		[ "$practice_state" != . ] || break
+		sleep .1
+	done
+	practice_save_slider
+	[ "$practice_state" = . ] || return 1
+	for i in 1 2 3 4; do
+		wheel down 1 >/dev/null; sleep .1; ui practice
+		r2_activity PracticeActivity || return 1
+		if xnodes practice | cut -f7 | grep -Eq '^Slider at [0-9]+ of 10$'; then return 1; fi
+		[ "$(focus_field practice 5)" != cat.kenny.r1.wheel.settings:id/practice_text ] || return 0
+	done
+	return 1
+}
+
+practice_wait_activity() {
+	local i end=$(( $(date +%s) + 6 ))
+	for i in $(seq 1 31); do
+		r2_activity "$1" && return 0
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .2
+	done
+	return 1
+}
+practice_wait_help() {
+	practice_wait_activity WheelActivity || return 1
+	local i
+	for i in 1 2 3; do
+		r2_activity WheelActivity || return 1
+		ui wheelpractice
+		r2_activity WheelActivity || return 1
+		xnodes wheelpractice | cut -f7 | grep -Fxq 'Try it' && return 0
+		sleep .1
+	done
+	return 1
+}
+practice_parent_failure() {
+	bad "wheelpractice: $1 did not return to Help ($(focus_win))"
+	ui practice-parent-missing; shot practice-parent-missing
+	dev 'dumpsys activity activities' > "$SHOTS/smoke-practice-parent-tasks.txt"
+	dev 'logcat -d -t 1500 -v threadtime' | grep -Ei 'ActivityTaskManager|InputDispatcher|Gesture|Quickstep|NavigationBar' > "$SHOTS/smoke-practice-parent-events.log"
+}
+practice_done_bounds() {
+	xnodes "$1" | awk -F '\t' '$3=="cat.kenny.r1.wheel.settings" && $4~/TextView$/ && $7=="Done" {print $6;exit}'
+}
+practice_done_point() {
+	local bounds
+	bounds=$(practice_done_bounds "$1")
+	awk -v b="$bounds" 'BEGIN{split(b,a," ");if(a[3]<=a[1] || a[4]<=a[2])exit 1
+		print int((a[1]+a[3])/2),int((a[2]+a[4])/2)}'
+}
+
+practice_tap_done() {
+	local i bounds last= point stable=0
+	for i in 1 2 3 4 5; do
+		r2_activity PracticeActivity || return 1
+		ui practice-tap-done; bounds=$(practice_done_bounds practice-tap-done)
+		if [ -n "$bounds" ] && [ "$bounds" = "$last" ]; then stable=1; break; fi
+		last=$bounds; sleep .1
+	done
+	[ "$stable" = 1 ] || return 1
+	dev 'dumpsys activity cat.kenny.r1.wheel.settings/.PracticeActivity' > "$SHOTS/smoke-practice-tap-insets.txt"
+	point=$(practice_done_point practice-tap-done "$SHOTS/smoke-practice-tap-insets.txt") || return $?
+	[ -n "$point" ] && r2_activity PracticeActivity || return 1
+	# Exactly one tap at the real centre. Mandatory gestures do not forbid normal taps.
+	printf 'Done centre tap: %s\n' "$point"
+	dev 'dumpsys activity activities' > "$SHOTS/smoke-practice-before-tap-tasks.txt"
+	sh "input tap $point"
+}
+practice_focus() { local app_focus_activity=PracticeActivity; app_focus "$@"; }
+practice_focus_id() { local app_focus_activity=PracticeActivity; r2_focus_id "$@"; }
 t_wheelpractice() {
-	local app_modes app_tuning before after
+	local app_modes app_tuning before after release_rc tap_rc ui_fast=1
 	r2_begin cat.kenny.r1.wheel.settings/.WheelActivity wheelpractice || return
+	sh 'am start -W -S -f 0x10008000 -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null'
+	practice_wait_activity WheelActivity || { bad 'wheelpractice: fresh parent did not open'; app_end; return; }
+	ui wheelpractice
 	page_header_folded wheelpractice
 	r2_wheel_page wheelpractice 'How the wheel works' || { app_end; return; }
 	ui wheelpractice
@@ -3388,15 +3603,17 @@ t_wheelpractice() {
 	if r2_row_is wheelpractice 'Try it'; then ok 'wheelpractice: Try it is the first help row'
 	else bad 'wheelpractice: help first row is not Try it'; fi
 	app_focus wheelpractice 'Try it' || { app_end; return; }
-	side_press; sleep .4; ui practice
-	r2_activity PracticeActivity || { bad 'wheelpractice: Try it did not open Practice'; app_end; return; }
-	app_focus practice Apples || { app_end; return; }
+	side_press
+	practice_wait_activity PracticeActivity || { bad 'wheelpractice: Try it did not open Practice'; app_end; return; }
+	dev 'dumpsys activity activities' > "$SHOTS/smoke-practice-parent-chain.txt"
+	ui practice
+	practice_focus practice Apples || { app_end; return; }
 	side_press; sleep .3; ui practice
 	r2_practice_status practice 'Picked Apples'
-	r2_focus_id practice practice_switch || { app_end; return; }
+	practice_focus_id practice practice_switch || { app_end; return; }
 	side_press; sleep .3; ui practice
 	app_title practice 'Switch on'
-	r2_focus_id practice practice_slider || { app_end; return; }
+	practice_focus_id practice practice_slider || { app_end; return; }
 	side_press; sleep .3; ui practice
 	# Reuse the fresh dump: reconnecting twice can consume the 4s grab timeout.
 	if xnodes practice | cut -f7 | grep -Fxq 'Grabbed - turn to set it'; then ok 'wheelpractice: shows Grabbed - turn to set it'
@@ -3408,27 +3625,28 @@ t_wheelpractice() {
 		ok 'wheelpractice: grabbed wheel changes slider value without moving focus'
 		r2_practice_status practice "$after"
 	else bad 'wheelpractice: grabbed slider did not change its initial value'; fi
-	side_press
-	# The policy dispatches the select asynchronously; wait for the real native pressed
-	# flag to clear before sending the step that must leave the released slider.
-	local released=0 j native_state
-	for j in 1 2 3 4 5 6 7 8; do
-		native_state=$(activity_focus practice-release cat.kenny.r1.wheel.settings/.PracticeActivity | awk '$1~/SeekBar\{/ {print substr($3,4,1)}')
-		[ "$native_state" != . ] || { released=1; break; }
-		sleep .1
-	done
-	[ "$released" = 1 ] || bad 'wheelpractice: slider release did not settle'
-	wheel down 1 >/dev/null; sleep .3; ui practice
-	[ "$(focus_field practice 5)" != cat.kenny.r1.wheel.settings:id/practice_slider ] && ok 'wheelpractice: release lets wheel leave the slider' || bad 'wheelpractice: slider did not release'
-	r2_focus_id practice practice_text && ok 'wheelpractice: text field is wheel reachable'
+	if practice_release_slider; then ok 'wheelpractice: verified grabbed slider releases on one press; bounded wheel traversal reaches text without changing slider'
+	else
+		release_rc=$?
+		if [ "$release_rc" = 2 ]; then bad 'wheelpractice: grab expired before explicit-release check'
+		else bad 'wheelpractice: explicit slider release/traversal did not settle'; fi
+	fi
+	practice_focus_id practice practice_text && ok 'wheelpractice: text field is wheel reachable'
 	# Reaching the field is enough: no keyboard typing or app setting is needed.
-	app_focus practice Done || { app_end; return; }
-	side_press; sleep .4
-	if r2_activity PracticeActivity; then bad 'wheelpractice: wheel Done did not leave'; else ok 'wheelpractice: wheel Done leaves'; fi
+	practice_focus practice Done || { app_end; return; }
+	r2_activity PracticeActivity || { bad 'wheelpractice: Practice left before wheel Done'; app_end; return; }
+	side_press
+	if practice_wait_help; then ok 'wheelpractice: wheel Done returns to Help'
+	else practice_parent_failure 'wheel Done'; app_end; return; fi
 	app_focus wheelpractice 'Try it' || { app_end; return; }
-	side_press; sleep .4
-	app_focus practice Done && app_tap practice Done; sleep .4
-	if r2_activity PracticeActivity; then bad 'wheelpractice: tap Done did not leave'; else ok 'wheelpractice: tap Done leaves'; fi
+	side_press
+	practice_wait_activity PracticeActivity || { bad 'wheelpractice: Practice did not reopen for tap Done'; app_end; return; }
+	practice_focus practice Done || { app_end; return; }
+	if ! practice_tap_done; then
+		bad 'wheelpractice: no stable Done centre or Practice window'; app_end; return
+	fi
+	if practice_wait_help; then ok 'wheelpractice: tap Done returns to Help'
+	else practice_parent_failure 'tap Done'; app_end; return; fi
 	app_focus wheelpractice 'Try it' || { app_end; return; }
 	side_press
 	local ready=0 i
@@ -3437,9 +3655,9 @@ t_wheelpractice() {
 		sleep .2
 	done
 	if [ "$ready" = 1 ]; then
-		side_hold; sleep .4
+		side_hold
 		# The successful destination is the Help page, not merely any other activity.
-		if r2_activity WheelActivity; then ok 'wheelpractice: hold returns to Help'
+		if practice_wait_help; then ok 'wheelpractice: hold returns to Help'
 		else ui practice-hold; shot practice-hold; bad 'APP wheelpractice: hold did not return to Help'; fi
 	else bad 'wheelpractice: Practice did not reopen for hold'; fi
 	app_end
@@ -3546,8 +3764,25 @@ t_tourskip() {
 	if r2_activity TourActivity; then bad 'tourskip: press did not skip'; else ok 'tourskip: one press skips tour'; fi
 	app_end
 }
+wheellatch_state() {
+	local label
+	for label in 'Extreme battery saver' 'Battery saver' Balanced Performance; do
+		printf '%s\n' "$label"; app_row "$1" "$label"
+	done
+	dev 'cat /data/user_de/0/cat.kenny.r1.performance/shared_prefs/performance.xml 2>/dev/null; settings get global low_power'
+}
+wheellatch_profiles_page() {
+	# The preference fragment may replace the body in PerformanceActivity rather
+	# than start AppProfilesActivity. Require the unique subpage, not just its class.
+	{ r2_activity AppProfilesActivity || r2_activity PerformanceActivity; } || return 1
+	xnodes "$1" | awk -F '\t' '
+		$7=="Add an app" {add=1}
+		$7=="While one of these apps is in front it uses its own profile. Every other app uses the profile you picked." {intro=1}
+		$7=="Extreme battery saver" {main=1}
+		END{exit !(add && intro && !main)}'
+}
 t_wheellatch() {
-	local app_modes app_tuning at
+	local app_modes app_tuning at before after
 	r2_begin cat.kenny.r1.performance/.PerformanceActivity wheellatch || return
 	app_focus wheellatch 'Per-app profiles' || { app_end; return; }
 	# A title touch removes the highlight without any hold or a profile/CPU change.
@@ -3564,6 +3799,7 @@ t_wheellatch() {
 		at=$(xnodes wheellatch | awk -F '\t' '$4~/RecyclerView$/ {split($6,b," ");if(b[2]>=80 && b[3]>b[1])print int((b[1]+b[3])/2),int((28+b[2])/2);exit}')
 	fi
 	[ -n "$at" ] || { bad 'wheellatch: no safe title above the preference list'; app_end; return; }
+	before=$(wheellatch_state wheellatch)
 	sh "input tap $at"
 	sleep .3; ui wheellatch-touch
 	# RecyclerView can retain non-clickable input focus in touch mode. Its native focus
@@ -3575,10 +3811,22 @@ t_wheellatch() {
 			bad 'wheellatch: touch did not enter the expected ring-free state'; app_end; return
 		fi
 	fi
+	# OS rule: the first press after a touch restores the ring and acts on nothing.
+	# It may focus Extreme saver, so do not activate that default. Wheel-only travel
+	# chooses the harmless subpage before the second physical select; no extra selects.
+	side_press; sleep .4; ui wheellatch-first
+	after=$(wheellatch_state wheellatch-first)
+	if ! r2_activity PerformanceActivity || [ -z "$(xfocus wheellatch-first)" ] \
+		|| ! xfocus wheellatch-first | awk -F '\t' '$1=="self" && $5!~/(RecyclerView|ScrollView)$/ {row=1} END{exit !row}' \
+		|| [ "$before" != "$after" ]; then
+		bad 'wheellatch: first post-touch press opened a page, changed a setting, or failed to restore a row'; app_end; return
+	fi
+	ok 'wheellatch: first post-touch press restores a row without opening or changing anything'
+	app_focus wheellatch-second 'Per-app profiles' || { app_end; return; }
 	side_press; sleep .4; ui wheellatch-open
-	if r2_activity AppProfilesActivity; then
-		ok 'wheellatch: first post-touch press opens harmless subpage without a prior hold'
-	else bad 'wheellatch: wrong subpage after one post-touch press'; fi
+	if wheellatch_profiles_page wheellatch-open; then
+		ok 'wheellatch: second press opens the wheel-focused harmless subpage'
+	else bad 'wheellatch: second post-touch press did not open the focused harmless subpage'; fi
 	key 4; app_end
 }
 
@@ -3608,11 +3856,19 @@ tunnels_zero_error() {
 	done
 	return 1
 }
+tunnels_home_title() {
+	[ "$1" = VPN ] && return 0
+	[ "$1" = 'Private networks' ] || return 1
+	case "$(dev 'getprop ro.haretic.version')" in
+		haretic-20261119-2223|haretic-20261119-2223-nightly) return 0 ;;
+	esac
+	return 1
+}
 tunnels_home_page() {
 	tunnels_activity HomeActivity || return 1
 	ui tunnels-home
-	case "$(app_id_text tunnels-home title)" in 'Private networks'|'Add a network') return 0 ;; esac
-	return 1
+	[ "$(app_id_text tunnels-home title)" = 'Add a network' ] && return 0
+	tunnels_home_title "$(app_id_text tunnels-home title)"
 }
 # A finish/IME/focus transition can outlast the fixed post-hold delay. Do not send a
 # second back to a keypad that failed to leave: wait for an identified parent page first.
@@ -3629,7 +3885,7 @@ tunnels_return_home() {
 	for depth in 1 2 3; do
 		tunnels_wait_home || return 1
 		case "$(app_id_text tunnels-home title)" in
-			'Private networks') return 0 ;;
+			'VPN'|'Private networks') tunnels_home_title "$(app_id_text tunnels-home title)"; return $? ;;
 			'Add a network')
 				# Older/retained stacks can leave the Add instance beneath the wizard.
 				# It is a known parent, so Back closes only that list; never select a row.
@@ -3655,7 +3911,7 @@ tunnels_seek_add() {
 }
 tunnels_add_list() {
 	tunnels_home_page || { bad 'tunnels: expected Home before opening add list'; return 1; }
-	if [ "$(app_id_text tunnels-home title)" = 'Private networks' ] \
+	if tunnels_home_title "$(app_id_text tunnels-home title)" \
 		&& ! app_id_text tunnels-home hint | grep -Eq '^Press to set up (WireGuard|Mullvad|Tailscale|ZeroTier)$'; then
 		# Match the action hint as well as the name: a saved network can itself be named
 		# Add a network. Searching only moves the wheel; switch stops are never pressed.
@@ -3722,8 +3978,8 @@ tunnels_finish() {
 	app_end
 	sh 'am start -W --activity-clear-top -n cat.kenny.r1.tunnels/.HomeActivity'; sleep 0.5
 	if tunnels_return_home; then
-		ok 'tunnels: left on Private networks home'
-	else bad 'tunnels: could not return to Private networks home'; fi
+		ok 'tunnels: left on VPN home'
+	else bad 'tunnels: could not return to VPN home'; fi
 }
 # Both lines belong to the pinned hint; the action and navigation text must be visible.
 tunnels_hint_lines() {
@@ -3883,7 +4139,7 @@ t_tunnels() {
 	if tunnels_activity ZtJoinActivity \
 		&& tunnels_page tunnels-pad ZeroTier 'Step 1 of 2'; then
 		side_hold; sleep 0.5
-		tunnels_return_home && ok 'tunnels: final hold returns to Private networks home' \
+		tunnels_return_home && ok 'tunnels: final hold returns to VPN home' \
 			|| bad 'tunnels: final hold did not return home'
 	fi
 	# Clearing the activity stack is also safe if an unexpected page defeated an assertion.
@@ -4806,15 +5062,46 @@ t_etartitle() {
 	sweep_end
 }
 
+settingssearch_has_query() {
+	xnodes "$1" | awk -F '\t' '$5~/id\/(search_src_text|search_query)$/ && $7=="brightness" {found=1} END{exit !found}'
+}
+settingssearch_has_results() {
+	xnodes "$1" | awk -F '\t' '
+		$5~/id\/(search_src_text|search_query)$/ && $7=="brightness" {query=1}
+		$5=="android:id/title" && tolower($7)~/brightness/ {result=1}
+		END{exit !(query&&result)}'
+}
+settingssearch_wait_results() {
+	local snap=$1 limit=${2:-90} end i window
+	end=$(( $(date +%s) + limit ))
+	# SearchFragment records a query while the fresh-boot index is still building;
+	# onIndexingFinished starts its loader later. Wait for actual result titles.
+	# Both wall time and attempts are bounded; ui itself has a per-command timeout.
+	for i in $(seq 1 181); do
+		window=$(focus_win)
+		case "$window" in *com.android.settings.intelligence/*SearchActivity*) ;; *) return 1;; esac
+		ui "$snap"
+		settingssearch_has_results "$snap" && return 0
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .5
+	done
+	return 1
+}
+settingssearch_end() {
+	# Home alone preserves Search in Settings task history. Pop it even after a failed
+	# assertion so a later warm Settings launch cannot resume the other package.
+	case "$(focus_win)" in *com.android.settings.intelligence/*SearchActivity*) key 4; key 4;; esac
+	sweep_end
+}
 t_settingssearch() {
 	sweep_begin com.android.settings || return
-	local i window focus ready=0
+	local i window focus ready=0 ui_fast=1
 	sh 'am start -W -S -a android.settings.SETTINGS >/dev/null'; sleep 1
 	# Search sits above the list's top: preserve the two up turns that reveal it.
 	wheel up 2 >/dev/null; sleep 1
 	ui settingssearch-main
 	if [ -z "$(sweep_bounds settingssearch-main search_action_bar)" ]; then
-		bad 'Settings search: no search bar'; sweep_end; return
+		bad 'Settings search: no search bar'; settingssearch_end; return
 	fi
 	app_tap_id settingssearch-main search_action_bar
 	# Search is another package/activity. A keyboard field need not report class EditText.
@@ -4824,13 +5111,20 @@ t_settingssearch() {
 		sleep .25
 	done
 	if [ "$ready" != 1 ]; then
-		ui settingssearch-query; bad "Settings search: SearchActivity did not open ($window)"; sweep_end; return
+		ui settingssearch-query; bad "Settings search: SearchActivity did not open ($window)"; settingssearch_end; return
 	fi
 	ui settingssearch-query
-	sh 'input text brightness'; sleep 1; ui settingssearch-results
-	if xnodes settingssearch-results | awk -F '\t' '$7=="brightness" {query=1} tolower($7)~/brightness/ && $7!="brightness" {result=1} END{exit !(query&&result)}'; then
+	sh 'input text brightness'
+	if settingssearch_wait_results settingssearch-results 90; then
 		ok 'Settings search: SearchActivity accepts brightness and shows live results'
-	else bad 'Settings search: query or live brightness results missing'; sweep_end; return; fi
+	else
+		if settingssearch_has_query settingssearch-results; then
+			bad 'Settings search: brightness query accepted, index/live results did not become ready within the bounded wait'
+		else bad 'Settings search: brightness query missing after input'; fi
+		shot settingssearch-timeout
+		dev 'logcat -d -t 1500 -v threadtime' | grep -Ei 'SearchFragment|Indexing|IndexDatabase|SettingsIntelligence' > "$SHOTS/smoke-settingssearch-index.log"
+		settingssearch_end; return
+	fi
 	ready=0
 	for i in 1 2 3 4 5 6 7 8; do
 		wheel down 1 >/dev/null; sleep .25; ui settingssearch-step
@@ -4841,7 +5135,7 @@ t_settingssearch() {
 	done
 	[ "$ready" = 1 ] && ok "Settings search: wheel leaves query, closes keyboard and focuses a result ($focus)" \
 		|| bad "Settings search: result focus/keyboard transition failed ($focus)"
-	key 4; key 4; sweep_end
+	settingssearch_end
 }
 
 tests=${*:-tour boot dialog pin shade settings settingssearch home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
@@ -4867,7 +5161,7 @@ progress() {
 # A test that ended on a touch leaves the windows in touch mode, where the wheel's first step only
 # brings the highlight back: each test starts from the wheel, so its steps count as written
 # Tour's isolated Skip test must launch its own activity, not trigger Home's first-run tour.
-untouch() { key 224; [ "${1:-}" = tourskip ] && return; key 3; wheel down 1 >/dev/null; sleep 0.3; }
+untouch() { key 224; sh 'wm dismiss-keyguard'; [ "${1:-}" = tourskip ] && return; key 3; wheel down 1 >/dev/null; sleep 0.3; }
 for t in $tests; do
 	i=$((i + 1)); progress $i $t
 	echo "== $t"
