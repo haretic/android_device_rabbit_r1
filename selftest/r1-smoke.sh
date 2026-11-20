@@ -315,42 +315,92 @@ t_passthrough() {
 	key 3
 }
 
+# A bouncer can expose its stock PIN view while its wheel pad is being prepared.
+# Do not send a combination or its first press until the actual pad has settled.
+dial_pad_signature() {
+	awk -v kind="$2" 'BEGIN {RS="<"}
+		function attr(name, m) {
+			if(!match($0," " name "=\"[^\"]*\""))return ""
+			return substr($0,RSTART+length(name)+3,RLENGTH-length(name)-4)
+		}
+		function rect(b) {gsub(/[^0-9-]+/," ",b);sub(/^ /,"",b);sub(/ $/,"",b);return b}
+		function visible(b,min, a) {
+			split(b,a," ");return a[1]>=left && a[2]>=top && a[3]<=right && a[4]<=bottom && a[3]-a[1]>=min && a[4]-a[2]>=min
+		}
+		/^node / {
+			pkg=attr("package");id=attr("resource-id");b=rect(attr("bounds"))
+			if(++nodes==1){split(b,s," ");left=s[1];top=s[2];right=s[3];bottom=s[4];root=pkg=="com.android.systemui" && right>left && bottom>top}
+			if(pkg!="com.android.systemui")next
+			if(id=="com.android.systemui:id/wheel_pin_touch_keypad" && visible(b,1) && attr("enabled")=="true" && attr("clickable")=="true")controls=1
+			if(id~/^com\.android\.systemui:id\/key[0-9]$/ && visible(b,1))stock=1
+			if(id=="com.android.systemui:id/wheel_pin_" kind && visible(b,24) && attr("class")=="android.view.View" && attr("enabled")=="true" && attr("focusable")=="true" && attr("clickable")=="true")pad=b
+			if(id=="com.android.systemui:id/wheel_pin_" (kind=="dial"?"drum":"dial") && visible(b,1))other=1
+		}
+		END{if(root && controls && pad!="" && !stock && !other)print kind "|" left " " top " " right " " bottom "|" pad}' "$SHOTS/smoke-$1.xml"
+}
+dial_wait_pad() {
+	local kind=$1 snap=$2 i signature last= end=$(( $(date +%s) + 10 ))
+	for i in $(seq 1 30);do
+		ui "$snap"
+		signature=$(dial_pad_signature "$snap" "$kind")
+		if [ -n "$signature" ] && locked;then
+			[ "$signature" != "$last" ] || return 0
+			last=$signature
+		else last=;fi
+		[ "$(date +%s)" -lt "$end" ] || break
+		sleep .2
+	done
+	return 1
+}
+dial_failure() {
+	bad "$2"
+	ui "$1-failed";shot "$1-failed"
+	dev 'dumpsys window' > "$SHOTS/smoke-$1-window.txt"
+	dev 'dumpsys power' > "$SHOTS/smoke-$1-power.txt"
+	dev 'dumpsys input' > "$SHOTS/smoke-$1-input.txt"
+	dev 'logcat -d -t 1500 -v threadtime' > "$SHOTS/smoke-$1-events.log"
+	{ lget wheel_ui;lget wheel_lockscreen;lget wheel_unlock; } > "$SHOTS/smoke-$1-wheel-settings.txt"
+}
+
 t_dial() {
-	# The combination dial: the PIN 3141 as 3 steps down, 1 up, 4 down, 1 up and a press. A wrong
-	# one keeps the lock, a press before any turn hands over to the drum. The PIN goes after.
-	local after unlock
+	# The combination dial: wrong/right PINs, then one press before any turn to use the drum.
+	local after unlock ui_fast=1
 	after=$(dev "settings get secure lock_screen_lock_after_timeout")
 	unlock=$(lget wheel_unlock)
 	lset wheel_unlock 1
 	sh "locksettings set-pin 3141; settings put secure lock_screen_lock_after_timeout 0"
-	# The bouncer, the wheel's dial in it
-	key 223; sleep 3; key 224; sleep 2; key 82; sleep 2
-	ui dial; shot dial
-	grep -q 'wheel_pin_dial' $SHOTS/smoke-dial.xml && ok "the bouncer opens on the combination dial" \
-		|| bad "no combination dial in the bouncer"
-	# A wrong combination, 3 1 4 2
-	wheel down 3 >/dev/null; wheel up 1 >/dev/null; wheel down 4 >/dev/null; wheel up 2 >/dev/null
-	shot dial-turned; side_press; sleep 2.5
-	locked && ok "a wrong combination keeps the lock" || bad "a wrong combination unlocked"
-	# The right one
-	wheel down 3 >/dev/null; wheel up 1 >/dev/null; wheel down 4 >/dev/null; wheel up 1 >/dev/null
-	ui dial-right
-	side_press; sleep 2.5
-	if locked; then
-		# What the bouncer showed and said, for a failure seen only now and then in a full run
-		bad "the combination 3 1 4 1 left the lock up (see $SHOTS/smoke-dial-right.xml, dial-fail.log)"
-		dev "logcat -d -t 300" | grep -iE 'keyguard|bouncer|wheel|lockout|LockSettings' \
-			> $SHOTS/dial-fail.log
+	key 223; sleep 3; key 224; sleep 2; key 82
+	if dial_wait_pad dial dial;then
+		shot dial;ok "the bouncer opens on the combination dial"
+		# A wrong combination, 3 1 4 2
+		wheel down 3 >/dev/null; wheel up 1 >/dev/null; wheel down 4 >/dev/null; wheel up 2 >/dev/null
+		shot dial-turned; side_press; sleep 2.5
+		locked && ok "a wrong combination keeps the lock" || bad "a wrong combination unlocked"
+		# The right one
+		wheel down 3 >/dev/null; wheel up 1 >/dev/null; wheel down 4 >/dev/null; wheel up 1 >/dev/null
+		ui dial-right
+		side_press; sleep 2.5
+		if locked;then
+			bad "the combination 3 1 4 1 left the lock up (see $SHOTS/smoke-dial-right.xml, dial-fail.log)"
+			dev "logcat -d -t 300" | grep -iE 'keyguard|bouncer|wheel|lockout|LockSettings' > "$SHOTS/dial-fail.log"
+		else ok "the combination unlocks";fi
+		# Capture the second opening before input: no wheel step or extra press may
+		# manufacture readiness for this press-before-turn assertion.
+		key 223; sleep 3; key 224; sleep 2; key 82
+		if dial_wait_pad dial dial-before-press;then
+			side_press
+			if dial_wait_pad drum dial-drum;then
+				shot dial-drum;ok "a press before any turn picks the digits on the drum"
+			else
+				dial_failure dial-drum 'one press from a verified ready dial did not show the drum'
+			fi
+		else
+			dial_failure dial-before-press 'TEST setup: second bouncer did not present a stable ready combination dial; no press sent'
+		fi
 	else
-		ok "the combination unlocks"
+		dial_failure dial 'TEST setup: first bouncer did not present a stable ready combination dial; no combination sent'
 	fi
-	# A press before turning: the drum
-	key 223; sleep 3; key 224; sleep 2; key 82; sleep 2
-	side_press; sleep 1.5; ui dial-drum; shot dial-drum
-	grep -q 'wheel_pin_drum' $SHOTS/smoke-dial-drum.xml && ! grep -q 'wheel_pin_dial' $SHOTS/smoke-dial-drum.xml \
-		&& ok "a press before any turn picks the digits on the drum" || bad "a press before any turn kept the dial"
-	# Out of the bouncer, the PIN gone, and the lock screen with nothing to unlock dismissed:
-	# the drum takes Enter as the wheel's press, so typing the PIN in it doesn't unlock
+	# Always remove the temporary PIN and restore settings, including failed setup.
 	key 4; sleep 1
 	sh "locksettings clear --old 3141"
 	key 223; sleep 2; key 224; sleep 1
