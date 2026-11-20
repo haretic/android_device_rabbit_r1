@@ -3646,7 +3646,13 @@ t_wheelpractice() {
 	r2_begin cat.kenny.r1.wheel.settings/.WheelActivity wheelpractice || return
 	sh 'am start -W -S -f 0x10008000 -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null'
 	practice_wait_activity WheelActivity || { bad 'wheelpractice: fresh parent did not open'; app_end; return; }
+	# The activity is resumed before its first frame: a dump taken then is empty, so wait for
+	# the page's list to be on screen
+	local tries=0
 	ui wheelpractice
+	while [ -z "$(sweep_screen wheelpractice)" ] && [ "$tries" -lt 10 ]; do
+		tries=$((tries + 1)); sleep .3; ui wheelpractice
+	done
 	page_header_folded wheelpractice
 	r2_wheel_page wheelpractice 'How the wheel works' || { app_end; return; }
 	ui wheelpractice
