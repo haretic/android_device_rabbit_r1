@@ -66,7 +66,8 @@ public class PracticeActivity extends Activity {
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             final android.graphics.Insets bars = insets.getInsets(
                     android.view.WindowInsets.Type.systemBars()
-                            | android.view.WindowInsets.Type.displayCutout());
+                            | android.view.WindowInsets.Type.displayCutout()
+                            | android.view.WindowInsets.Type.mandatorySystemGestures());
             v.setPadding(dp(16) + bars.left, dp(8) + bars.top, dp(16) + bars.right,
                     bars.bottom);
             return insets;
