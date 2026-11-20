@@ -1343,7 +1343,7 @@ timepicker_in_stock_mode() {
 	case "$h1" in ''|*[!0-9]*) h1=x ;; esac
 	if [ "$h0" = x ] || [ "$h1" = x ]; then
 		bad "time picker: no hour to read, focus on '$at' ('$h0', '$h1')"
-	elif [ $((10#$h1)) -eq $(((10#$h0 + 1) % 24)) ]; then
+	elif [ $((10#$h1)) -eq $(((10#$h0 + 1) % 24)) ] || { [ $((10#$h0)) -eq 12 ] && [ $((10#$h1)) -eq 1 ]; }; then
 		ok "time picker: the wheel sets the grabbed hour, kept as the focus moves on"
 	else
 		bad "time picker: the hour went $h0 to $h1, not one on"
