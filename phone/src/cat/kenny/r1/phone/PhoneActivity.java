@@ -257,6 +257,9 @@ public final class PhoneActivity extends Activity {
     /** Whether the highlight was moved to the music keys since the phone came. */
     private boolean mShown;
 
+    /** Initial safe focus for each off/waiting entry, without stealing later wheel travel. */
+    private int mSetupFocusTarget = View.NO_ID;
+
     private void render() {
         final Link link = link();
         final int state = link == null ? -1 : link.state();
@@ -294,13 +297,17 @@ public final class PhoneActivity extends Activity {
             mNotices.removeAllViews();
             hold(false);
             mShown = false;
-            if (getCurrentFocus() == null) {
-                // Turn on starts there; once on, the same button turns it off, so the first
-                // press lands on Settings instead and Turn off is a step up
-                findViewById(link == null ? R.id.link : R.id.settings).requestFocus();
+            final int target = link == null ? R.id.link : R.id.settings;
+            if (mSetupFocusTarget != target || getCurrentFocus() == null) {
+                // Hiding music can move focus to the first button (Turn off). Set the
+                // safe entry target once even if that automatic focus already exists.
+                if (findViewById(target).requestFocus()) {
+                    mSetupFocusTarget = target;
+                }
             }
             return;
         }
+        mSetupFocusTarget = View.NO_ID;
         final Link.Music music = link.music;
         ((TextView) findViewById(R.id.track)).setText(music.title.isEmpty()
                 ? getString(R.string.nothing_playing) : music.title);
