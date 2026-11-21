@@ -34,6 +34,19 @@ public final class Radio {
     private final DatagramPacket sendPacket;
     /** The same bytes again to the subnet's broadcast address, null where there is none. */
     private DatagramPacket broadcastPacket;
+    /**
+     * Where each peer was last heard from, for sending it the voice directly. Wi-Fi holds
+     * multicast and broadcast back and hands them over in clumps about every 100 ms, unacknowledged;
+     * a packet addressed to the peer goes at once and is sent again when it is lost.
+     */
+    private final java.util.HashMap<Long, Direct> direct = new java.util.HashMap<>();
+    private DatagramPacket directPacket;
+
+    private static final class Direct {
+        InetAddress address;
+        int channel;
+        long heard;
+    }
     private String name;
     private int channel = 1;
     private MulticastSocket socket;
@@ -106,6 +119,7 @@ public final class Radio {
         network = nif;
         helloAt = 0;
         receiving = talking = havePrevious = false;
+        direct.clear();
         incoming = null;
         receiver = new Thread(() -> receive(opened), "walkie-receive");
         receiver.setDaemon(true);
@@ -170,7 +184,7 @@ public final class Radio {
         Objects.checkFromIndexSize(0, Packet.FRAME, pcm320.length);
         if (socket == null || !talking) return;
         MuLaw.encode(pcm320, 0, Packet.FRAME, encoded, 0);
-        send(Packet.voice(sendBytes, id, channel, outgoingTalk, sent, encoded, 0));
+        sendVoice(Packet.voice(sendBytes, id, channel, outgoingTalk, sent, encoded, 0));
         sent++;
     }
 
@@ -191,7 +205,7 @@ public final class Radio {
                     }
                 }
             }
-            send(length);
+            sendVoice(length);
         }
         if (interrupted) Thread.currentThread().interrupt();
     }
@@ -217,7 +231,7 @@ public final class Radio {
                         if ((type == Packet.HELLO || type == Packet.BYE
                                 || bytes[12] == channel) && packet.parse(bytes, length)
                                 && packet.id != id) {
-                            handle(packet, now());
+                            handle(packet, now(), datagram.getAddress());
                         }
                     }
                 }
@@ -239,14 +253,26 @@ public final class Radio {
         }
     }
 
-    private void handle(Packet packet, long now) {
+    private void handle(Packet packet, long now, InetAddress from) {
         if (receiving && receivedChannel != channel) {
             endIncoming(now, incoming.receivedLimit());
         }
         if (packet.type == Packet.BYE) {
             peers.left(packet.id);
+            direct.remove(packet.id);
             if (receiving && sender == packet.id) endIncoming(now, incoming.receivedLimit());
             return;
+        }
+        if (from instanceof Inet4Address && !from.isMulticastAddress()) {
+            Direct peer = direct.get(packet.id);
+            if (peer == null) {
+                if (direct.size() >= 64) direct.clear();
+                peer = new Direct();
+                direct.put(packet.id, peer);
+            }
+            peer.address = from;
+            peer.channel = packet.channel;
+            peer.heard = now;
         }
         peers.heard(packet.id, packet.channel, packet.name, now);
         if (packet.type == Packet.HELLO) return;
@@ -261,7 +287,7 @@ public final class Radio {
             if (receiving && (sender != packet.id || incomingTalk != packet.talk)) return;
             boolean began = !receiving;
             if (began) {
-                incoming = new JitterBuffer(3);
+                incoming = new JitterBuffer(4);
                 receiving = true;
                 sender = packet.id;
                 incomingTalk = packet.talk;
@@ -313,6 +339,27 @@ public final class Radio {
             }
         } catch (IOException ignored) {
             // Wi-Fi can disappear between frames; the peer's silence timer ends the talk.
+        }
+    }
+
+    /** A talk's packet: to everyone as before, and straight to each peer heard on this channel. */
+    private void sendVoice(int length) {
+        send(length);
+        if (socket == null) return;
+        long now = now();
+        for (Direct peer : direct.values()) {
+            // A hello comes every 3 s: one silent for 10 s has left or changed address
+            if (peer.channel != channel || now - peer.heard > 10000) continue;
+            try {
+                if (directPacket == null) {
+                    directPacket = new DatagramPacket(sendBytes, 0, peer.address, port);
+                }
+                directPacket.setAddress(peer.address);
+                directPacket.setLength(length);
+                socket.send(directPacket);
+            } catch (IOException ignored) {
+                // The copy to everyone has gone out already
+            }
         }
     }
 

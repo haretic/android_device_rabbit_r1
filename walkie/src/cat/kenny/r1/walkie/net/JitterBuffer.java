@@ -64,6 +64,12 @@ public final class JitterBuffer {
             positions[slot] = -1;
             queued--;
             repeats = 0;
+        } else if (queued == 0 && end < 0) {
+            // Run dry with the talk still going: the next frames are late, not lost. Wi-Fi
+            // delivers a talk sent to everyone in clumps, so wait for a few again instead of
+            // playing a gap and then dropping the frames that arrive after it.
+            started = false;
+            return false;
         } else {
             lost++;
             repeats++;
