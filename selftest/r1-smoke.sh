@@ -647,6 +647,58 @@ t_wheeltune() {
 	esac
 }
 
+t_locktap() {
+	# A finger's tap on the lock screen's padlock unlocks, as the side button's press on it does
+	local at
+	key 223; sleep 3; key 224; sleep 2.5
+	if ! locked; then echo "SKIP locktap: no lock screen after the screen went off"; key 3; return; fi
+	ui locktap
+	at=$(grep -oE 'resource-id="com.android.systemui:id/device_entry_icon_view"[^>]*bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]' $SHOTS/smoke-locktap.xml | head -1 | grep -oE '[0-9]+' | tail -4 | tr '\n' ' ' | awk '{ print int(($1 + $3) / 2), int(($2 + $4) / 2) }')
+	if [ -z "$at" ]; then shot locktap; bad "no padlock on the lock screen"; sh "wm dismiss-keyguard"; key 3; return; fi
+	sh "input tap $at"; sleep 2.5
+	locked && { shot locktap; bad "a tap on the padlock ($at) left the lock screen up"; } \
+		|| ok "a tap on the padlock unlocks"
+	sh "wm dismiss-keyguard"; key 3
+}
+
+t_wheelsens() {
+	# Sensitivity (Settings > Wheel > Wheel feel) sets the wheel driver's step by the wheel and
+	# by touch, with the Kernel Tweaks off, and Standard leaves the setting unset
+	local d; d=$(dev "ls -d /sys/bus/i2c/drivers/och1970/*-000d 2>/dev/null | head -1")
+	if [ -z "$d" ]; then echo "SKIP wheelsens: this kernel has no wheel tuning"; return; fi
+	local on step got i
+	on=$(dev getprop persist.sys.r1.kt.enabled); step=$(dev getprop persist.sys.r1.kt.wheel_step)
+	sh "setprop persist.sys.r1.kt.enabled \"\"; setprop persist.sys.r1.kt.wheel_step \"\"; setprop sys.r1.kt.apply t$(date +%s%N)"
+	key 224; sh "wm dismiss-keyguard"
+	sh "am start -W -S -n cat.kenny.r1.wheel.settings/.WheelActivity >/dev/null"; sleep 1
+	app_focus sens-entry 'Wheel feel' || return
+	side_press; sleep .8
+	app_focus sens-row 'Sensitivity' || return
+	shot sens-row
+	grep -q 'text="Standard - 18 steps a turn"' $SHOTS/smoke-sens-row.xml \
+		&& ok "Sensitivity shows Standard when unset" || bad "Sensitivity does not show Standard when unset"
+	side_press; sleep .8
+	# The list opens on Standard; a step down is Low, 24 degrees a step
+	wheel down 1 >/dev/null; sleep .5; side_press
+	for i in 1 2 3 4 5 6 7 8; do sleep 1; got=$(dev cat $d/step_deg 2>/dev/null); [ "$got" = 24 ] && break; done
+	got="$got $(dev getprop persist.sys.r1.kt.wheel_step)"
+	[ "$got" = "24 24" ] && ok "Sensitivity set by the wheel reaches the wheel with the tweaks off ($got)" \
+		|| bad "Sensitivity set by the wheel did not reach the wheel (step, setting: $got)"
+	ui sens-low
+	grep -q 'text="Low - 15 steps a turn"' $SHOTS/smoke-sens-low.xml \
+		&& ok "the row shows the sensitivity set" || bad "the row does not show Low"
+	# By touch: the row, then Standard
+	tap_text sens-low Sensitivity; sleep 1; ui sens-list
+	tap_text sens-list 'Standard - 18 steps a turn' || bad "no Standard in the list of sensitivities"
+	for i in 1 2 3 4 5 6 7 8; do sleep 1; got=$(dev cat $d/step_deg 2>/dev/null); [ "$got" = 20 ] && break; done
+	got="$got [$(dev getprop persist.sys.r1.kt.wheel_step)]"
+	[ "$got" = "20 []" ] && ok "Standard by touch puts the wheel back and unsets the setting" \
+		|| bad "Standard by touch did not put the wheel back (step, setting: $got)"
+	key 4; key 4; key 3
+	sh "setprop persist.sys.r1.kt.wheel_step \"$step\"; setprop persist.sys.r1.kt.enabled \"$on\"; setprop sys.r1.kt.apply t$(date +%s%N)"
+	sleep 5
+}
+
 t_allapps() {
 	# All apps opened from home: the wheel's first step is on an app in the list, not on home
 	key 224; key 3; sleep 1; wheel down 1; sleep 0.5
@@ -5590,7 +5642,7 @@ t_bottomstrip() {
 	bottomstrip_end
 }
 
-tests=${*:-tour boot dialog pin shade settings settingssearch bottomstrip home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
+tests=${*:-tour boot dialog pin shade settings settingssearch bottomstrip home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune wheelsens locktap walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")
@@ -5614,11 +5666,22 @@ progress() {
 # brings the highlight back: each test starts from the wheel, so its steps count as written
 # Tour's isolated Skip test must launch its own activity, not trigger Home's first-run tour.
 untouch() { key 224; sh 'wm dismiss-keyguard'; [ "${1:-}" = tourskip ] && return; key 3; wheel down 1 >/dev/null; sleep 0.3; }
+# The brightness the run found: a test's tap or drag in the shade can land on its slider, and the
+# screen then stayed at full brightness for hours. Put back after every test and at the end
+run_bright=$(dev "settings get system screen_brightness"); run_bmode=$(dev "settings get system screen_brightness_mode")
+bright_back() {
+	case "$run_bright" in ''|*[!0-9]*) return ;; esac
+	[ "$(dev "settings get system screen_brightness")" = "$run_bright" ] \
+		|| { echo "brightness moved in ${cur:-?}, put back to $run_bright"; sh "settings put system screen_brightness $run_bright"; }
+	case "$run_bmode" in 0|1) [ "$(dev "settings get system screen_brightness_mode")" = "$run_bmode" ] \
+		|| sh "settings put system screen_brightness_mode $run_bmode" ;; esac
+}
 for t in $tests; do
 	i=$((i + 1)); progress $i $t
 	echo "== $t"
 	untouch "$t"
 	cur=$t; t_$t
+	bright_back
 done
 # A test that failed runs once more at the end, its lines marked RETRY: one that passes then was
 # caught by something passing, as the host's adb server restarted under it; one that fails again
@@ -5630,6 +5693,7 @@ for t in $(echo "$failed" | tr ' ' '\n' | awk 'NF && !seen[$0]++'); do
 	echo "== retry $t"
 	untouch "$t"
 	cur=$t; t_$t
+	bright_back
 done
 
 fi

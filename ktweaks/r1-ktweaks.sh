@@ -30,7 +30,9 @@
 #   persist.sys.r1.kt.motor_step 250 | 360 | 600, the camera motor's pause between steps in us
 #   persist.sys.r1.kt.wheel_poll_fast 10 | 16 | 33, ms between the wheel's readings as it turns
 #   persist.sys.r1.kt.wheel_poll 33 | 50 | 100, ms between its readings while it rests
-#   persist.sys.r1.kt.wheel_step 15 | 20 | 24 | 30, the degrees of turn a wheel step takes
+#   persist.sys.r1.kt.wheel_step 12 | 15 | 20 | 24 | 30 | 40, the degrees of turn a wheel step
+#                               takes: the wheel's sensitivity, a setting of Settings > Wheel
+#                               > Wheel feel, in use with the tweaks off too
 # and then sys.r1.kt.apply to anything new. Unset means the default. Writes
 # sys.r1.kt.result (ok, or the tweaks that could not be set) for the page.
 #
@@ -257,12 +259,14 @@ apply() {
 	# The speaker's gain is a sound setting as much as a tweak (Settings > Sound has it too): it
 	# holds whether the tweaks are on or not
 	speaker=$(prop speaker)
+	# The wheel's sensitivity is the wheel's setting, not a tweak: it holds either way too
+	wheel_step=$(prop wheel_step)
 	case "$speaker" in -[1-6]|[0-9]|1[0-9]|2[0-5]) ;; *) speaker=8 ;; esac
 	case "$mic" in 0|6|12|18|24) ;; *) mic=24 ;; esac
 	case "$motor_step" in 250|360|600) ;; *) motor_step=360 ;; esac
 	case "$wheel_fast" in 10|16|33) ;; *) wheel_fast=10 ;; esac
 	case "$wheel_idle" in 33|50|100) ;; *) wheel_idle=33 ;; esac
-	case "$wheel_step" in 15|20|24|30) ;; *) wheel_step=20 ;; esac
+	case "$wheel_step" in 12|15|20|24|30|40) ;; *) wheel_step=20 ;; esac
 	case "$gpu" in *[!0-9]*) gpu="" ;; esac
 	case "$governor" in schedutil|performance|powersave) ;;
 	*) governor=$(getprop sys.r1.kt.default_governor) ;; esac

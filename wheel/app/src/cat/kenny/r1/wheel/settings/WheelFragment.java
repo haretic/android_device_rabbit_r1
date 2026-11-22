@@ -3,6 +3,8 @@ package cat.kenny.r1.wheel.settings;
 
 import android.content.ContentResolver;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -28,6 +30,13 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
 
     private static final String KEY_WHEEL_UI = "wheel_ui";
     private static final String KEY_PARTS = "parts";
+    /**
+     * The wheel's sensitivity: the degrees of turn a step takes, in the wheel's driver. Set by
+     * r1-ktweaks (ktweaks/) from this property, on sys.r1.kt.apply and at every start.
+     */
+    private static final String KEY_SENSITIVITY = "wheel_sensitivity";
+    private static final String PROP_STEP = "persist.sys.r1.kt.wheel_step";
+    private static final String DEFAULT_STEP = "20";
     private static final String KEY_RUNNING = LineageSettings.Secure.WHEEL_TASKBAR_RUNNING;
 
     /** The settings' values when unset, as SystemUI's WheelTaskbarSettings has them. */
@@ -97,6 +106,19 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
                     list.setValue((String) value);
                     summarise(list);
                 }
+                return true;
+            });
+        }
+        final ListPreference sensitivity = findPreference(KEY_SENSITIVITY);
+        if (sensitivity != null) {
+            sensitivity.setOnPreferenceChangeListener((p, value) -> {
+                // Unset at the default, as every tweak of r1-ktweaks is
+                SystemProperties.set(PROP_STEP,
+                        DEFAULT_STEP.equals(value) ? "" : (String) value);
+                SystemProperties.set("sys.r1.kt.apply",
+                        Long.toString(SystemClock.elapsedRealtime()));
+                sensitivity.setValue((String) value);
+                summarise(sensitivity);
                 return true;
             });
         }
@@ -174,6 +196,12 @@ public class WheelFragment extends SettingsBasePreferenceFragment {
             } else if (preference instanceof SwitchPreferenceCompat toggle) {
                 toggle.setChecked(value != 0);
             }
+        }
+        final ListPreference sensitivity = findPreference(KEY_SENSITIVITY);
+        if (sensitivity != null) {
+            final String step = SystemProperties.get(PROP_STEP, DEFAULT_STEP);
+            sensitivity.setValue(sensitivity.findIndexOfValue(step) < 0 ? DEFAULT_STEP : step);
+            summarise(sensitivity);
         }
         final Preference buttons = findPreference("buttons");
         if (buttons != null) {

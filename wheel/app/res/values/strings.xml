@@ -212,6 +212,24 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+    <string name="sensitivity_title">Sensitivity</string>
+    <string-array name="sensitivity_entries">
+        <item>Highest - 30 steps a turn</item>
+        <item>High - 24 steps a turn</item>
+        <item>Standard - 18 steps a turn</item>
+        <item>Low - 15 steps a turn</item>
+        <item>Lower - 12 steps a turn</item>
+        <item>Lowest - 9 steps a turn</item>
+    </string-array>
+    <!-- The degrees of turn a step takes -->
+    <string-array name="sensitivity_values" translatable="false">
+        <item>12</item>
+        <item>15</item>
+        <item>20</item>
+        <item>24</item>
+        <item>30</item>
+        <item>40</item>
+    </string-array>
     <string name="distance_title">Scroll distance</string>
     <string-array name="distance_entries">
         <item>Shortest</item>
@@ -273,7 +291,7 @@
     <string name="turn_title">Turn with the screen</string>
     <string name="turn_summary_on">Up on the wheel stays up on the screen, however the screen is turned</string>
     <string name="turn_summary_off">The wheel keeps its upright direction when the screen is turned</string>
-    <string name="feel_footer">Scroll distance and spin apply where the wheel scrolls a page smoothly. Press guard ignores the small turn a press of the side button can cause.</string>
+    <string name="feel_footer">Sensitivity is how little of a turn makes a step, everywhere the wheel is used. Scroll distance and spin apply where the wheel scrolls a page smoothly. Press guard ignores the small turn a press of the side button can cause.</string>
     <string name="side_button_press">Side button press</string>
     <string name="side_button_hold">Side button hold</string>
     <string name="side_button_triple">Side button triple press</string>
@@ -441,7 +459,7 @@
     <string name="page_taskbar_title">Taskbar</string>
     <string name="page_taskbar_summary">Its buttons, running apps, edge, timing and look</string>
     <string name="page_feel_title">Wheel feel</string>
-    <string name="page_feel_summary">Step size, spin and direction</string>
+    <string name="page_feel_summary">Sensitivity, scroll distance, spin and direction</string>
     <string name="page_parts_title">Parts of the system</string>
     <string name="page_parts_summary">The wheel version or the original of each part</string>
 </resources>

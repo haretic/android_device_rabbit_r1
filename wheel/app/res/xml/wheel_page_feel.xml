@@ -5,6 +5,14 @@
 
     <!-- No heading: it would only repeat the page's title -->
     <PreferenceCategory android:key="feel">
+        <!-- Not a LineageSettings key: the wheel driver's step, which r1-ktweaks sets -->
+        <ListPreference
+            android:key="wheel_sensitivity"
+            android:title="@string/sensitivity_title"
+            android:dialogTitle="@string/sensitivity_title"
+            android:entries="@array/sensitivity_entries"
+            android:entryValues="@array/sensitivity_values"
+            android:persistent="false" />
         <ListPreference
             android:key="wheel_scroll_distance"
             android:title="@string/distance_title"

@@ -57,8 +57,6 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private static final String DEFAULT_WHEEL_FAST = "10";
     private static final int[] WHEEL_IDLE_MS = {33, 50, 100};
     private static final String DEFAULT_WHEEL_IDLE = "33";
-    private static final int[] WHEEL_STEP_DEG = {30, 24, 20, 15};
-    private static final String DEFAULT_WHEEL_STEP = "20";
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mUpdate = this::update;
@@ -86,7 +84,6 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
     private ListPreference mCameraPark;
     private ListPreference mWheelFast;
     private ListPreference mWheelIdle;
-    private ListPreference mWheelStep;
     private SwitchPreferenceCompat mWifiWpa2;
     private SwitchPreferenceCompat mShowDocs;
     /** The overlay that keeps saved WPA2 networks on WPA2; the Wi-Fi service reads it as it starts. */
@@ -277,17 +274,6 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
 
         mWheelFast = wheelRates(KernelTweaks.WHEEL_POLL_FAST, WHEEL_FAST_MS, DEFAULT_WHEEL_FAST);
         mWheelIdle = wheelRates(KernelTweaks.WHEEL_POLL, WHEEL_IDLE_MS, DEFAULT_WHEEL_IDLE);
-        mWheelStep = findPreference(KernelTweaks.WHEEL_STEP);
-        final CharSequence[] stepSizes = new CharSequence[WHEEL_STEP_DEG.length];
-        final CharSequence[] stepValues = new CharSequence[WHEEL_STEP_DEG.length];
-        for (int i = 0; i < WHEEL_STEP_DEG.length; i++) {
-            stepSizes[i] = getString(R.string.kt_wheel_step_value, WHEEL_STEP_DEG[i],
-                    360 / WHEEL_STEP_DEG[i]);
-            stepValues[i] = Integer.toString(WHEEL_STEP_DEG[i]);
-        }
-        mWheelStep.setEntries(stepSizes);
-        mWheelStep.setEntryValues(stepValues);
-        bind(mWheelStep, DEFAULT_WHEEL_STEP);
 
         // The camera HAL's own setting, outside the tweaks' switch
         mCameraPark = findPreference("camera_park");
@@ -487,7 +473,6 @@ public class KernelTweaksFragment extends SettingsBasePreferenceFragment {
         show(mMotor, "360", R.string.kt_motor_what);
         show(mWheelFast, DEFAULT_WHEEL_FAST, R.string.kt_wheel_fast_what);
         show(mWheelIdle, DEFAULT_WHEEL_IDLE, R.string.kt_wheel_idle_what);
-        show(mWheelStep, DEFAULT_WHEEL_STEP, R.string.kt_wheel_step_what);
         final String cameraPark = SystemProperties.get(KernelTweaks.CAMERA_PARK, "");
         mCameraPark.setValue(TextUtils.isEmpty(cameraPark) ? "90" : cameraPark);
         String cameraParkSummary = TextUtils.isEmpty(cameraPark)
