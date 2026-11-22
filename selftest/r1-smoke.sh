@@ -5036,7 +5036,13 @@ t_imeland() {
 	[ "$shown:$started:$full" = true:true:false ] \
 		&& ok "Landscape IME: shown without fullscreen/extract mode (extract hidden=$hidden)" \
 		|| bad "Landscape IME: window=$shown input=$started fullscreen=$full extractHidden=$hidden"
-	ui imeland-keyboard; at=$(sweep_cancel_at imeland-keyboard)
+	# The dialog moves up as the keyboard's window comes in: a dump taken in that moment has the
+	# dialog where it was, its buttons behind the keyboard, so wait for the layout to settle
+	for i in 1 2 3 4 5; do
+		ui imeland-keyboard; at=$(sweep_cancel_at imeland-keyboard)
+		[ -n "$at" ] && break
+		sleep 0.6
+	done
 	[ -n "$at" ] && ok 'Landscape IME: dialog Cancel remains on screen' || bad 'Landscape IME: keyboard hides dialog Cancel'
 	# Tap only the identified negative button. No text is typed and no positive button pressed.
 	if [ -n "$at" ]; then sh "input tap $at"; else key 4; sleep 0.2; key 4; fi
