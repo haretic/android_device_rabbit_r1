@@ -165,4 +165,11 @@
     <bool name="config_supportsCamToggle">true</bool>
     <!-- The screenshot's sound: haretic's, where AOSP plays the camera's shutter -->
     <string translatable="false" name="config_cameraShutterSound">/product/media/audio/ui/Screenshot.ogg</string>
+
+    <!-- Voice over LTE through the MediaTek IMS service (modem/ims.mk). No video calls and no
+         Wi-Fi calling: neither is brought up -->
+    <bool name="config_device_volte_available">true</bool>
+    <bool name="config_device_vt_available">false</bool>
+    <bool name="config_device_wfc_ims_available">false</bool>
+    <bool name="config_allow_ussd_over_ims">true</bool>
 </resources>

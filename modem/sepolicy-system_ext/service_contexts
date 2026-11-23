@@ -1,0 +1,24 @@
+# Binder services of the MediaTek IMS service and GBA service, both in the phone process's
+# domain (labels as in LineageOS's device/mediatek/sepolicy_vndr)
+mtkIms                                  u:object_r:radio_service:s0
+mwis                                    u:object_r:radio_service:s0
+wfo                                     u:object_r:radio_service:s0
+imsa                                    u:object_r:radio_service:s0
+imtksms                                 u:object_r:radio_service:s0
+isubstub                                u:object_r:radio_service:s0
+GbaService                              u:object_r:radio_service:s0
+
+# The IMS service looks for an AIDL radio HAL before the HIDL one the r1's rild serves; the
+# names are labelled so that the lookup is answered instead of denied
+vendor.mediatek.hardware.mtkradioex.ims.IMtkRadioExIms/slot1       u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.voice.IMtkRadioExVoice/slot1   u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.modem.IMtkRadioExModem/slot1   u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.sim.IMtkRadioExSim/slot1       u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.network.IMtkRadioExNetwork/slot1 u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.data.IMtkRadioExData/slot1     u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.messaging.IMtkRadioExMessaging/slot1 u:object_r:hal_radio_service:s0
+vendor.mediatek.hardware.mtkradioex.rcs.IMtkRadioExRcs/slot1       u:object_r:hal_radio_service:s0
+android.hardware.radio.modem.IRadioModem/imsSlot1                  u:object_r:hal_radio_service:s0
+android.hardware.radio.network.IRadioNetwork/imsSlot1              u:object_r:hal_radio_service:s0
+android.hardware.radio.sim.IRadioSim/imsSlot1                      u:object_r:hal_radio_service:s0
+android.hardware.radio.voice.IRadioVoice/imsSlot1                  u:object_r:hal_radio_service:s0

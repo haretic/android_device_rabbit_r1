@@ -661,6 +661,32 @@ t_locktap() {
 	sh "wm dismiss-keyguard"; key 3
 }
 
+t_volte() {
+	# VoLTE: the IMS service is the one Telephony binds, its voice feature is up, and the five
+	# daemons between rild and the modem's IMS stack run. Registration itself needs a SIM on a
+	# network with VoLTE, so it is reported, not judged
+	dev "pm list features" | grep -q 'feature:android.hardware.telephony.ims$' \
+		&& ok "the device declares IMS" || bad "no android.hardware.telephony.ims feature"
+	local got s down=
+	got=$(dev "cmd phone ims get-ims-service -s 0 -d")
+	[ "$got" = com.mediatek.ims ] && ok "Telephony's IMS service is com.mediatek.ims" \
+		|| bad "Telephony's IMS service is '$got'"
+	if [ "$(dev getprop init.svc.vendor.ril-daemon-mtk)" != running ]; then
+		echo "SKIP volte: the modem is not up"; return
+	fi
+	for s in volte_md_status volte_imsm_93 vendor.volte_stack vendor.volte_ua vendor.volte_imcb; do
+		[ "$(dev getprop init.svc.$s)" = running ] || down="$down $s"
+	done
+	[ -z "$down" ] && ok "the IMS daemons run" || bad "IMS daemons not running:$down"
+	for s in 1 2 3 4 5 6; do
+		dev "service list" | grep -q 'mtkIms: ' && break; sleep 5
+	done
+	dev "service list" | grep -q 'mtkIms: ' && ok "the IMS service is up" || bad "the IMS service did not come up"
+	got=$(dev "logcat -d -b crash" | grep -c 'Process: com.mediatek.ims')
+	[ "$got" = 0 ] && ok "the IMS service has not crashed" || bad "the IMS service crashed $got times"
+	echo "INFO volte: sim $(dev getprop gsm.sim.state), ims registered: $(dev "dumpsys telephony.registry" | grep -m1 -o 'mImsRegistered=[a-z]*' || echo unknown)"
+}
+
 t_wheelsens() {
 	# Sensitivity (Settings > Wheel > Wheel feel) sets the wheel driver's step by the wheel and
 	# by touch, with the Kernel Tweaks off, and Standard leaves the setting unset
@@ -5648,7 +5674,7 @@ t_bottomstrip() {
 	bottomstrip_end
 }
 
-tests=${*:-tour boot dialog pin shade settings settingssearch bottomstrip home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune wheelsens locktap walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
+tests=${*:-tour boot dialog pin shade settings settingssearch bottomstrip home power_volume touch pinch homepage overlay slider zones reach allapps stock compose appinfo rotation edge turned openwith ime kbheight powerhold subpage firststop landshade landpower noring outslider choicelist title appdefaults toolhold tooltouch synthmodes walkieset toolboxset walkielatch tunnelslatch overlaylook batterypage reportcontents smallheaders stresscancel synthloop routerset portset phoneset webdeskset usbemuset tunnels tunnelsfirstpress routername wifidialog plaintext dialpad timepicker offcamera alongrow gallery toolbar applist overlist actionbar knobs folder dial passthrough homemenu readorder emptyfirst recentsfirst filesfocus brightgrab calcrows composerows updaterrow viewerbar calgrid dialkeyring drawermenu sharesheet rotlock imeland wheelsetfirst synthland walkieland routerinset dialland etartitle composefirst listadjust boxstep scrollsight triple wakedouble natural apptune shortlist wheeltune wheelsens locktap volte walkiemessages webdeskstart routerrefresh toolboxextra portsheets phonekeys usbshortcuts wheelpractice wheellook wheelparts tourskip wheellatch}
 # The screen stays on through the run, as the lock screen's 10 s timeout would sleep it between a
 # test's keys and dumps; the user's setting comes back after
 stay=$(dev "settings get global stay_on_while_plugged_in")

@@ -92,7 +92,6 @@ lib/libh264enc_sa.ca7.so
 lib/libhwbinder.so
 lib/libion_mtk.so
 lib/libion_ulit.so
-lib/libladder.so
 lib/libmp4enc_sa.ca7.so
 lib/libmtk_drvb.so
 lib/libmtkperf_client_vendor.so
@@ -107,6 +106,3 @@ lib/libvcodec_utility.so
 lib/libvcodecdrv.so
 lib/libvp8dec_sa.ca7.so
 lib/libvp9dec_sa.ca7.so
-lib/vendor.mediatek.hardware.mtkpower@1.0.so
-lib/vendor.mediatek.hardware.mtkpower@1.1.so
-lib/vendor.mediatek.hardware.mtkpower@1.2.so

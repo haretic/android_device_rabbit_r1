@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- AOSP turns VoLTE on carrier by carrier and knows few of them, where a phone maker ships
+     its own list. Here it is available on every carrier: the network decides whether the
+     device registers, and 4G calling stays a switch in the SIM's settings. -->
+<carrier_config_list>
+    <carrier_config>
+        <boolean name="carrier_volte_available_bool" value="true" />
+    </carrier_config>
+</carrier_config_list>

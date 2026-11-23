@@ -27,7 +27,6 @@ PRODUCT_COPY_FILES += \
     $(R1_MODEM_BLOBS)/etc/ecc_list.xml:$(TARGET_COPY_OUT_VENDOR)/etc/ecc_list.xml \
     $(R1_MODEM_BLOBS)/etc/ecc_list_preference.xml:$(TARGET_COPY_OUT_VENDOR)/etc/ecc_list_preference.xml \
     $(R1_MODEM_BLOBS)/lib64/hw/vendor.mediatek.hardware.nvram@1.1-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vendor.mediatek.hardware.nvram@1.1-impl.so \
-    $(R1_MODEM_BLOBS)/lib64/libaedv.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libaedv.so \
     $(R1_MODEM_BLOBS)/lib64/libcapctrl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libcapctrl.so \
     $(R1_MODEM_BLOBS)/lib64/libcares_naptr.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libcares_naptr.so \
     $(R1_MODEM_BLOBS)/lib64/libcarrierconfig.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libcarrierconfig.so \
@@ -65,8 +64,6 @@ PRODUCT_COPY_FILES += \
     $(R1_MODEM_BLOBS)/lib64/libvia-ril.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libvia-ril.so \
     $(R1_MODEM_BLOBS)/lib64/libviamipc-ril.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libviamipc-ril.so \
     $(R1_MODEM_BLOBS)/lib64/libwpfa.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libwpfa.so \
-    $(R1_MODEM_BLOBS)/lib64/vendor.mediatek.hardware.mtkradioex@3.0.so:$(TARGET_COPY_OUT_VENDOR)/lib64/vendor.mediatek.hardware.mtkradioex@3.0.so \
-    $(R1_MODEM_BLOBS)/lib64/vendor.mediatek.hardware.netdagent@1.0.so:$(TARGET_COPY_OUT_VENDOR)/lib64/vendor.mediatek.hardware.netdagent@1.0.so \
     $(R1_MODEM_BLOBS)/lib64/vendor.mediatek.hardware.nvram@1.0.so:$(TARGET_COPY_OUT_VENDOR)/lib64/vendor.mediatek.hardware.nvram@1.0.so \
     $(R1_MODEM_BLOBS)/lib64/vendor.mediatek.hardware.nvram@1.1.so:$(TARGET_COPY_OUT_VENDOR)/lib64/vendor.mediatek.hardware.nvram@1.1.so
 
@@ -147,11 +144,16 @@ PRODUCT_VENDOR_PROPERTIES += \
     persist.vendor.radio.flashless.fsm_cst=0 \
     persist.vendor.radio.flashless.fsm_rw=0 \
     persist.vendor.md_c2k_cap_dep_check=0 \
-    persist.vendor.vilte_support=0 \
-    ro.vendor.md_auto_setup_ims=0 \
-    persist.vendor.mims_support=1 \
     ro.vendor.md_apps.support=1 \
     ro.vendor.md_apps.load_type=user \
     ro.vendor.md_apps.load_gencfg=GEN93_USER
-# ro.vendor.md_auto_setup_ims is 1 on stock. 0 keeps the modem from bringing up
-# an IMS PDN that nothing on our side (no MTK ImsService) would ever use.
+
+# IMS (VoLTE): daemons, the IMS service and its switches.
+include $(R1_MODEM_PATH)/ims.mk
+
+# Built from LineageOS's hardware/mediatek, whose modules install to the same paths as the
+# stock copies did: the debug-report stub and the two MediaTek interface libraries.
+PRODUCT_PACKAGES += \
+    libaedv \
+    vendor.mediatek.hardware.mtkradioex@3.0.vendor \
+    vendor.mediatek.hardware.netdagent@1.0.vendor

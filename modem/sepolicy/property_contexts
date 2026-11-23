@@ -18,3 +18,17 @@ vendor.ims.                     u:object_r:vendor_mtk_ril_prop:s0
 persist.vendor.mtk.vilte.       u:object_r:vendor_mtk_ril_prop:s0
 persist.vendor.mtk.volte.       u:object_r:vendor_mtk_ril_prop:s0
 persist.vendor.ss.              u:object_r:vendor_mtk_ril_prop:s0
+vendor.volte_md_status          u:object_r:vendor_mtk_md_status_prop:s0
+persist.vendor.ims_support      u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mims_support     u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.volte_support    u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.vilte_support    u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.viwifi_support   u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk_wfc_support  u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk_ct_volte_support u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk_dynamic_ims_switch u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk.wfc.         u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk.viwifi.      u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk.ims.         u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.ims.             u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.operator.        u:object_r:vendor_mtk_ims_prop:s0

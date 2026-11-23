@@ -69,7 +69,8 @@ type sysfs_ccci, fs_type, sysfs_type;
 
 # Properties
 vendor_internal_prop(vendor_r1_modem_prop)
-vendor_internal_prop(vendor_mtk_ril_prop)
+# Read by the IMS service in the phone process too (ims.te)
+vendor_restricted_prop(vendor_mtk_ril_prop)
 vendor_internal_prop(vendor_mtk_md_prop)
 vendor_internal_prop(vendor_mtk_nvram_prop)
 vendor_restricted_prop(vendor_mtk_radio_config_prop)

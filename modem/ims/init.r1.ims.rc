@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: Apache-2.0
+# IMS (VoLTE): the modem's IMS stack is driven from here. volte_md_status follows the modem
+# and sets vendor.volte_md_status; ready starts the manager (volte_imsm_93, the modem's IMS
+# data path), the SIP stack, the user agent and the control bridge (volte_imcb), which the
+# IMS service reaches through rild. They stop whenever the modem resets or goes to flight mode.
+# Service definitions as the LineageOS MT6765 trees have them. Started with the modem's own
+# services, behind the same NV check (init.r1.modem.rc).
+
+service volte_md_status /vendor/bin/volte_md_status
+    class core
+    user system
+    group radio log system
+    oneshot
+    disabled
+
+service volte_imsm_93 /vendor/bin/volte_imsm_93
+    class main
+    user system
+    group radio cache inet misc log system wifi net_raw
+    capabilities NET_RAW NET_ADMIN
+    oneshot
+    disabled
+
+service vendor.volte_stack /vendor/bin/volte_stack
+    class main
+    socket volte_stack stream 660 system system
+    user system
+    group system log inet radio
+    capabilities NET_ADMIN
+    oneshot
+    disabled
+
+service vendor.volte_ua /vendor/bin/volte_ua
+    class main
+    socket volte_ua stream 660 system system
+    user radio
+    group system log inet radio net_admin
+    oneshot
+    disabled
+
+service vendor.volte_imcb /vendor/bin/volte_imcb
+    class main
+    socket volte_imsa1 stream 660 system radio
+    socket volte_imsa2 stream 660 system radio
+    socket volte_ut stream 660 system radio
+    user system
+    group system log inet radio
+    capabilities WAKE_ALARM
+    oneshot
+    disabled
+
+on property:vendor.r1.modem.nv_ready=1
+    start volte_md_status
+
+on property:vendor.volte_md_status=ready
+    restart volte_imsm_93
+    restart vendor.volte_stack
+    restart vendor.volte_ua
+    restart vendor.volte_imcb
+
+on property:vendor.volte_md_status=reset
+    rm /dev/radio/pttyims
+    stop vendor.volte_imcb
+    stop vendor.volte_ua
+    stop vendor.volte_stack
+    stop volte_imsm_93
+
+on property:vendor.volte_md_status=stop
+    rm /dev/radio/pttyims
+    stop vendor.volte_imcb
+    stop vendor.volte_ua
+    stop vendor.volte_stack
+    stop volte_imsm_93
+
+on property:vendor.volte_md_status=flightmode
+    rm /dev/radio/pttyims
+    stop vendor.volte_imcb
+    stop vendor.volte_ua
+    stop vendor.volte_stack
+    stop volte_imsm_93
+
+on property:vendor.volte_md_status=exception
+    rm /dev/radio/pttyims
+    stop vendor.volte_imcb
+    stop vendor.volte_ua
+    stop vendor.volte_stack
+    stop volte_imsm_93

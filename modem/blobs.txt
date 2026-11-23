@@ -5,7 +5,9 @@
 # Not listed, because they come from elsewhere:
 #   android.hardware.radio@1.0-1.6, android.hardware.radio.config@1.0-1.3,
 #   libhidltransport, android.hidl.safe_union@1.0: built .vendor variants (modem.mk)
-#   libladder.so: already shipped by vendor/rabbit/r1-pvr
+#   libladder.so, libaedv.so, vendor.mediatek.hardware.mtkradioex@3.0 and netdagent@1.0:
+#     built from LineageOS's hardware/mediatek (modem.mk)
+#   the IMS daemons and the IMS service: vendor/rabbit/r1-ims/blobs.txt (ims.mk)
 # Needs patchelf at import: lib64/libnvram.so and lib64/libsysenv.so get
 #   --add-needed libr1_base_shim.so (see shim/).
 bin/ccci_mdinit
@@ -21,7 +23,6 @@ lib/libmtkcutils.so
 lib/libmtkproperty.so
 lib/libmtkrillog.so
 lib64/hw/vendor.mediatek.hardware.nvram@1.1-impl.so
-lib64/libaedv.so
 lib64/libcapctrl.so
 lib64/libcares_naptr.so
 lib64/libcarrierconfig.so
@@ -59,7 +60,5 @@ lib64/libtrm.so
 lib64/libvia-ril.so
 lib64/libviamipc-ril.so
 lib64/libwpfa.so
-lib64/vendor.mediatek.hardware.mtkradioex@3.0.so
-lib64/vendor.mediatek.hardware.netdagent@1.0.so
 lib64/vendor.mediatek.hardware.nvram@1.0.so
 lib64/vendor.mediatek.hardware.nvram@1.1.so

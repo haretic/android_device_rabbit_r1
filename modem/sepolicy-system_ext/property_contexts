@@ -1,0 +1,2 @@
+# Set by the IMS service to have its settings re-sent to the modem
+vendor.ril.imsconfig.force.notify       u:object_r:system_mtk_imsconfig_prop:s0

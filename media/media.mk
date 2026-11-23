@@ -55,7 +55,6 @@ PRODUCT_COPY_FILES += \
     $(R1_MEDIA_BLOBS)/lib/r1-c2/libhwbinder.so:$(TARGET_COPY_OUT_VENDOR)/lib/r1-c2/libhwbinder.so \
     $(R1_MEDIA_BLOBS)/lib/libion_mtk.so:$(TARGET_COPY_OUT_VENDOR)/lib/libion_mtk.so \
     $(R1_MEDIA_BLOBS)/lib/libion_ulit.so:$(TARGET_COPY_OUT_VENDOR)/lib/libion_ulit.so \
-    $(R1_MEDIA_BLOBS)/lib/libladder.so:$(TARGET_COPY_OUT_VENDOR)/lib/libladder.so \
     $(R1_MEDIA_BLOBS)/lib/libmp4enc_sa.ca7.so:$(TARGET_COPY_OUT_VENDOR)/lib/libmp4enc_sa.ca7.so \
     $(R1_MEDIA_BLOBS)/lib/libmtk_drvb.so:$(TARGET_COPY_OUT_VENDOR)/lib/libmtk_drvb.so \
     $(R1_MEDIA_BLOBS)/lib/libmtkperf_client_vendor.so:$(TARGET_COPY_OUT_VENDOR)/lib/libmtkperf_client_vendor.so \
@@ -69,10 +68,7 @@ PRODUCT_COPY_FILES += \
     $(R1_MEDIA_BLOBS)/lib/libvcodec_utility.so:$(TARGET_COPY_OUT_VENDOR)/lib/libvcodec_utility.so \
     $(R1_MEDIA_BLOBS)/lib/libvcodecdrv.so:$(TARGET_COPY_OUT_VENDOR)/lib/libvcodecdrv.so \
     $(R1_MEDIA_BLOBS)/lib/libvp8dec_sa.ca7.so:$(TARGET_COPY_OUT_VENDOR)/lib/libvp8dec_sa.ca7.so \
-    $(R1_MEDIA_BLOBS)/lib/libvp9dec_sa.ca7.so:$(TARGET_COPY_OUT_VENDOR)/lib/libvp9dec_sa.ca7.so \
-    $(R1_MEDIA_BLOBS)/lib/vendor.mediatek.hardware.mtkpower@1.0.so:$(TARGET_COPY_OUT_VENDOR)/lib/vendor.mediatek.hardware.mtkpower@1.0.so \
-    $(R1_MEDIA_BLOBS)/lib/vendor.mediatek.hardware.mtkpower@1.1.so:$(TARGET_COPY_OUT_VENDOR)/lib/vendor.mediatek.hardware.mtkpower@1.1.so \
-    $(R1_MEDIA_BLOBS)/lib/vendor.mediatek.hardware.mtkpower@1.2.so:$(TARGET_COPY_OUT_VENDOR)/lib/vendor.mediatek.hardware.mtkpower@1.2.so
+    $(R1_MEDIA_BLOBS)/lib/libvp9dec_sa.ca7.so:$(TARGET_COPY_OUT_VENDOR)/lib/libvp9dec_sa.ca7.so
 
 # The Android 12 symbols the blobs import (shim/).
 PRODUCT_PACKAGES += libr1_codec2_shim
@@ -160,3 +156,11 @@ PRODUCT_VENDOR_PROPERTIES += \
 # always convert it, with dpframework/, as they do for other consumers.
 PRODUCT_VENDOR_PROPERTIES += \
     vendor.mtk.c2.vdec.force.output.cc=1
+
+# Built from LineageOS's hardware/mediatek (in the tree for IMS, modem/ims.mk), whose modules
+# install to the same paths as the stock copies did.
+PRODUCT_PACKAGES += \
+    libladder:32 \
+    vendor.mediatek.hardware.mtkpower@1.0.vendor:32 \
+    vendor.mediatek.hardware.mtkpower@1.1.vendor:32 \
+    vendor.mediatek.hardware.mtkpower@1.2.vendor:32

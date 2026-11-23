@@ -1,0 +1,124 @@
+# IMS (VoLTE): the daemons between rild and the modem's IMS stack (ims.mk). The rules follow
+# LineageOS's device/mediatek/sepolicy_vndr, cut to what this port ships: no video calls,
+# no Wi-Fi calling, no RCS.
+
+type volte_md_status, domain;
+type volte_md_status_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(volte_md_status)
+
+type volte_imsm_93, domain;
+type volte_imsm_93_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(volte_imsm_93)
+net_domain(volte_imsm_93)
+
+type volte_stack, domain;
+type volte_stack_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(volte_stack)
+net_domain(volte_stack)
+
+type volte_ua, domain;
+type volte_ua_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(volte_ua)
+net_domain(volte_ua)
+
+type volte_imcb, domain;
+type volte_imcb_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(volte_imcb)
+net_domain(volte_imcb)
+
+# Their init sockets
+type volte_imsa_socket, file_type;
+type volte_ut_socket, file_type;
+type volte_ua_socket, file_type;
+type volte_stack_socket, file_type;
+
+# vendor.volte_md_status, which starts and stops the other four (init.r1.ims.rc)
+vendor_internal_prop(vendor_mtk_md_status_prop)
+
+# IMS switches, set in the build (ims.mk) and by rild
+vendor_restricted_prop(vendor_mtk_ims_prop)
+set_prop(rild, vendor_mtk_ims_prop)
+set_prop(vendor_init, vendor_mtk_ims_prop)
+get_prop(ccci_mdinit, vendor_mtk_ims_prop)
+
+# All of them talk to the modem over CCCI and mark their sockets through netd
+define(`r1_ims_md_domain', `
+allow $1 ccci_device:chr_file rw_file_perms;
+allow $1 sysfs_ccci:dir search;
+allow $1 sysfs_ccci:file r_file_perms;
+allow $1 fwmarkd_socket:sock_file write;
+allow $1 netd:unix_stream_socket connectto;
+allow netd $1:fd use;
+allow netd $1:{ tcp_socket udp_socket } { read write setopt getopt };
+')
+r1_ims_md_domain(volte_md_status)
+r1_ims_md_domain(volte_imsm_93)
+r1_ims_md_domain(volte_stack)
+r1_ims_md_domain(volte_ua)
+r1_ims_md_domain(volte_imcb)
+
+# volte_md_status: follows the modem's state
+set_prop(volte_md_status, vendor_mtk_md_status_prop)
+
+# volte_imsm_93: the modem's IMS manager channel, linked as /dev/radio/pttyims, and the IMS
+# bearer's interfaces
+allow volte_imsm_93 self:capability { setuid setgid net_admin net_raw chown };
+allow volte_imsm_93 self:udp_socket create_socket_perms;
+allowxperm volte_imsm_93 self:udp_socket ioctl { SIOCGIFFLAGS SIOCSIFFLAGS SIOCGIFADDR SIOCSIFADDR SIOCGIFINDEX SIOCSIFMTU };
+allow volte_imsm_93 self:netlink_route_socket { create_socket_perms_no_ioctl nlmsg_read nlmsg_write nlmsg };
+# Addresses and routes on the IMS bearer's interfaces (RTM_NEWLINK to RTM_GETRULE)
+allowxperm volte_imsm_93 self:netlink_route_socket nlmsg { 0x10-0x22 };
+allow volte_imsm_93 self:netlink_generic_socket create_socket_perms_no_ioctl;
+unix_socket_connect(volte_imsm_93, volte_imsa, volte_imcb)
+allow volte_imsm_93 mtk_radio_device:dir rw_dir_perms;
+allow volte_imsm_93 mtk_radio_device:lnk_file create_file_perms;
+allow volte_imsm_93 devpts:chr_file { rw_file_perms setattr };
+set_prop(volte_imsm_93, vendor_mtk_ril_prop)
+
+# volte_stack: SIP over the IMS bearer, with IPsec to the P-CSCF
+allow volte_stack self:capability { setuid setgid net_admin };
+allow volte_stack self:key_socket { create read write setopt };
+allow volte_stack self:netlink_xfrm_socket { create_socket_perms_no_ioctl nlmsg_read nlmsg_write nlmsg };
+# IPsec states and policies (XFRM_MSG_NEWSA to XFRM_MSG_FLUSHPOLICY)
+allowxperm volte_stack self:netlink_xfrm_socket nlmsg { 0x10-0x1d };
+allow volte_stack volte_stack_socket:sock_file write;
+allow volte_stack self:tcp_socket create_stream_socket_perms;
+allow volte_stack self:udp_socket create_socket_perms;
+allow volte_stack node:{ tcp_socket udp_socket } node_bind;
+allow volte_stack port:{ tcp_socket udp_socket } name_bind;
+allow volte_stack port:tcp_socket name_connect;
+
+# volte_ua: the user agent, on top of the stack
+allow volte_ua self:capability { setuid setgid };
+allow volte_ua self:capability2 wake_alarm;
+allow volte_ua self:udp_socket create_socket_perms;
+allow volte_ua node:udp_socket node_bind;
+unix_socket_connect(volte_ua, volte_stack, volte_stack)
+allow volte_ua volte_ua_socket:sock_file write;
+
+# volte_imcb: the control bridge rild talks to
+allow volte_imcb self:capability { setuid setgid };
+allow volte_imcb self:capability2 wake_alarm;
+allow volte_imcb self:tcp_socket create_stream_socket_perms;
+allow volte_imcb node:tcp_socket node_bind;
+allow volte_imcb port:tcp_socket name_bind;
+unix_socket_connect(volte_imcb, volte_ua, volte_ua)
+allow volte_imcb { volte_imsa_socket volte_ut_socket }:sock_file write;
+allow volte_imcb mtk_radio_device:dir rw_dir_perms;
+allow volte_imcb mtk_radio_device:lnk_file create_file_perms;
+allow volte_imcb devpts:chr_file { rw_file_perms setattr };
+set_prop(volte_imcb, vendor_mtk_ril_prop)
+
+# rild reaches the IMS stack through volte_imcb's sockets and the manager's AT channel
+unix_socket_connect(rild, volte_imsa, volte_imcb)
+unix_socket_connect(rild, volte_ut, volte_imcb)
+get_prop(rild, vendor_mtk_md_status_prop)
+
+# The IMS service (com.mediatek.ims, in the phone process's domain) drives rild's MediaTek
+# radio interface and reads the modem's IMS settings
+allow radio mtk_hal_rild_hwservice:hwservice_manager find;
+allow radio netdagent_hwservice:hwservice_manager find;
+binder_call(radio, netdagent)
+get_prop(radio, vendor_mtk_ril_prop)
+get_prop(radio, vendor_mtk_radio_config_prop)
+get_prop(radio, vendor_mtk_ims_prop)

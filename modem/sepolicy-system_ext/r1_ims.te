@@ -1,0 +1,8 @@
+# The MediaTek IMS service (com.mediatek.ims) runs in the phone process's domain
+system_internal_prop(system_mtk_imsconfig_prop)
+typeattribute system_mtk_imsconfig_prop extended_core_property_type;
+set_prop(radio, system_mtk_imsconfig_prop)
+
+# Its Wi-Fi monitor lists the network interfaces
+allow radio self:netlink_route_socket nlmsg;
+allowxperm radio self:netlink_route_socket nlmsg RTM_GETLINK;

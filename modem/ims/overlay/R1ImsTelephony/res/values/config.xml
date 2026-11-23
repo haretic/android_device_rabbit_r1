@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- The IMS service Telephony binds for voice and SMS over LTE, and the GBA service it uses for
+     supplementary services -->
+<resources>
+    <string name="config_ims_mmtel_package" translatable="false">com.mediatek.ims</string>
+    <string name="config_ims_rcs_package" translatable="false">com.mediatek.ims</string>
+    <string name="config_gba_package" translatable="false">com.mediatek.gbaservice</string>
+</resources>
