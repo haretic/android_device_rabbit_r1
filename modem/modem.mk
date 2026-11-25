@@ -99,7 +99,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(R1_MODEM_PATH)/init.r1.modem.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.r1.modem.rc \
     $(R1_MODEM_PATH)/ueventd.r1-modem.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.r1-modem.rc \
-    $(R1_MODEM_PATH)/r1-modem-nvcheck.sh:$(TARGET_COPY_OUT_VENDOR)/bin/r1-modem-nvcheck.sh
+    $(R1_MODEM_PATH)/r1-modem-nvcheck.sh:$(TARGET_COPY_OUT_VENDOR)/bin/r1-modem-nvcheck.sh \
+    $(R1_MODEM_PATH)/r1-modem-uemode.sh:$(TARGET_COPY_OUT_VENDOR)/bin/r1-modem-uemode.sh
 
 DEVICE_MANIFEST_FILE += $(R1_MODEM_PATH)/manifest-modem.xml
 
@@ -157,3 +158,7 @@ PRODUCT_PACKAGES += \
     libaedv \
     vendor.mediatek.hardware.mtkradioex@3.0.vendor \
     vendor.mediatek.hardware.netdagent@1.0.vendor
+
+# The stock RIL writes every AT exchange to the radio log: the default 256 KiB holds three
+# minutes of it. 4 MiB keeps what happened around registration for a problem report.
+PRODUCT_SYSTEM_PROPERTIES += ro.logd.size.radio=4M

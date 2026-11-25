@@ -32,3 +32,6 @@ persist.vendor.mtk.viwifi.      u:object_r:vendor_mtk_ims_prop:s0
 persist.vendor.mtk.ims.         u:object_r:vendor_mtk_ims_prop:s0
 persist.vendor.ims.             u:object_r:vendor_mtk_ims_prop:s0
 persist.vendor.operator.        u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk.provision.   u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk.vonr.        u:object_r:vendor_mtk_ims_prop:s0
+persist.vendor.mtk.vinr.        u:object_r:vendor_mtk_ims_prop:s0

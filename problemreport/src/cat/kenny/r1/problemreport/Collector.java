@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.DropBoxManager;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.StatFs;
@@ -23,6 +24,9 @@ import android.os.SystemProperties;
 import android.provider.Settings;
 import android.system.Os;
 import android.system.StructUtsname;
+import android.telephony.CarrierConfigManager;
+import android.telephony.ServiceState;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 
@@ -208,12 +212,48 @@ final class Collector {
                     Settings.Global.AIRPLANE_MODE_ON, 0));
             w.println("(the Wi-Fi and Bluetooth dumps are left out: they are full of names)");
             w.println();
+            mobile(context, w);
+            w.println();
         }
         dump(f, "input");
         dump(f, "display");
         dump(f, "sensorservice");
         dump(f, "audio");
         dump(f, "usb");
+    }
+
+    /**
+     * The mobile network's state, by its numbers: which SIM and network (operator codes), what
+     * the r1 is registered for and whether voice over LTE is up. No cell, no phone number.
+     */
+    private static void mobile(Context context, PrintWriter w) {
+        w.println("Mobile network:");
+        try {
+            final TelephonyManager tm = context.getSystemService(TelephonyManager.class);
+            if (tm == null) {
+                w.println("  (no telephony)");
+                return;
+            }
+            w.println("  SIM state: " + tm.getSimState() + ", SIM operator: " + tm.getSimOperator()
+                    + ", network operator: " + tm.getNetworkOperator());
+            w.println("  Data: network type " + tm.getDataNetworkType() + ", state "
+                    + tm.getDataState() + ", mobile data on: " + tm.isDataEnabled());
+            final ServiceState ss = tm.getServiceState();
+            if (ss != null) {
+                w.println("  Service: voice " + ss.getState() + ", data " + ss.getDataRegState()
+                        + ", roaming: " + ss.getRoaming());
+            }
+            w.println("  IMS: registered " + tm.isImsRegistered() + ", VoLTE available "
+                    + tm.isVolteAvailable());
+            final CarrierConfigManager cc = context.getSystemService(CarrierConfigManager.class);
+            final PersistableBundle b = cc != null ? cc.getConfig() : null;
+            if (b != null) {
+                w.println("  Carrier allows VoLTE: "
+                        + b.getBoolean(CarrierConfigManager.KEY_CARRIER_VOLTE_AVAILABLE_BOOL));
+            }
+        } catch (RuntimeException e) {
+            w.println("  (not readable: " + e + ")");
+        }
     }
 
     /** apps.txt: the installed apps, what runs, the memory they use */

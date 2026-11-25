@@ -7,6 +7,7 @@
 /vendor/bin/hw/mtkfusionrild                                u:object_r:rild_exec:s0
 /vendor/bin/netdagent                                       u:object_r:netdagent_exec:s0
 /vendor/bin/r1-modem-nvcheck\.sh                            u:object_r:r1_modem_nvcheck_exec:s0
+/vendor/bin/r1-modem-uemode\.sh                             u:object_r:r1_modem_uemode_exec:s0
 /vendor/bin/volte_md_status                                 u:object_r:volte_md_status_exec:s0
 /vendor/bin/volte_imsm_93                                   u:object_r:volte_imsm_93_exec:s0
 /vendor/bin/volte_stack                                     u:object_r:volte_stack_exec:s0

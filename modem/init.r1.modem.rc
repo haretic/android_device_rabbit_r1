@@ -54,6 +54,16 @@ service vendor.r1-modem-nvcheck /vendor/bin/r1-modem-nvcheck.sh
     oneshot
     disabled
 
+# Data centric UE mode, once rild has the modem's channels up (r1-modem-uemode.sh)
+service vendor.r1-modem-uemode /vendor/bin/r1-modem-uemode.sh
+    user radio
+    group radio
+    oneshot
+    disabled
+
+on property:init.svc.vendor.ril-daemon-mtk=running
+    start vendor.r1-modem-uemode
+
 service nvram_daemon /vendor/bin/nvram_daemon
     class core
     user root

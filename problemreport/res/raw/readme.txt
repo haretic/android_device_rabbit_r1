@@ -28,8 +28,10 @@ crashes.txt     crash reports: the newest tombstones and ANR traces
 dropbox.txt     Android's crash records of the last week, the newest of each
                 kind
 power.txt       dumpsys battery, power, thermalservice, deviceidle, alarm
-devices.txt     Wi-Fi, Bluetooth and airplane mode on or off; dumpsys input,
-                display, sensorservice, audio, usb
+devices.txt     Wi-Fi, Bluetooth and airplane mode on or off; the mobile
+                network's state (operator codes, registration, VoLTE; no cell
+                and no number); dumpsys input, display, sensorservice, audio,
+                usb
 apps.txt        installed apps and versions, running processes, dumpsys
                 activity activities, meminfo; not there when List of apps
                 was left out

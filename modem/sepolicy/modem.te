@@ -42,6 +42,16 @@ allow r1_modem_nvcheck proc_mounts:file r_file_perms;
 set_prop(r1_modem_nvcheck, vendor_r1_modem_prop)
 allow r1_modem_nvcheck { ccci_device ccci_monitor_device }:chr_file getattr;
 
+# r1-modem-uemode.sh: one AT exchange on the spare mux channel
+type r1_modem_uemode, domain;
+type r1_modem_uemode_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(r1_modem_uemode)
+allow r1_modem_uemode vendor_shell_exec:file rx_file_perms;
+allow r1_modem_uemode vendor_toolbox_exec:file rx_file_perms;
+allow r1_modem_uemode mtk_radio_device:dir search;
+allow r1_modem_uemode mtk_radio_device:lnk_file read;
+allow r1_modem_uemode devpts:chr_file rw_file_perms;
+
 # Devices
 type ccci_device, dev_type;
 type ccci_monitor_device, dev_type;
